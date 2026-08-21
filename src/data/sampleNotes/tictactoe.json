@@ -1,0 +1,190 @@
+{
+  "elements": [
+    {
+      "type": "tictactoe",
+      "id": "ttt-1",
+      "transform": { "values": [1, 0, 0, 0, 1, 0, 0, 0, 1] },
+      "cells": [
+        {
+          "quad": {
+            "topLeft": { "x": 100, "y": 100 },
+            "topRight": { "x": 180, "y": 100 },
+            "bottomRight": { "x": 180, "y": 180 },
+            "bottomLeft": { "x": 100, "y": 180 }
+          },
+          "piece": "X",
+          "pieceStrokes": [
+            {
+              "inputs": {
+                "tool": "PEN",
+                "inputs": [
+                  { "x": 115, "y": 115, "timeMillis": 1000 },
+                  { "x": 165, "y": 165, "timeMillis": 1100 }
+                ]
+              },
+              "brush": { "stockBrush": "BALLPOINT", "color": 4278190080, "size": 3 }
+            },
+            {
+              "inputs": {
+                "tool": "PEN",
+                "inputs": [
+                  { "x": 165, "y": 115, "timeMillis": 1200 },
+                  { "x": 115, "y": 165, "timeMillis": 1300 }
+                ]
+              },
+              "brush": { "stockBrush": "BALLPOINT", "color": 4278190080, "size": 3 }
+            }
+          ]
+        },
+        {
+          "quad": {
+            "topLeft": { "x": 180, "y": 100 },
+            "topRight": { "x": 260, "y": 100 },
+            "bottomRight": { "x": 260, "y": 180 },
+            "bottomLeft": { "x": 180, "y": 180 }
+          },
+          "piece": "EMPTY"
+        },
+        {
+          "quad": {
+            "topLeft": { "x": 260, "y": 100 },
+            "topRight": { "x": 340, "y": 100 },
+            "bottomRight": { "x": 340, "y": 180 },
+            "bottomLeft": { "x": 260, "y": 180 }
+          },
+          "piece": "O"
+        },
+        {
+          "quad": {
+            "topLeft": { "x": 100, "y": 180 },
+            "topRight": { "x": 180, "y": 180 },
+            "bottomRight": { "x": 180, "y": 260 },
+            "bottomLeft": { "x": 100, "y": 260 }
+          },
+          "piece": "EMPTY"
+        },
+        {
+          "quad": {
+            "topLeft": { "x": 180, "y": 180 },
+            "topRight": { "x": 260, "y": 180 },
+            "bottomRight": { "x": 260, "y": 260 },
+            "bottomLeft": { "x": 180, "y": 260 }
+          },
+          "piece": "X",
+          "pieceStrokes": [
+            {
+              "inputs": {
+                "tool": "PEN",
+                "inputs": [
+                  { "x": 195, "y": 195, "timeMillis": 2000 },
+                  { "x": 245, "y": 245, "timeMillis": 2100 }
+                ]
+              },
+              "brush": { "stockBrush": "BALLPOINT", "color": 4278190080, "size": 3 }
+            },
+            {
+              "inputs": {
+                "tool": "PEN",
+                "inputs": [
+                  { "x": 245, "y": 195, "timeMillis": 2200 },
+                  { "x": 195, "y": 245, "timeMillis": 2300 }
+                ]
+              },
+              "brush": { "stockBrush": "BALLPOINT", "color": 4278190080, "size": 3 }
+            }
+          ]
+        },
+        {
+          "quad": {
+            "topLeft": { "x": 260, "y": 180 },
+            "topRight": { "x": 340, "y": 180 },
+            "bottomRight": { "x": 340, "y": 260 },
+            "bottomLeft": { "x": 260, "y": 260 }
+          },
+          "piece": "EMPTY"
+        },
+        {
+          "quad": {
+            "topLeft": { "x": 100, "y": 260 },
+            "topRight": { "x": 180, "y": 260 },
+            "bottomRight": { "x": 180, "y": 340 },
+            "bottomLeft": { "x": 100, "y": 340 }
+          },
+          "piece": "O"
+        },
+        {
+          "quad": {
+            "topLeft": { "x": 180, "y": 260 },
+            "topRight": { "x": 260, "y": 260 },
+            "bottomRight": { "x": 260, "y": 340 },
+            "bottomLeft": { "x": 180, "y": 340 }
+          },
+          "piece": "EMPTY"
+        },
+        {
+          "quad": {
+            "topLeft": { "x": 260, "y": 260 },
+            "topRight": { "x": 340, "y": 260 },
+            "bottomRight": { "x": 340, "y": 340 },
+            "bottomLeft": { "x": 260, "y": 340 }
+          },
+          "piece": "EMPTY"
+        }
+      ],
+      "gameState": "PLAYING",
+      "gridStrokes": [
+        {
+          "inputs": {
+            "tool": "PEN",
+            "inputs": [
+              { "x": 180, "y": 100, "timeMillis": 0 },
+              { "x": 180, "y": 340, "timeMillis": 100 }
+            ]
+          },
+          "brush": { "stockBrush": "BALLPOINT", "color": 4278190080, "size": 3 }
+        },
+        {
+          "inputs": {
+            "tool": "PEN",
+            "inputs": [
+              { "x": 260, "y": 100, "timeMillis": 200 },
+              { "x": 260, "y": 340, "timeMillis": 300 }
+            ]
+          },
+          "brush": { "stockBrush": "BALLPOINT", "color": 4278190080, "size": 3 }
+        },
+        {
+          "inputs": {
+            "tool": "PEN",
+            "inputs": [
+              { "x": 100, "y": 180, "timeMillis": 400 },
+              { "x": 340, "y": 180, "timeMillis": 500 }
+            ]
+          },
+          "brush": { "stockBrush": "BALLPOINT", "color": 4278190080, "size": 3 }
+        },
+        {
+          "inputs": {
+            "tool": "PEN",
+            "inputs": [
+              { "x": 100, "y": 260, "timeMillis": 600 },
+              { "x": 340, "y": 260, "timeMillis": 700 }
+            ]
+          },
+          "brush": { "stockBrush": "BALLPOINT", "color": 4278190080, "size": 3 }
+        }
+      ],
+      "intersections": [
+        { "x": 180, "y": 180 },
+        { "x": 260, "y": 180 },
+        { "x": 180, "y": 260 },
+        { "x": 260, "y": 260 }
+      ]
+    }
+  ],
+  "version": 1,
+  "metadata": {
+    "title": "TicTacToe Game",
+    "createdAt": 1705600000000
+  }
+}

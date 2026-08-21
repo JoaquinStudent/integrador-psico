@@ -1,0 +1,199 @@
+{
+  "elements": [
+    {
+      "type": "glyph",
+      "id": "glyph-title",
+      "transform": { "values": [1, 0, 0, 0, 1, 0, 50, 30, 1] },
+      "text": "Mixed Content Demo",
+      "fontSize": 24,
+      "fontWeight": 700,
+      "color": 4278190080
+    },
+    {
+      "type": "stroke",
+      "id": "underline",
+      "strokes": [
+        {
+          "inputs": {
+            "tool": "PEN",
+            "inputs": [
+              { "x": 50, "y": 62, "timeMillis": 0 },
+              { "x": 280, "y": 62, "timeMillis": 100 }
+            ]
+          },
+          "brush": { "stockBrush": "BALLPOINT", "color": 4278190080, "size": 2 }
+        }
+      ]
+    },
+    {
+      "type": "inkText",
+      "id": "inktext-hello",
+      "transform": { "values": [1, 0, 0, 0, 1, 0, 0, 0, 1] },
+      "lines": [
+        {
+          "tokens": [
+            {
+              "text": "Hello",
+              "quad": {
+                "topLeft": { "x": 50, "y": 80 },
+                "topRight": { "x": 120, "y": 80 },
+                "bottomRight": { "x": 120, "y": 110 },
+                "bottomLeft": { "x": 50, "y": 110 }
+              },
+              "strokeIndices": [0, 1, 2, 3, 4],
+              "baseline": 105
+            },
+            {
+              "text": "World",
+              "quad": {
+                "topLeft": { "x": 130, "y": 80 },
+                "topRight": { "x": 210, "y": 80 },
+                "bottomRight": { "x": 210, "y": 110 },
+                "bottomLeft": { "x": 130, "y": 110 }
+              },
+              "strokeIndices": [5, 6, 7, 8, 9],
+              "baseline": 105
+            }
+          ],
+          "baseline": 105
+        }
+      ],
+      "sourceStrokes": [
+        {
+          "inputs": { "tool": "PEN", "inputs": [
+            { "x": 50, "y": 80, "timeMillis": 0 },
+            { "x": 50, "y": 110, "timeMillis": 50 },
+            { "x": 60, "y": 95, "timeMillis": 100 },
+            { "x": 70, "y": 110, "timeMillis": 150 },
+            { "x": 70, "y": 80, "timeMillis": 200 }
+          ]},
+          "brush": { "stockBrush": "BALLPOINT", "color": 4278190080, "size": 2 }
+        },
+        {
+          "inputs": { "tool": "PEN", "inputs": [
+            { "x": 75, "y": 95, "timeMillis": 250 },
+            { "x": 90, "y": 95, "timeMillis": 300 },
+            { "x": 90, "y": 80, "timeMillis": 350 },
+            { "x": 75, "y": 80, "timeMillis": 400 },
+            { "x": 75, "y": 110, "timeMillis": 450 },
+            { "x": 90, "y": 110, "timeMillis": 500 }
+          ]},
+          "brush": { "stockBrush": "BALLPOINT", "color": 4278190080, "size": 2 }
+        },
+        {
+          "inputs": { "tool": "PEN", "inputs": [
+            { "x": 95, "y": 80, "timeMillis": 550 },
+            { "x": 95, "y": 110, "timeMillis": 600 }
+          ]},
+          "brush": { "stockBrush": "BALLPOINT", "color": 4278190080, "size": 2 }
+        },
+        {
+          "inputs": { "tool": "PEN", "inputs": [
+            { "x": 100, "y": 80, "timeMillis": 650 },
+            { "x": 100, "y": 110, "timeMillis": 700 }
+          ]},
+          "brush": { "stockBrush": "BALLPOINT", "color": 4278190080, "size": 2 }
+        },
+        {
+          "inputs": { "tool": "PEN", "inputs": [
+            { "x": 105, "y": 95, "timeMillis": 750 },
+            { "x": 120, "y": 80, "timeMillis": 800 },
+            { "x": 120, "y": 110, "timeMillis": 850 }
+          ]},
+          "brush": { "stockBrush": "BALLPOINT", "color": 4278190080, "size": 2 }
+        },
+        {
+          "inputs": { "tool": "PEN", "inputs": [
+            { "x": 130, "y": 80, "timeMillis": 900 },
+            { "x": 135, "y": 110, "timeMillis": 950 },
+            { "x": 140, "y": 80, "timeMillis": 1000 },
+            { "x": 145, "y": 110, "timeMillis": 1050 },
+            { "x": 150, "y": 80, "timeMillis": 1100 }
+          ]},
+          "brush": { "stockBrush": "BALLPOINT", "color": 4278190080, "size": 2 }
+        },
+        {
+          "inputs": { "tool": "PEN", "inputs": [
+            { "x": 155, "y": 95, "timeMillis": 1150 },
+            { "x": 165, "y": 80, "timeMillis": 1200 },
+            { "x": 175, "y": 95, "timeMillis": 1250 },
+            { "x": 165, "y": 110, "timeMillis": 1300 },
+            { "x": 155, "y": 95, "timeMillis": 1350 }
+          ]},
+          "brush": { "stockBrush": "BALLPOINT", "color": 4278190080, "size": 2 }
+        },
+        {
+          "inputs": { "tool": "PEN", "inputs": [
+            { "x": 180, "y": 80, "timeMillis": 1400 },
+            { "x": 180, "y": 110, "timeMillis": 1450 },
+            { "x": 180, "y": 95, "timeMillis": 1500 },
+            { "x": 190, "y": 110, "timeMillis": 1550 }
+          ]},
+          "brush": { "stockBrush": "BALLPOINT", "color": 4278190080, "size": 2 }
+        },
+        {
+          "inputs": { "tool": "PEN", "inputs": [
+            { "x": 195, "y": 80, "timeMillis": 1600 },
+            { "x": 195, "y": 110, "timeMillis": 1650 }
+          ]},
+          "brush": { "stockBrush": "BALLPOINT", "color": 4278190080, "size": 2 }
+        },
+        {
+          "inputs": { "tool": "PEN", "inputs": [
+            { "x": 200, "y": 95, "timeMillis": 1700 },
+            { "x": 210, "y": 80, "timeMillis": 1750 },
+            { "x": 210, "y": 110, "timeMillis": 1800 }
+          ]},
+          "brush": { "stockBrush": "BALLPOINT", "color": 4278190080, "size": 2 }
+        }
+      ]
+    },
+    {
+      "type": "shape",
+      "id": "shape-rect",
+      "transform": { "values": [1, 0, 0, 0, 1, 0, 300, 80, 1] },
+      "paths": [
+        {
+          "commands": [
+            { "type": "moveTo", "points": [{ "x": 0, "y": 0 }] },
+            { "type": "lineTo", "points": [{ "x": 100, "y": 0 }] },
+            { "type": "lineTo", "points": [{ "x": 100, "y": 60 }] },
+            { "type": "lineTo", "points": [{ "x": 0, "y": 60 }] },
+            { "type": "close" }
+          ],
+          "fillColor": 2164195328,
+          "strokeColor": 4278255360,
+          "strokeWidth": 2
+        }
+      ]
+    },
+    {
+      "type": "stroke",
+      "id": "doodle-1",
+      "strokes": [
+        {
+          "inputs": {
+            "tool": "PEN",
+            "inputs": [
+              { "x": 50, "y": 150, "timeMillis": 2000 },
+              { "x": 60, "y": 160, "timeMillis": 2050 },
+              { "x": 80, "y": 155, "timeMillis": 2100 },
+              { "x": 100, "y": 170, "timeMillis": 2150 },
+              { "x": 120, "y": 160, "timeMillis": 2200 },
+              { "x": 140, "y": 180, "timeMillis": 2250 },
+              { "x": 160, "y": 165, "timeMillis": 2300 },
+              { "x": 180, "y": 175, "timeMillis": 2350 },
+              { "x": 200, "y": 150, "timeMillis": 2400 }
+            ]
+          },
+          "brush": { "stockBrush": "HIGHLIGHTER", "color": 2164260608, "size": 15 }
+        }
+      ]
+    }
+  ],
+  "version": 1,
+  "metadata": {
+    "title": "Mixed Content Demo",
+    "createdAt": 1705600000000
+  }
+}

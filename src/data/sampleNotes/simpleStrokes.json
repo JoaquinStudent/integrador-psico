@@ -1,0 +1,79 @@
+{
+  "elements": [
+    {
+      "type": "stroke",
+      "id": "stroke-1",
+      "strokes": [
+        {
+          "inputs": {
+            "tool": "PEN",
+            "inputs": [
+              { "x": 100, "y": 100, "timeMillis": 0 },
+              { "x": 110, "y": 105, "timeMillis": 10 },
+              { "x": 130, "y": 110, "timeMillis": 20 },
+              { "x": 160, "y": 108, "timeMillis": 30 },
+              { "x": 200, "y": 100, "timeMillis": 40 }
+            ]
+          },
+          "brush": {
+            "stockBrush": "BALLPOINT",
+            "color": 4278190080,
+            "size": 3
+          }
+        }
+      ]
+    },
+    {
+      "type": "stroke",
+      "id": "stroke-2",
+      "strokes": [
+        {
+          "inputs": {
+            "tool": "PEN",
+            "inputs": [
+              { "x": 100, "y": 150, "timeMillis": 100 },
+              { "x": 120, "y": 160, "timeMillis": 110 },
+              { "x": 150, "y": 180, "timeMillis": 120 },
+              { "x": 180, "y": 170, "timeMillis": 130 },
+              { "x": 200, "y": 150, "timeMillis": 140 }
+            ]
+          },
+          "brush": {
+            "stockBrush": "BALLPOINT",
+            "color": 4278190335,
+            "size": 5
+          }
+        }
+      ]
+    },
+    {
+      "type": "stroke",
+      "id": "stroke-3",
+      "strokes": [
+        {
+          "inputs": {
+            "tool": "PEN",
+            "inputs": [
+              { "x": 250, "y": 100, "timeMillis": 200 },
+              { "x": 260, "y": 120, "timeMillis": 210 },
+              { "x": 280, "y": 150, "timeMillis": 220 },
+              { "x": 300, "y": 140, "timeMillis": 230 },
+              { "x": 320, "y": 110, "timeMillis": 240 },
+              { "x": 340, "y": 100, "timeMillis": 250 }
+            ]
+          },
+          "brush": {
+            "stockBrush": "MARKER",
+            "color": 4294901760,
+            "size": 8
+          }
+        }
+      ]
+    }
+  ],
+  "version": 1,
+  "metadata": {
+    "title": "Simple Strokes Demo",
+    "createdAt": 1705600000000
+  }
+}

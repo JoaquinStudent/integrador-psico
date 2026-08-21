@@ -1,0 +1,214 @@
+.app {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.canvas-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.canvas-container canvas {
+  display: block;
+}
+
+/* Floating toolbar */
+.toolbar {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  flex-wrap: wrap;
+  max-width: calc(100% - 20px);
+}
+
+.toolbar-secondary {
+  top: 56px;
+  gap: 8px;
+  padding: 6px 12px;
+}
+
+.toolbar h1 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  white-space: nowrap;
+}
+
+.toolbar-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background: #ddd;
+}
+
+.toolbar label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: #555;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.toolbar select {
+  padding: 4px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  background: white;
+}
+
+.toolbar button {
+  padding: 5px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: white;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  white-space: nowrap;
+}
+
+.toolbar button:hover {
+  background: #f0f0f0;
+}
+
+.toolbar button:active {
+  background: #e0e0e0;
+}
+
+.toolbar button.active {
+  background: #007aff;
+  color: white;
+  border-color: #007aff;
+}
+
+.file-input {
+  padding: 5px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: white;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.file-input:hover {
+  background: #f0f0f0;
+}
+
+.file-input input[type="file"] {
+  display: none;
+}
+
+.toolbar input[type="checkbox"] {
+  margin: 0;
+}
+
+/* Status bar */
+.status-bar {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #ccc;
+  font-size: 0.75rem;
+  border-radius: 4px;
+  z-index: 100;
+}
+
+.status-bar span {
+  white-space: nowrap;
+}
+
+/* Tool buttons in toolbar */
+.tool-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.tool-buttons button {
+  min-width: 32px;
+  padding: 5px 8px;
+}
+
+/* Color picker */
+.color-picker {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.color-picker input[type="color"] {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.color-picker-item {
+  position: relative;
+  display: inline-block;
+}
+
+.color-picker-item input.mixed-color {
+  opacity: 0.5;
+}
+
+.color-picker-item .mixed-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: bold;
+  pointer-events: none;
+}
+
+.color-picker-item input:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Brush size slider */
+.brush-size {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.brush-size input[type="range"] {
+  width: 60px;
+}
+
+.brush-size span {
+  min-width: 24px;
+  text-align: right;
+  font-size: 0.8rem;
+  color: #666;
+}
