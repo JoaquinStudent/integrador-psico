@@ -1,0 +1,132 @@
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+}
+
+.login-loading {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 40px;
+  box-shadow: 0 2px 4px rgba(37, 29, 75, 0.05);
+}
+
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.login-brand h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--color-deep-violet);
+  margin: 0;
+}
+
+.login-logo {
+  width: 40px;
+  height: 40px;
+  background: var(--color-deep-violet);
+  color: #fff;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 20px;
+}
+
+.login-subtitle {
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.login-field span {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-deep-violet);
+}
+
+.login-field input {
+  padding: 10px 12px;
+  border: 1px solid rgba(107, 104, 133, 0.3);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.login-field input:focus {
+  border-color: var(--color-primary);
+}
+
+.login-error {
+  color: var(--color-error);
+  font-size: 13px;
+  margin: 0;
+}
+
+.login-submit {
+  padding: 12px;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.login-submit:hover {
+  background: var(--color-primary-hover);
+}
+
+.login-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.login-toggle {
+  display: block;
+  margin: 16px auto 0;
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.login-toggle:hover {
+  text-decoration: underline;
+}

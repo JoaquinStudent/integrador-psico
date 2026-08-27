@@ -1,0 +1,222 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={theme:{extend:{"colors":{"primary-container":"#453a7d","surface-container-high":"#eae5ff","outline":"#797581","tertiary-fixed-dim":"#cabff8","surface":"#fcf8ff","on-secondary":"#ffffff","surface-variant":"#e4dfff","on-error":"#ffffff","inverse-surface":"#302d47","on-tertiary-fixed-variant":"#484070","on-tertiary-fixed":"#1c1442","inverse-primary":"#c9beff","on-primary":"#ffffff","tertiary-container":"#453d6d","tertiary-fixed":"#e6deff","on-secondary-fixed-variant":"#483c83","error-container":"#ffdad6","surface-container-low":"#f6f1ff","on-error-container":"#93000a","primary-fixed":"#e6deff","on-primary-fixed":"#1c0c52","secondary-fixed-dim":"#cabeff","on-primary-fixed-variant":"#483d80","on-primary-container":"#b4a8f3","tertiary":"#2e2755","on-secondary-fixed":"#1c0a55","on-secondary-container":"#4a3e85","surface-container-highest":"#e4dfff","surface-container-lowest":"#ffffff","secondary-container":"#bcaefe","secondary-fixed":"#e6deff","on-tertiary":"#ffffff","background":"#fcf8ff","secondary":"#60549c","on-tertiary-container":"#b4aae1","surface-dim":"#dbd6f8","outline-variant":"#c9c4d1","primary-fixed-dim":"#c9beff","on-surface-variant":"#484550","surface-bright":"#fcf8ff","on-surface":"#1b1931","surface-container":"#f0ebff","error":"#ba1a1a","on-background":"#1b1931","inverse-on-surface":"#f3eeff","primary":"#2e2365","surface-tint":"#60559a"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"md":"16px","sm":"8px","gutter":"20px","xl":"32px","lg":"24px","xs":"4px","base":"8px","container-margin":"40px"},"fontFamily":{"headline-sm":["Inter"],"caption":["Inter"],"label-md":["Inter"],"body-md":["Inter"],"title-md":["Inter"],"title-lg":["Inter"],"headline-md":["Inter"],"body-lg":["Inter"],"display-lg":["Inter"]},"fontSize":{"headline-sm":["20px",{"lineHeight":"28px","fontWeight":"600"}],"caption":["11px",{"lineHeight":"14px","fontWeight":"400"}],"label-md":["12px",{"lineHeight":"16px","letterSpacing":"0.01em","fontWeight":"500"}],"body-md":["14px",{"lineHeight":"20px","fontWeight":"400"}],"title-md":["16px",{"lineHeight":"24px","fontWeight":"600"}],"title-lg":["18px",{"lineHeight":"24px","fontWeight":"600"}],"headline-md":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"600"}],"body-lg":["16px",{"lineHeight":"24px","fontWeight":"400"}],"display-lg":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"600"}]}}}}</script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"></head><body class="bg-background font-body-md text-on-surface"><aside class="fixed left-0 top-0 h-full w-72 bg-primary z-50 flex flex-col text-on-primary shadow-xl"><div class="p-lg flex items-center gap-sm"><img alt="Psicograma clinical logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1WZdgapA8mxvHAHnHYgM-FukeZuKM6VCHg_OjWaQSTc4aEQQcNrC23idJYlqTSOUqSWtVodO6TRIywMqwpgg1_Ge_qcBO36XraWxMPGqa2FbPEtH60PaamuL20KEXPOp22VLBYj3OEsdwYVYQk8f0NVczRQRi75a2ixPhXY0NFejdoCbDSFUBo-ZchFN7T8c6vr70tp-iVXXl0fInXhoFbHM4ajgCyF218jr7ZRkKLNwRh7p-RLvAgUaA"><span class="font-headline-md text-headline-md tracking-tight">Psicograma</span></div><nav class="flex-1 px-md mt-lg space-y-xs" data-active-classes="bg-primary-container text-on-primary-container font-bold border-l-4 border-secondary-container"><a class="flex items-center px-md py-sm rounded-lg text-on-primary/70 hover:bg-primary-container hover:text-on-primary transition-all" data-path="dashboard" href="#"><span class="material-symbols-outlined mr-md">dashboard</span><span class="font-label-md text-label-md">Dashboard</span></a><a aria-current="page" class="flex items-center px-md py-sm rounded-lg transition-all bg-primary-container text-on-primary-container font-bold border-l-4 border-secondary-container" data-path="pacientes" href="#"><span class="material-symbols-outlined mr-md">group</span><span class="font-label-md text-label-md">Pacientes</span></a><a class="flex items-center px-md py-sm rounded-lg text-on-primary/70 hover:bg-primary-container hover:text-on-primary transition-all" data-path="tests" href="#"><span class="material-symbols-outlined mr-md">architecture</span><span class="font-label-md text-label-md">Tests</span></a><a class="flex items-center px-md py-sm rounded-lg text-on-primary/70 hover:bg-primary-container hover:text-on-primary transition-all" data-path="sesiones" href="#"><span class="material-symbols-outlined mr-md">history_edu</span><span class="font-label-md text-label-md">Sesiones</span></a><a class="flex items-center px-md py-sm rounded-lg text-on-primary/70 hover:bg-primary-container hover:text-on-primary transition-all" data-path="informes" href="#"><span class="material-symbols-outlined mr-md">description</span><span class="font-label-md text-label-md">Informes</span></a><a class="flex items-center px-md py-sm rounded-lg text-on-primary/70 hover:bg-primary-container hover:text-on-primary transition-all" data-path="ajustes" href="#"><span class="material-symbols-outlined mr-md">settings</span><span class="font-label-md text-label-md">Ajustes</span></a></nav><div class="mt-auto p-lg border-t border-on-primary/10 flex flex-col gap-md"><div class="flex items-center gap-md"><div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center"><span class="material-symbols-outlined text-on-secondary-container">person</span></div><div class="flex flex-col"><span class="font-title-md text-title-md leading-none">Dr. Martinez</span><span class="font-caption text-caption text-on-primary/60">Psicólogo Clínico</span></div></div><a class="flex items-center gap-md px-md py-sm rounded-lg text-on-primary/70 hover:bg-error/20 hover:text-error transition-all" href="#"><span class="material-symbols-outlined">logout</span><span class="font-label-md text-label-md">Cerrar Sesión</span></a></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-16 bg-surface/80 backdrop-blur-xl z-40 flex items-center justify-between px-container-margin"><div class="flex-1"></div><div class="flex items-center gap-lg"><div class="flex items-center bg-surface-container rounded-full px-md py-xs"><span class="material-symbols-outlined text-outline mr-sm">search</span><input class="bg-transparent border-none focus:ring-0 text-body-md w-48" placeholder="Buscar paciente..." type="text"></div><div class="relative flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-container transition-colors cursor-pointer"><span class="material-symbols-outlined text-on-surface-variant">notifications</span><div class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></div></div></div></header><main class="relative pt-16 min-h-screen bg-background p-container-margin"><div class="flex flex-col w-full h-full max-w-[1280px] mx-auto gap-xl pb-xl">
+<!-- Header -->
+<header class="flex items-end justify-between border-b border-secondary/20 pb-md">
+<div>
+<div class="flex items-center gap-sm mb-xs">
+<span class="font-label-md text-label-md text-secondary/70 uppercase tracking-widest">Test Proyectivo</span>
+<span class="w-1 h-1 rounded-full bg-secondary/50"></span>
+<span class="font-label-md text-label-md text-secondary/70">24 May 2024</span>
+</div>
+<h1 class="font-display-lg text-display-lg text-primary m-0 flex items-center gap-md">
+        Persona bajo la lluvia
+        <span class="bg-surface-container text-on-surface font-label-md text-label-md px-sm py-xs rounded flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">person</span> Alexia Rossi
+        </span>
+</h1>
+</div>
+<button class="bg-primary hover:bg-[#8B7FC0] text-on-primary font-title-md text-title-md px-lg py-sm rounded transition-colors shadow-sm focus:ring-2 focus:ring-[#6B5FA8] focus:ring-offset-2 outline-none flex items-center gap-sm">
+<span class="material-symbols-outlined">description</span>
+      Generar informe
+    </button>
+</header>
+<!-- Info Banner -->
+<div class="bg-[#CADFFD] rounded-lg p-md flex items-start gap-md shadow-sm">
+<span class="material-symbols-outlined text-primary mt-xs">info</span>
+<p class="font-body-md text-body-md text-primary m-0">Las sugerencias mostradas corresponden a criterios del manual del test. La interpretación final es responsabilidad del profesional.</p>
+</div>
+<!-- Main Workspace -->
+<div class="flex flex-row gap-xl items-start">
+<!-- Left Column (Drawing) -->
+<div class="w-[35%] flex flex-col gap-md sticky top-24">
+<div class="bg-surface-container-lowest rounded-xl p-md shadow-[0px_2px_4px_rgba(37,29,75,0.05)] relative overflow-hidden group">
+<!-- The Drawing Image Placeholder -->
+<img class="w-full h-auto aspect-[4/3] object-cover rounded shadow-sm opacity-90 mix-blend-multiply" data-alt="A clinical projective drawing of a 'Person Under the Rain' (Persona bajo la lluvia) done in pencil on a horizontal white sheet of paper. The drawing shows a small figure in the bottom left corner, holding an umbrella. The lines are light and sketchy with some visible erased areas. Neutral white background, studio lighting, highly detailed clinical photograph." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQOIU9c-YUSPzsT4yjRQxHNp6WBpKJ4sizjjCCmNjxFS8A_khOIf8GqBxe44JL3ny4K0ygAJzKjjDe6Snz07V4pGl5iEmVaOcczYvpbm0oq_vcBtB6vMohM4jg_aV_-g8Md_sdNSmzA9TZ0_2jGtZQQ6PDc_76OAxb9I4dyoE9GNGeULqxLIPIjU7X9R0AZZgUc3g7FNEaEi3cZ4d54jc6AbwNhHVDcb3ni4ad9UMWcuT2tuMHT2Y">
+<!-- Overlays (Grid & Bounding Box) -->
+<div class="absolute inset-md border border-[#CCA9E8]/30 pointer-events-none">
+<div class="absolute inset-0 grid grid-cols-3 grid-rows-3 divide-x divide-y divide-[#CCA9E8]/30">
+<div></div><div></div><div></div>
+<div></div><div></div><div></div>
+<div></div><div></div><div></div>
+</div>
+<!-- Bounding box representing the figure in bottom left quadrant -->
+<div class="absolute bottom-[10%] left-[10%] w-[25%] h-[35%] border-2 border-[#CCA9E8] border-dashed rounded-sm flex items-center justify-center bg-[#CCA9E8]/10 transition-all duration-300 opacity-0 group-hover:opacity-100">
+<span class="bg-[#CCA9E8] text-tertiary font-caption text-caption px-xs py-[2px] rounded-sm absolute -top-5 left-0">Figura detectada</span>
+</div>
+</div>
+</div>
+<!-- Controls -->
+<div class="bg-surface-container rounded-lg p-sm shadow-sm">
+<h3 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-sm px-xs">Controles de visualización</h3>
+<div class="flex flex-wrap gap-sm">
+<button class="bg-primary/10 text-primary font-label-md text-label-md px-sm py-xs rounded flex items-center gap-xs hover:bg-primary/20 transition-colors shadow-sm ring-1 ring-primary/20">
+<span class="material-symbols-outlined text-[16px]">grid_on</span> Cuadrantes
+          </button>
+<button class="bg-surface-container-lowest text-on-surface font-label-md text-label-md px-sm py-xs rounded flex items-center gap-xs hover:bg-surface-container transition-colors shadow-sm ring-1 ring-outline-variant/30">
+<span class="material-symbols-outlined text-[16px]">crop_free</span> Delimitación de figura
+          </button>
+<button class="bg-surface-container-lowest text-on-surface font-label-md text-label-md px-sm py-xs rounded flex items-center gap-xs hover:bg-surface-container transition-colors shadow-sm ring-1 ring-outline-variant/30">
+<span class="material-symbols-outlined text-[16px]">gesture</span> Mapa de presión
+          </button>
+<button class="bg-surface-container-lowest text-on-surface font-label-md text-label-md px-sm py-xs rounded flex items-center gap-xs hover:bg-surface-container transition-colors shadow-sm ring-1 ring-outline-variant/30">
+<span class="material-symbols-outlined text-[16px]">timeline</span> Secuencia de trazado
+          </button>
+</div>
+</div>
+</div>
+<!-- Right Column (Analysis) -->
+<div class="w-[65%] flex flex-col gap-lg">
+<!-- Tabs -->
+<div class="flex items-center gap-lg border-b border-secondary/20 px-sm">
+<button class="font-title-md text-title-md text-primary pb-sm relative group">
+          Medición objetiva
+          <span class="absolute bottom-0 left-0 w-full h-[3px] bg-primary rounded-t-sm"></span>
+</button>
+<button class="font-title-md text-title-md text-on-surface-variant pb-sm hover:text-primary transition-colors">
+          Elementos detectados
+        </button>
+<button class="font-title-md text-title-md text-on-surface-variant pb-sm hover:text-primary transition-colors flex items-center gap-xs">
+          Verificación profesional
+          <span class="bg-error text-on-error font-caption text-caption rounded-full w-5 h-5 flex items-center justify-center leading-none">3</span>
+</button>
+</div>
+<!-- Metrics Grid -->
+<div class="bg-surface-container-lowest rounded-xl p-lg shadow-[0px_2px_4px_rgba(37,29,75,0.05)] border border-secondary/10">
+<h2 class="font-title-lg text-title-lg text-primary mb-md flex items-center gap-sm">
+<span class="material-symbols-outlined">straighten</span> Datos Estructurales Extraídos
+        </h2>
+<div class="grid grid-cols-2 gap-md">
+<div class="bg-surface-container/50 rounded-lg p-sm border border-secondary/5 flex flex-col justify-center">
+<span class="font-label-md text-label-md text-[#6B6885] uppercase tracking-wider mb-xs">Tamaño de la figura</span>
+<span class="font-headline-sm text-headline-sm text-[#453A7D]">18% de la hoja</span>
+</div>
+<div class="bg-surface-container/50 rounded-lg p-sm border border-secondary/5 flex flex-col justify-center">
+<span class="font-label-md text-label-md text-[#6B6885] uppercase tracking-wider mb-xs">Emplazamiento</span>
+<span class="font-headline-sm text-headline-sm text-[#453A7D]">Cuadrante inferior izq.</span>
+</div>
+<div class="bg-surface-container/50 rounded-lg p-sm border border-secondary/5 flex flex-col justify-center">
+<span class="font-label-md text-label-md text-[#6B6885] uppercase tracking-wider mb-xs">Presión promedio</span>
+<span class="font-headline-sm text-headline-sm text-[#453A7D]">Baja</span>
+</div>
+<div class="bg-surface-container/50 rounded-lg p-sm border border-secondary/5 flex flex-col justify-center">
+<span class="font-label-md text-label-md text-[#6B6885] uppercase tracking-wider mb-xs">Tiempo total</span>
+<span class="font-headline-sm text-headline-sm text-[#453A7D]">4 min 12 s</span>
+</div>
+<div class="bg-surface-container/50 rounded-lg p-sm border border-secondary/5 flex flex-col justify-center">
+<span class="font-label-md text-label-md text-[#6B6885] uppercase tracking-wider mb-xs">Latencia de inicio</span>
+<span class="font-headline-sm text-headline-sm text-[#453A7D]">72 s</span>
+</div>
+<div class="bg-surface-container/50 rounded-lg p-sm border border-secondary/5 flex flex-col justify-center">
+<span class="font-label-md text-label-md text-[#6B6885] uppercase tracking-wider mb-xs">Número de trazos</span>
+<span class="font-headline-sm text-headline-sm text-[#453A7D]">47</span>
+</div>
+<div class="bg-surface-container/50 rounded-lg p-sm border border-secondary/5 flex flex-col justify-center">
+<span class="font-label-md text-label-md text-[#6B6885] uppercase tracking-wider mb-xs">Pausas mayores a 20 s</span>
+<span class="font-headline-sm text-headline-sm text-[#453A7D]">3</span>
+</div>
+<div class="bg-surface-container/50 rounded-lg p-sm border border-secondary/5 flex flex-col justify-center">
+<span class="font-label-md text-label-md text-[#6B6885] uppercase tracking-wider mb-xs">Borrados</span>
+<span class="font-headline-sm text-headline-sm text-[#453A7D]">6</span>
+</div>
+<div class="bg-surface-container/50 rounded-lg p-sm border border-secondary/5 flex flex-col justify-center">
+<span class="font-label-md text-label-md text-[#6B6885] uppercase tracking-wider mb-xs">Secuencia de inicio</span>
+<span class="font-headline-sm text-headline-sm text-[#453A7D]">Paraguas</span>
+</div>
+<div class="bg-surface-container/50 rounded-lg p-sm border border-secondary/5 flex flex-col justify-center">
+<span class="font-label-md text-label-md text-[#6B6885] uppercase tracking-wider mb-xs">Orientación hoja</span>
+<span class="font-headline-sm text-headline-sm text-[#453A7D]">Modificada por paciente</span>
+</div>
+</div>
+</div>
+<!-- Criterios activados -->
+<div class="flex flex-col gap-md">
+<h2 class="font-title-lg text-title-lg text-primary flex items-center gap-sm">
+<span class="material-symbols-outlined">library_books</span> Criterios sugeridos por AI
+        </h2>
+<div class="flex flex-col gap-sm">
+<!-- Suggested Card 1 -->
+<div class="bg-surface-container-lowest rounded-r-xl p-md shadow-[0px_2px_4px_rgba(37,29,75,0.05)] border-y border-r border-secondary/10 border-l-4 border-l-[#C97A1F] flex flex-col gap-sm">
+<div class="flex items-start justify-between">
+<div>
+<h3 class="font-title-md text-title-md text-on-surface m-0">SEC-02 Inicio por el paraguas</h3>
+<span class="font-caption text-caption text-[#6B6885] mt-xs block">Manual PBLL, sección A-6 Secuencia</span>
+</div>
+<span class="bg-[#C97A1F]/10 text-[#C97A1F] font-label-md text-label-md px-xs py-[2px] rounded-sm flex items-center gap-xs">
+<span class="material-symbols-outlined text-[14px]">psychiatry</span> Sugerencia
+              </span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant m-0 bg-surface-container-low p-sm rounded border border-secondary/5">
+              El manual asocia este patrón de ejecución con defensa y control excesivos. Indica una necesidad primordial de protegerse antes de estructurar el sí mismo ante la situación de tensión ambiental.
+            </p>
+<div class="flex justify-end gap-sm mt-xs">
+<button class="text-on-surface-variant hover:text-error font-label-md text-label-md px-sm py-xs transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">close</span> Descartar
+              </button>
+<button class="text-on-surface-variant hover:text-primary font-label-md text-label-md px-sm py-xs transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">edit</span> Editar
+              </button>
+<button class="bg-[#2E7D5B]/10 hover:bg-[#2E7D5B]/20 text-[#2E7D5B] font-label-md text-label-md px-sm py-xs rounded transition-colors shadow-sm ring-1 ring-[#2E7D5B]/30 flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">check</span> Aceptar
+              </button>
+</div>
+</div>
+<!-- Suggested Card 2 -->
+<div class="bg-surface-container-lowest rounded-r-xl p-md shadow-[0px_2px_4px_rgba(37,29,75,0.05)] border-y border-r border-secondary/10 border-l-4 border-l-[#C97A1F] flex flex-col gap-sm opacity-90">
+<div class="flex items-start justify-between">
+<div>
+<h3 class="font-title-md text-title-md text-on-surface m-0">DIM-04 Figura pequeña (18%)</h3>
+<span class="font-caption text-caption text-[#6B6885] mt-xs block">Manual PBLL, sección B-1 Dimensiones</span>
+</div>
+<span class="bg-[#C97A1F]/10 text-[#C97A1F] font-label-md text-label-md px-xs py-[2px] rounded-sm flex items-center gap-xs">
+<span class="material-symbols-outlined text-[14px]">psychiatry</span> Sugerencia
+              </span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant m-0 bg-surface-container-low p-sm rounded border border-secondary/5">
+              Tamaño inferior al 25% de la superficie indica retraimiento, sentimiento de inadecuación y dependencia. Posible inhibición de los impulsos vitales frente a la presión del medio.
+            </p>
+<div class="flex justify-end gap-sm mt-xs">
+<button class="text-on-surface-variant hover:text-error font-label-md text-label-md px-sm py-xs transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">close</span> Descartar
+              </button>
+<button class="text-on-surface-variant hover:text-primary font-label-md text-label-md px-sm py-xs transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">edit</span> Editar
+              </button>
+<button class="bg-[#2E7D5B]/10 hover:bg-[#2E7D5B]/20 text-[#2E7D5B] font-label-md text-label-md px-sm py-xs rounded transition-colors shadow-sm ring-1 ring-[#2E7D5B]/30 flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">check</span> Aceptar
+              </button>
+</div>
+</div>
+<!-- Accepted Card -->
+<div class="bg-surface-container-lowest rounded-r-xl p-md shadow-[0px_2px_4px_rgba(37,29,75,0.05)] border-y border-r border-secondary/10 border-l-4 border-l-[#2E7D5B] flex flex-col gap-sm opacity-70 bg-[#2E7D5B]/5">
+<div class="flex items-start justify-between">
+<div>
+<h3 class="font-title-md text-title-md text-on-surface m-0 flex items-center gap-sm">
+                  UBI-03 Emplazamiento Inferior Izquierdo
+                </h3>
+<span class="font-caption text-caption text-[#6B6885] mt-xs block">Manual PBLL, sección B-2 Emplazamiento</span>
+</div>
+<span class="text-[#2E7D5B] font-label-md text-label-md flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">verified</span> Validado
+              </span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant m-0 bg-surface-container-lowest p-sm rounded border border-secondary/10">
+              Ubicación vinculada a apego al pasado, fijaciones, y conflictos no resueltos en el área materno-infantil. Tendencia a la introversión en situaciones de estrés.
+            </p>
+<div class="flex justify-end gap-sm mt-xs">
+<button class="text-on-surface-variant hover:text-primary font-label-md text-label-md px-sm py-xs transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">undo</span> Deshacer
+              </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Stats -->
+<div class="mt-md border-t border-secondary/10 pt-sm flex justify-end">
+<p class="font-caption text-caption text-on-surface-variant font-mono">
+          76 indicadores procesados automáticamente · <span class="text-[#C97A1F]">35 pendientes de verificación profesional</span>
+</p>
+</div>
+</div>
+</div>
+</div></main></div></body></html>

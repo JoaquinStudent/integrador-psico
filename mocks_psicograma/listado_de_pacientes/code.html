@@ -1,0 +1,185 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={theme:{extend:{"colors":{"primary-container":"#453a7d","surface-container-high":"#eae5ff","outline":"#797581","tertiary-fixed-dim":"#cabff8","surface":"#fcf8ff","on-secondary":"#ffffff","surface-variant":"#e4dfff","on-error":"#ffffff","inverse-surface":"#302d47","on-tertiary-fixed-variant":"#484070","on-tertiary-fixed":"#1c1442","inverse-primary":"#c9beff","on-primary":"#ffffff","tertiary-container":"#453d6d","tertiary-fixed":"#e6deff","on-secondary-fixed-variant":"#483c83","error-container":"#ffdad6","surface-container-low":"#f6f1ff","on-error-container":"#93000a","primary-fixed":"#e6deff","on-primary-fixed":"#1c0c52","secondary-fixed-dim":"#cabeff","on-primary-fixed-variant":"#483d80","on-primary-container":"#b4a8f3","tertiary":"#2e2755","on-secondary-fixed":"#1c0a55","on-secondary-container":"#4a3e85","surface-container-highest":"#e4dfff","surface-container-lowest":"#ffffff","secondary-container":"#bcaefe","secondary-fixed":"#e6deff","on-tertiary":"#ffffff","background":"#fcf8ff","secondary":"#60549c","on-tertiary-container":"#b4aae1","surface-dim":"#dbd6f8","outline-variant":"#c9c4d1","primary-fixed-dim":"#c9beff","on-surface-variant":"#484550","surface-bright":"#fcf8ff","on-surface":"#1b1931","surface-container":"#f0ebff","error":"#ba1a1a","on-background":"#1b1931","inverse-on-surface":"#f3eeff","primary":"#2e2365","surface-tint":"#60559a"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"md":"16px","sm":"8px","gutter":"20px","xl":"32px","lg":"24px","xs":"4px","base":"8px","container-margin":"40px"},"fontFamily":{"headline-sm":["Inter"],"caption":["Inter"],"label-md":["Inter"],"body-md":["Inter"],"title-md":["Inter"],"title-lg":["Inter"],"headline-md":["Inter"],"body-lg":["Inter"],"display-lg":["Inter"]},"fontSize":{"headline-sm":["20px",{"lineHeight":"28px","fontWeight":"600"}],"caption":["11px",{"lineHeight":"14px","fontWeight":"400"}],"label-md":["12px",{"lineHeight":"16px","letterSpacing":"0.01em","fontWeight":"500"}],"body-md":["14px",{"lineHeight":"20px","fontWeight":"400"}],"title-md":["16px",{"lineHeight":"24px","fontWeight":"600"}],"title-lg":["18px",{"lineHeight":"24px","fontWeight":"600"}],"headline-md":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"600"}],"body-lg":["16px",{"lineHeight":"24px","fontWeight":"400"}],"display-lg":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"600"}]}}}}</script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"></head><body class="bg-background font-body-md text-on-surface"><aside class="fixed left-0 top-0 h-full w-72 bg-primary z-50 flex flex-col text-on-primary shadow-xl"><div class="p-lg flex items-center gap-sm"><img alt="Psicograma clinical logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1WZdgapA8mxvHAHnHYgM-FukeZuKM6VCHg_OjWaQSTc4aEQQcNrC23idJYlqTSOUqSWtVodO6TRIywMqwpgg1_Ge_qcBO36XraWxMPGqa2FbPEtH60PaamuL20KEXPOp22VLBYj3OEsdwYVYQk8f0NVczRQRi75a2ixPhXY0NFejdoCbDSFUBo-ZchFN7T8c6vr70tp-iVXXl0fInXhoFbHM4ajgCyF218jr7ZRkKLNwRh7p-RLvAgUaA"><span class="font-headline-md text-headline-md tracking-tight">Psicograma</span></div><nav class="flex-1 px-md mt-lg space-y-xs" data-active-classes="bg-primary-container text-on-primary-container font-bold border-l-4 border-secondary-container"><a class="flex items-center px-md py-sm rounded-lg text-on-primary/70 hover:bg-primary-container hover:text-on-primary transition-all" data-path="dashboard" href="#"><span class="material-symbols-outlined mr-md">dashboard</span><span class="font-label-md text-label-md">Dashboard</span></a><a aria-current="page" class="flex items-center px-md py-sm rounded-lg transition-all bg-primary-container text-on-primary-container font-bold border-l-4 border-secondary-container" data-path="pacientes" href="#"><span class="material-symbols-outlined mr-md">group</span><span class="font-label-md text-label-md">Pacientes</span></a><a class="flex items-center px-md py-sm rounded-lg text-on-primary/70 hover:bg-primary-container hover:text-on-primary transition-all" data-path="tests" href="#"><span class="material-symbols-outlined mr-md">architecture</span><span class="font-label-md text-label-md">Tests</span></a><a class="flex items-center px-md py-sm rounded-lg text-on-primary/70 hover:bg-primary-container hover:text-on-primary transition-all" data-path="sesiones" href="#"><span class="material-symbols-outlined mr-md">history_edu</span><span class="font-label-md text-label-md">Sesiones</span></a><a class="flex items-center px-md py-sm rounded-lg text-on-primary/70 hover:bg-primary-container hover:text-on-primary transition-all" data-path="informes" href="#"><span class="material-symbols-outlined mr-md">description</span><span class="font-label-md text-label-md">Informes</span></a><a class="flex items-center px-md py-sm rounded-lg text-on-primary/70 hover:bg-primary-container hover:text-on-primary transition-all" data-path="ajustes" href="#"><span class="material-symbols-outlined mr-md">settings</span><span class="font-label-md text-label-md">Ajustes</span></a></nav><div class="mt-auto p-lg border-t border-on-primary/10 flex flex-col gap-md"><div class="flex items-center gap-md"><div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center"><span class="material-symbols-outlined text-on-secondary-container">person</span></div><div class="flex flex-col"><span class="font-title-md text-title-md leading-none">Dr. Martinez</span><span class="font-caption text-caption text-on-primary/60">Psicólogo Clínico</span></div></div><a class="flex items-center gap-md px-md py-sm rounded-lg text-on-primary/70 hover:bg-error/20 hover:text-error transition-all" href="#"><span class="material-symbols-outlined">logout</span><span class="font-label-md text-label-md">Cerrar Sesión</span></a></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-16 bg-surface/80 backdrop-blur-xl z-40 flex items-center justify-between px-container-margin"><div class="flex-1"></div><div class="flex items-center gap-lg"><div class="flex items-center bg-surface-container rounded-full px-md py-xs"><span class="material-symbols-outlined text-outline mr-sm">search</span><input class="bg-transparent border-none focus:ring-0 text-body-md w-48" placeholder="Buscar paciente..." type="text"></div><div class="relative flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-container transition-colors cursor-pointer"><span class="material-symbols-outlined text-on-surface-variant">notifications</span><div class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></div></div></div></header><main class="relative pt-16 min-h-screen bg-background p-container-margin"><div class="flex flex-col w-full h-full max-w-[1280px] mx-auto gap-xl">
+<div class="flex items-center justify-between w-full">
+<h1 class="font-display-lg text-display-lg text-on-surface">Pacientes</h1>
+<div class="flex items-center gap-md">
+<div class="relative flex items-center w-80 bg-surface-container-highest rounded-full px-lg py-sm shadow-sm transition-shadow focus-within:shadow-md group">
+<span class="material-symbols-outlined text-on-surface-variant group-focus-within:text-primary transition-colors">search</span>
+<input class="w-full bg-transparent outline-none border-none text-body-md placeholder-on-surface-variant ml-sm text-on-surface focus:ring-0" placeholder="Buscar por nombre o documento..." type="text">
+</div>
+<button class="bg-primary text-on-primary font-label-md text-label-md px-lg py-sm rounded-full flex items-center gap-sm shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all active:scale-95 group">
+<span class="material-symbols-outlined text-on-primary group-hover:rotate-90 transition-transform">add</span>
+        Nuevo paciente
+      </button>
+</div>
+</div>
+<div class="flex items-center gap-sm overflow-x-auto pb-sm snap-x">
+<button class="snap-start shrink-0 px-md py-xs rounded-full bg-secondary-container text-on-secondary-container font-label-md text-label-md transition-colors shadow-sm">Todos</button>
+<button class="snap-start shrink-0 px-md py-xs rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md transition-colors shadow-sm">Con evaluación pendiente</button>
+<button class="snap-start shrink-0 px-md py-xs rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md transition-colors shadow-sm">Menores de edad</button>
+<button class="snap-start shrink-0 px-md py-xs rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md transition-colors shadow-sm">Este mes</button>
+</div>
+<div class="bg-surface-container-lowest rounded-xl shadow-md overflow-hidden flex-1 flex flex-col">
+<div class="overflow-x-auto w-full">
+<table class="w-full text-left border-collapse min-w-[800px]">
+<thead>
+<tr class="bg-surface-container text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">
+<th class="px-lg py-md font-medium rounded-tl-xl">Paciente</th>
+<th class="px-lg py-md font-medium">Documento</th>
+<th class="px-lg py-md font-medium">Edad</th>
+<th class="px-lg py-md font-medium">Última evaluación</th>
+<th class="px-lg py-md font-medium">Evaluaciones</th>
+<th class="px-lg py-md font-medium">Estado</th>
+<th class="px-lg py-md font-medium rounded-tr-xl w-12 text-center">Acciones</th>
+</tr>
+</thead>
+<tbody class="text-body-md text-on-surface font-body-md">
+<tr class="hover:bg-surface-container-low transition-colors group cursor-pointer border-b border-surface-container">
+<td class="px-lg py-md">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-title-md text-title-md shrink-0 shadow-sm group-hover:scale-110 transition-transform">
+                  MR
+                </div>
+<div>
+<div class="font-title-md text-title-md text-on-surface group-hover:text-primary transition-colors">Martina Rossi</div>
+<div class="font-caption text-caption text-on-surface-variant">Paciente recurrente</div>
+</div>
+</div>
+</td>
+<td class="px-lg py-md font-mono text-sm text-on-surface-variant">34.567.890</td>
+<td class="px-lg py-md">28 años</td>
+<td class="px-lg py-md text-on-surface-variant">12 Oct 2023</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-tertiary text-sm">history_edu</span>
+<span class="font-title-md">4</span>
+</div>
+</td>
+<td class="px-lg py-md">
+<div class="inline-flex items-center px-sm py-xs rounded-full bg-error-container/50 text-[#C97A1F] font-label-md text-label-md gap-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-[#C97A1F] animate-pulse"></span>
+                Informe pendiente
+              </div>
+</td>
+<td class="px-lg py-md text-center">
+<button class="w-8 h-8 rounded-full hover:bg-surface-container-highest text-on-surface-variant flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-sm">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group cursor-pointer border-b border-surface-container">
+<td class="px-lg py-md">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-tertiary-container text-on-tertiary-container flex items-center justify-center font-title-md text-title-md shrink-0 shadow-sm group-hover:scale-110 transition-transform">
+                  JP
+                </div>
+<div>
+<div class="font-title-md text-title-md text-on-surface group-hover:text-primary transition-colors">Juan Perez</div>
+<div class="font-caption text-caption text-on-surface-variant">Nuevo ingreso</div>
+</div>
+</div>
+</td>
+<td class="px-lg py-md font-mono text-sm text-on-surface-variant">41.234.567</td>
+<td class="px-lg py-md">15 años</td>
+<td class="px-lg py-md text-on-surface-variant">05 Nov 2023</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-tertiary text-sm">history_edu</span>
+<span class="font-title-md">1</span>
+</div>
+</td>
+<td class="px-lg py-md">
+<div class="inline-flex items-center px-sm py-xs rounded-full bg-[#E6F4EA] text-[#2E7D5B] font-label-md text-label-md gap-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-[#2E7D5B]"></span>
+                Al día
+              </div>
+</td>
+<td class="px-lg py-md text-center">
+<button class="w-8 h-8 rounded-full hover:bg-surface-container-highest text-on-surface-variant flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-sm">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group cursor-pointer border-b border-surface-container">
+<td class="px-lg py-md">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-title-md text-title-md shrink-0 shadow-sm group-hover:scale-110 transition-transform">
+                  LG
+                </div>
+<div>
+<div class="font-title-md text-title-md text-on-surface group-hover:text-primary transition-colors">Laura Gomez</div>
+<div class="font-caption text-caption text-on-surface-variant">Paciente recurrente</div>
+</div>
+</div>
+</td>
+<td class="px-lg py-md font-mono text-sm text-on-surface-variant">28.901.234</td>
+<td class="px-lg py-md">42 años</td>
+<td class="px-lg py-md text-on-surface-variant">20 Sep 2023</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-tertiary text-sm">history_edu</span>
+<span class="font-title-md">12</span>
+</div>
+</td>
+<td class="px-lg py-md">
+<div class="inline-flex items-center px-sm py-xs rounded-full bg-[#E6F4EA] text-[#2E7D5B] font-label-md text-label-md gap-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-[#2E7D5B]"></span>
+                Al día
+              </div>
+</td>
+<td class="px-lg py-md text-center">
+<button class="w-8 h-8 rounded-full hover:bg-surface-container-highest text-on-surface-variant flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-sm">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group cursor-pointer">
+<td class="px-lg py-md">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-title-md text-title-md shrink-0 shadow-sm group-hover:scale-110 transition-transform">
+                  CD
+                </div>
+<div>
+<div class="font-title-md text-title-md text-on-surface group-hover:text-primary transition-colors">Carlos Diaz</div>
+<div class="font-caption text-caption text-on-surface-variant">Derivación</div>
+</div>
+</div>
+</td>
+<td class="px-lg py-md font-mono text-sm text-on-surface-variant">39.876.543</td>
+<td class="px-lg py-md">19 años</td>
+<td class="px-lg py-md text-on-surface-variant">02 Nov 2023</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-tertiary text-sm">history_edu</span>
+<span class="font-title-md">2</span>
+</div>
+</td>
+<td class="px-lg py-md">
+<div class="inline-flex items-center px-sm py-xs rounded-full bg-error-container/50 text-[#C97A1F] font-label-md text-label-md gap-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-[#C97A1F] animate-pulse"></span>
+                Informe pendiente
+              </div>
+</td>
+<td class="px-lg py-md text-center">
+<button class="w-8 h-8 rounded-full hover:bg-surface-container-highest text-on-surface-variant flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-sm">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="mt-auto px-lg py-md bg-surface-container flex items-center justify-between border-t border-surface-variant">
+<span class="font-label-md text-label-md text-on-surface-variant">Página 1 de 12</span>
+<div class="flex items-center gap-sm">
+<button class="w-8 h-8 rounded-full hover:bg-surface-container-high text-on-surface-variant flex items-center justify-center transition-colors shadow-sm bg-surface-container-lowest disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-sm">chevron_left</span>
+</button>
+<button class="w-8 h-8 rounded-full hover:bg-surface-container-high text-on-surface-variant flex items-center justify-center transition-colors shadow-sm bg-surface-container-lowest">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div></main></div></body></html>

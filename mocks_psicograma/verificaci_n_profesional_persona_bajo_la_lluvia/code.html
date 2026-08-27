@@ -1,0 +1,234 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"tertiary":"#2e2755","background":"#fcf8ff","on-tertiary-fixed":"#1c1442","on-secondary":"#ffffff","surface-container-high":"#eae5ff","on-error":"#ffffff","surface-container-low":"#f6f1ff","surface-bright":"#fcf8ff","surface-tint":"#60559a","primary-fixed":"#e6deff","surface-container-highest":"#e4dfff","surface-variant":"#e4dfff","tertiary-fixed-dim":"#cabff8","on-surface":"#1b1931","surface-container-lowest":"#ffffff","tertiary-fixed":"#e6deff","tertiary-container":"#453d6d","outline":"#797581","surface-dim":"#dbd6f8","on-primary-container":"#b4a8f3","secondary":"#60549c","on-surface-variant":"#484550","on-primary":"#ffffff","on-secondary-fixed-variant":"#483c83","on-tertiary-fixed-variant":"#484070","on-primary-fixed-variant":"#483d80","outline-variant":"#c9c4d1","secondary-container":"#bcaefe","error":"#ba1a1a","on-secondary-container":"#4a3e85","on-primary-fixed":"#1c0c52","secondary-fixed-dim":"#cabeff","inverse-primary":"#c9beff","inverse-on-surface":"#f3eeff","surface-container":"#f0ebff","on-tertiary-container":"#b4aae1","error-container":"#ffdad6","primary-fixed-dim":"#c9beff","on-background":"#1b1931","primary":"#2e2365","inverse-surface":"#302d47","on-error-container":"#93000a","primary-container":"#453a7d","secondary-fixed":"#e6deff","on-tertiary":"#ffffff","on-secondary-fixed":"#1c0a55","surface":"#fcf8ff"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"xs":"4px","sm":"8px","xl":"32px","md":"16px","gutter":"20px","lg":"24px","container-margin":"40px","base":"8px"},"fontFamily":{"title-md":["Inter"],"label-md":["Inter"],"body-md":["Inter"],"caption":["Inter"],"headline-sm":["Inter"],"headline-md":["Inter"],"body-lg":["Inter"],"title-lg":["Inter"],"display-lg":["Inter"]},"fontSize":{"title-md":["16px",{"lineHeight":"24px","fontWeight":"600"}],"label-md":["12px",{"lineHeight":"16px","letterSpacing":"0.01em","fontWeight":"500"}],"body-md":["14px",{"lineHeight":"20px","fontWeight":"400"}],"caption":["11px",{"lineHeight":"14px","fontWeight":"400"}],"headline-sm":["20px",{"lineHeight":"28px","fontWeight":"600"}],"headline-md":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"600"}],"body-lg":["16px",{"lineHeight":"24px","fontWeight":"400"}],"title-lg":["18px",{"lineHeight":"24px","fontWeight":"600"}],"display-lg":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"600"}]}}}}</script><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"></head><body class="bg-background font-body-md text-on-background"><aside class="fixed left-0 top-0 h-full w-72 bg-tertiary z-50 flex flex-col border-r border-outline-variant/10"><div class="flex items-center gap-md px-lg py-xl mb-md"><img alt="Psicograma clinical logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1WZdgapA8mxvHAHnHYgM-FukeZuKM6VCHg_OjWaQSTc4aEQQcNrC23idJYlqTSOUqSWtVodO6TRIywMqwpgg1_Ge_qcBO36XraWxMPGqa2FbPEtH60PaamuL20KEXPOp22VLBYj3OEsdwYVYQk8f0NVczRQRi75a2ixPhXY0NFejdoCbDSFUBo-ZchFN7T8c6vr70tp-iVXXl0fInXhoFbHM4ajgCyF218jr7ZRkKLNwRh7p-RLvAgUaA"><span class="font-headline-sm text-on-tertiary tracking-tight">Psicograma</span></div><nav class="flex-1 px-sm space-y-xs" data-active-classes="bg-surface-container-high/10 text-on-tertiary border-l-4 border-secondary-container"><a class="flex items-center gap-md px-md py-md rounded-lg text-on-tertiary-container hover:bg-surface-container-high/5 hover:text-on-tertiary transition-all" data-path="dashboard" href="#"><span class="material-symbols-outlined">dashboard</span><span class="font-label-md">Dashboard</span></a><a aria-current="page" class="flex items-center gap-md px-md py-md rounded-lg transition-all bg-surface-container-high/10 text-on-tertiary border-l-4 border-secondary-container" data-path="pacientes" href="#"><span class="material-symbols-outlined">group</span><span class="font-label-md">Pacientes</span></a><a class="flex items-center gap-md px-md py-md rounded-lg text-on-tertiary-container hover:bg-surface-container-high/5 hover:text-on-tertiary transition-all" data-path="tests" href="#"><span class="material-symbols-outlined">draw</span><span class="font-label-md">Tests</span></a><a class="flex items-center gap-md px-md py-md rounded-lg text-on-tertiary-container hover:bg-surface-container-high/5 hover:text-on-tertiary transition-all" data-path="sesiones" href="#"><span class="material-symbols-outlined">event_note</span><span class="font-label-md">Sesiones</span></a><a class="flex items-center gap-md px-md py-md rounded-lg text-on-tertiary-container hover:bg-surface-container-high/5 hover:text-on-tertiary transition-all" data-path="informes" href="#"><span class="material-symbols-outlined">description</span><span class="font-label-md">Informes</span></a><a class="flex items-center gap-md px-md py-md rounded-lg text-on-tertiary-container hover:bg-surface-container-high/5 hover:text-on-tertiary transition-all" data-path="ajustes" href="#"><span class="material-symbols-outlined">settings</span><span class="font-label-md">Ajustes</span></a></nav></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-16 bg-surface/80 backdrop-blur-xl z-40 flex items-center justify-between px-container-margin shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex items-center gap-md text-on-surface-variant font-body-md"><span>Clínica Psicológica Avanzada</span></div><div class="flex items-center gap-lg"><div class="relative w-64"><span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span><input class="w-full bg-surface-container-low border-none rounded-full py-2 pl-10 pr-4 text-sm focus:ring-1 focus:ring-primary" placeholder="Buscar paciente..." type="text"></div><div class="flex items-center gap-md"><span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">notifications</span><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center cursor-pointer shadow-sm"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="relative pt-16 min-h-screen bg-background"><div class="flex flex-col w-full h-[calc(100vh-4rem)] overflow-hidden">
+<!-- Page Header -->
+<div class="flex flex-col gap-sm p-container-margin pb-md bg-surface shrink-0 relative z-10 shadow-sm">
+<h1 class="font-headline-md text-on-surface">Análisis de Resultados - Persona bajo la lluvia</h1>
+<!-- Advisory Notice -->
+<div class="flex items-start gap-md bg-[#F7F8FC] p-md rounded-lg mt-sm border-l-4 border-[#6B5FA8]">
+<span class="material-symbols-outlined text-secondary shrink-0 mt-0.5">info</span>
+<p class="font-body-md text-on-surface-variant leading-relaxed">
+                Los siguientes indicadores requieren observación directa del profesional. El sistema los presenta organizados para evitar omisiones, sin realizar detección automática.
+            </p>
+</div>
+</div>
+<!-- Two Column Layout -->
+<div class="flex flex-1 overflow-hidden">
+<!-- Left Column: Patient Drawing -->
+<div class="w-[35%] bg-surface-container-lowest border-r border-outline-variant/20 relative flex flex-col p-lg">
+<div class="flex items-center justify-between mb-md">
+<span class="font-title-md text-on-surface">Dibujo Original</span>
+<span class="font-label-md text-on-surface-variant bg-surface px-3 py-1.5 rounded-full border border-outline-variant/20">Paciente: M. Rossi</span>
+</div>
+<div class="relative flex-1 bg-[#F7F8FC] rounded-xl overflow-hidden group">
+<img class="w-full h-full object-contain mix-blend-multiply opacity-90 transition-transform duration-500 hover:scale-105" data-alt="A scanned, slightly imperfect pencil drawing of a person standing under an umbrella in the rain, on white paper. The drawing is clinical and raw, typical of a psychological projective test. The person's facial features are somewhat vague, hands are simplified, and the umbrella is rudimentary. Even lighting, high resolution document scan aesthetic, stark contrast between graphite and paper." id="drawing-img" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBVculwqdM0h10j2g7Kk5r8CHsrSKqDsCy-0R8O9PR8eiUb0K4TLrhmvts-VMdVNH6W9WHGZpkuH137qW5l5WJPNIQM8DI2bY9d559TLayL_bSSMJrJLQlsIW18PlRXdNL0P5Fgj6mAzRwDvSJvxLm5lTv8y-307auGFn5OPTjTYwgwiyyRMjLEt2vy_FqVyW506N6p_aS4iIoFIINItUYsvh0R6LTjzBAT7JNufbuQeEnOcH1j8o">
+<!-- Zoom Controls -->
+<div class="absolute bottom-md right-md flex flex-col gap-2 bg-surface/90 backdrop-blur-sm p-2 rounded-xl shadow-md">
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container-high transition-colors text-on-surface-variant" onclick="document.getElementById('drawing-img').style.transform='scale(1.5)'">
+<span class="material-symbols-outlined">zoom_in</span>
+</button>
+<div class="h-[1px] bg-outline-variant/30 w-full"></div>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container-high transition-colors text-on-surface-variant" onclick="document.getElementById('drawing-img').style.transform='scale(1)'">
+<span class="material-symbols-outlined">zoom_out</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Right Column: Verification Panel -->
+<div class="w-[65%] bg-surface flex flex-col h-full relative">
+<!-- Tabs -->
+<div class="flex items-center gap-xl px-lg border-b border-outline-variant/20 pt-md shrink-0">
+<button class="pb-md font-title-md text-on-surface-variant hover:text-secondary transition-colors relative">
+                    Medición objetiva
+                </button>
+<button class="pb-md font-title-md text-on-surface-variant hover:text-secondary transition-colors relative">
+                    Elementos detectados
+                </button>
+<button class="pb-md font-title-md text-secondary relative">
+                    Verificación profesional
+                    <div class="absolute bottom-0 left-0 right-0 h-0.5 bg-secondary rounded-t-full"></div>
+</button>
+</div>
+<!-- Tab Content (Scrollable) -->
+<div class="flex-1 overflow-y-auto p-lg pb-32">
+<div class="max-w-2xl mx-auto flex flex-col gap-md">
+<!-- Section: Facial Features (Expanded) -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/20 overflow-hidden transition-all duration-300">
+<button class="w-full flex items-center justify-between p-lg bg-surface-container-low/50 hover:bg-surface-container-low transition-colors" onclick="this.nextElementSibling.classList.toggle('hidden'); this.querySelector('.chevron').classList.toggle('rotate-180')">
+<div class="flex flex-col items-start gap-1">
+<span class="font-headline-sm text-on-surface">Rasgos faciales</span>
+<span class="font-label-md text-on-surface-variant uppercase tracking-wider">0 de 12 marcados</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant chevron transition-transform duration-300 rotate-180">expand_more</span>
+</button>
+<div class="p-4 flex flex-col gap-2">
+<!-- Checklist Items -->
+<label class="flex items-center justify-between p-3 rounded-lg hover:bg-[#CADFFD]/20 transition-colors cursor-pointer group border border-transparent hover:border-[#CADFFD]/50">
+<div class="flex items-center gap-md">
+<div class="w-5 h-5 rounded border border-[#6B6885]/50 group-hover:border-secondary flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-[16px] text-transparent transition-colors">check</span>
+</div>
+<span class="font-body-md text-on-surface">Ojos sin pupilas</span>
+</div>
+<button class="text-on-surface-variant/50 hover:text-secondary transition-colors" title="Ver criterio diagnóstico">
+<span class="material-symbols-outlined text-[20px]">info</span>
+</button>
+</label>
+<label class="flex items-center justify-between p-3 rounded-lg hover:bg-[#CADFFD]/20 transition-colors cursor-pointer group border border-transparent hover:border-[#CADFFD]/50">
+<div class="flex items-center gap-md">
+<div class="w-5 h-5 rounded border border-[#6B6885]/50 group-hover:border-secondary flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-[16px] text-transparent transition-colors">check</span>
+</div>
+<span class="font-body-md text-on-surface">Ojos muy marcados</span>
+</div>
+<button class="text-on-surface-variant/50 hover:text-secondary transition-colors">
+<span class="material-symbols-outlined text-[20px]">info</span>
+</button>
+</label>
+<label class="flex items-center justify-between p-3 rounded-lg bg-[#E8F5E9] border border-[#2E7D5B]/30 transition-colors cursor-pointer group">
+<div class="flex items-center gap-md">
+<div class="w-5 h-5 rounded bg-[#2E7D5B] flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-[16px] text-white">check</span>
+</div>
+<span class="font-body-md text-[#2E7D5B] font-medium">Boca como línea recta</span>
+</div>
+<button class="text-[#2E7D5B]/70 hover:text-[#2E7D5B] transition-colors">
+<span class="material-symbols-outlined text-[20px]">info</span>
+</button>
+</label>
+<label class="flex items-center justify-between p-3 rounded-lg hover:bg-[#CADFFD]/20 transition-colors cursor-pointer group border border-transparent hover:border-[#CADFFD]/50">
+<div class="flex items-center gap-md">
+<div class="w-5 h-5 rounded border border-[#6B6885]/50 group-hover:border-secondary flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-[16px] text-transparent transition-colors">check</span>
+</div>
+<span class="font-body-md text-on-surface">Dientes visibles</span>
+</div>
+<button class="text-on-surface-variant/50 hover:text-secondary transition-colors">
+<span class="material-symbols-outlined text-[20px]">info</span>
+</button>
+</label>
+<label class="flex items-center justify-between p-3 rounded-lg bg-[#E8F5E9] border border-[#2E7D5B]/30 transition-colors cursor-pointer group">
+<div class="flex items-center gap-md">
+<div class="w-5 h-5 rounded bg-[#2E7D5B] flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-[16px] text-white">check</span>
+</div>
+<span class="font-body-md text-[#2E7D5B] font-medium">Cejas muy marcadas</span>
+</div>
+<button class="text-[#2E7D5B]/70 hover:text-[#2E7D5B] transition-colors">
+<span class="material-symbols-outlined text-[20px]">info</span>
+</button>
+</label>
+<label class="flex items-center justify-between p-3 rounded-lg hover:bg-[#CADFFD]/20 transition-colors cursor-pointer group border border-transparent hover:border-[#CADFFD]/50">
+<div class="flex items-center gap-md">
+<div class="w-5 h-5 rounded border border-[#6B6885]/50 group-hover:border-secondary flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-[16px] text-transparent transition-colors">check</span>
+</div>
+<span class="font-body-md text-on-surface">Rostro sin rasgos</span>
+</div>
+<button class="text-on-surface-variant/50 hover:text-secondary transition-colors">
+<span class="material-symbols-outlined text-[20px]">info</span>
+</button>
+</label>
+</div>
+</div>
+<!-- Collapsed Sections -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/20 overflow-hidden transition-all duration-300 opacity-80 hover:opacity-100">
+<button class="w-full flex items-center justify-between p-lg hover:bg-surface-container-low transition-colors" onclick="this.nextElementSibling.classList.toggle('hidden'); this.querySelector('.chevron').classList.toggle('rotate-180')">
+<div class="flex flex-col items-start gap-1">
+<span class="font-title-lg text-on-surface">Extremidades y manos</span>
+<span class="font-label-md text-on-surface-variant uppercase tracking-wider">0 de 8 marcados</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant chevron transition-transform duration-300">expand_more</span>
+</button>
+<div class="p-4 hidden flex-col gap-2">
+<div class="p-4 text-center text-on-surface-variant font-body-md italic">Opciones ocultas por brevedad...</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/20 overflow-hidden transition-all duration-300 opacity-80 hover:opacity-100">
+<button class="w-full flex items-center justify-between p-lg hover:bg-surface-container-low transition-colors" onclick="this.nextElementSibling.classList.toggle('hidden'); this.querySelector('.chevron').classList.toggle('rotate-180')">
+<div class="flex flex-col items-start gap-1">
+<span class="font-title-lg text-on-surface">Vestimenta y accesorios</span>
+<span class="font-label-md text-on-surface-variant uppercase tracking-wider">0 de 8 marcados</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant chevron transition-transform duration-300">expand_more</span>
+</button>
+<div class="p-4 hidden flex-col gap-2">
+<div class="p-4 text-center text-on-surface-variant font-body-md italic">Opciones ocultas por brevedad...</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/20 overflow-hidden transition-all duration-300 opacity-80 hover:opacity-100">
+<button class="w-full flex items-center justify-between p-lg hover:bg-surface-container-low transition-colors" onclick="this.nextElementSibling.classList.toggle('hidden'); this.querySelector('.chevron').classList.toggle('rotate-180')">
+<div class="flex flex-col items-start gap-1">
+<span class="font-title-lg text-on-surface">Detalles del paraguas</span>
+<span class="font-label-md text-on-surface-variant uppercase tracking-wider">0 de 4 marcados</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant chevron transition-transform duration-300">expand_more</span>
+</button>
+<div class="p-4 hidden flex-col gap-2">
+<div class="p-4 text-center text-on-surface-variant font-body-md italic">Opciones ocultas por brevedad...</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/20 overflow-hidden transition-all duration-300 opacity-80 hover:opacity-100">
+<button class="w-full flex items-center justify-between p-lg hover:bg-surface-container-low transition-colors" onclick="this.nextElementSibling.classList.toggle('hidden'); this.querySelector('.chevron').classList.toggle('rotate-180')">
+<div class="flex flex-col items-start gap-1">
+<span class="font-title-lg text-on-surface">Otros indicadores</span>
+<span class="font-label-md text-on-surface-variant uppercase tracking-wider">0 de 3 marcados</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant chevron transition-transform duration-300">expand_more</span>
+</button>
+<div class="p-4 hidden flex-col gap-2">
+<div class="p-4 text-center text-on-surface-variant font-body-md italic">Opciones ocultas por brevedad...</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Fixed Bottom Action Bar -->
+<div class="absolute bottom-0 left-0 right-0 bg-surface/95 backdrop-blur-md p-lg border-t border-outline-variant/20 shadow-[0_-4px_16px_rgba(37,29,75,0.05)]">
+<div class="max-w-2xl mx-auto flex items-center justify-between gap-xl">
+<!-- Progress -->
+<div class="flex-1 flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-on-surface-variant uppercase tracking-wider">Progreso general</span>
+<span class="font-title-md text-secondary">6 de 35</span>
+</div>
+<div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-[#CCA9E8] rounded-full transition-all duration-1000 ease-out" style="width: 17%"></div>
+</div>
+</div>
+<!-- Actions -->
+<button class="bg-[#453A7D] hover:bg-[#8B7FC0] text-white font-title-md px-8 py-3 rounded-lg shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-[#6B5FA8] focus:ring-offset-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px]">save</span>
+                        Guardar verificación
+                    </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+    // Add simple interactivity for checkboxes
+    document.querySelectorAll('.flex.items-center.justify-between.p-3.rounded-lg').forEach(label => {
+        label.addEventListener('click', function(e) {
+            if(e.target.closest('button')) return; // ignore info button clicks
+            
+            const isChecked = this.classList.contains('bg-[#E8F5E9]');
+            const checkbox = this.querySelector('.w-5');
+            const icon = this.querySelector('.material-symbols-outlined.text-\\[16px\\]');
+            const text = this.querySelector('.font-body-md');
+            
+            if(isChecked) {
+                // Uncheck
+                this.className = 'flex items-center justify-between p-3 rounded-lg hover:bg-[#CADFFD]/20 transition-colors cursor-pointer group border border-transparent hover:border-[#CADFFD]/50';
+                checkbox.className = 'w-5 h-5 rounded border border-[#6B6885]/50 group-hover:border-secondary flex items-center justify-center transition-colors';
+                icon.className = 'material-symbols-outlined text-[16px] text-transparent transition-colors';
+                text.className = 'font-body-md text-on-surface';
+            } else {
+                // Check
+                this.className = 'flex items-center justify-between p-3 rounded-lg bg-[#E8F5E9] border border-[#2E7D5B]/30 transition-colors cursor-pointer group';
+                checkbox.className = 'w-5 h-5 rounded bg-[#2E7D5B] flex items-center justify-center transition-colors';
+                icon.className = 'material-symbols-outlined text-[16px] text-white';
+                text.className = 'font-body-md text-[#2E7D5B] font-medium';
+            }
+        });
+    });
+</script></main></div></body></html>
