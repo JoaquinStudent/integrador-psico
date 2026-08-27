@@ -217,7 +217,6 @@ export type Database = {
         }
         Relationships: []
       }
-    }
       indicators: {
         Row: {
           id: string
@@ -276,6 +275,7 @@ export type Database = {
         }
         Relationships: []
       }
+    }
     Views: Record<string, never>
     Functions: Record<string, never>
     Enums: Record<string, never>

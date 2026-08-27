@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { PBLL_INDICATORS, INDICATOR_SECTIONS, INDICATOR_CATEGORIES } from '../data/pbll-indicators'
 import { analyzeDrawing } from '../lib/analyzeDrawing'
@@ -9,7 +9,6 @@ type Tab = 'objective' | 'detected' | 'verification'
 
 export function AnalysisPage() {
   const { id: sessionId } = useParams<{ id: string }>()
-  const navigate = useNavigate()
   const [tab, setTab] = useState<Tab>('objective')
   const [indicators, setIndicators] = useState<Indicator[]>([])
   const [metrics, setMetrics] = useState<Record<string, unknown> | null>(null)
@@ -25,18 +24,16 @@ export function AnalysisPage() {
   }, [sessionId])
 
   async function loadData() {
-    const [metricsRes, indicatorsRes, sessionRes, drawingRes] = await Promise.all([
-      supabase.from('stroke_metrics').select('*').eq('session_id', sessionId!).single(),
-      supabase.from('indicators').select('*').eq('session_id', sessionId!),
-      supabase.from('sessions').select('patient_id, patients(full_name)').eq('id', sessionId!).single(),
-      supabase.from('drawing_data').select('final_image_url').eq('session_id', sessionId!).single(),
-    ])
+    const metricsRes = await supabase.from('stroke_metrics').select('*').eq('session_id', sessionId!).single()
+    const indicatorsRes = await supabase.from('indicators').select('*').eq('session_id', sessionId!)
+    const sessionRes = await supabase.from('sessions').select('patient_id').eq('id', sessionId!).single()
+    const drawingRes = await supabase.from('drawing_data').select('final_image_url').eq('session_id', sessionId!).single()
 
-    if (metricsRes.data) setMetrics(metricsRes.data)
-    if (indicatorsRes.data) setIndicators(indicatorsRes.data as Indicator[])
+    if (metricsRes.data) setMetrics(metricsRes.data as Record<string, unknown>)
+    if (indicatorsRes.data) setIndicators(indicatorsRes.data)
     if (sessionRes.data) {
-      const p = sessionRes.data as unknown as { patients: { full_name: string } }
-      setPatient(p.patients)
+      const { data: patientData } = await supabase.from('patients').select('full_name').eq('id', sessionRes.data.patient_id).single()
+      if (patientData) setPatient(patientData)
     }
     if (drawingRes.data?.final_image_url) {
       const { data: urlData } = supabase.storage
@@ -283,7 +280,7 @@ function VerificationTab({ indicators, expandedSections, onToggleSection, onTogg
         <div key={cat.code} className="verification-category">
           <h3 className="category-title">{cat.code}. {cat.name}</h3>
           {INDICATOR_SECTIONS
-            .filter(s => cat.sections.includes(s.code))
+            .filter(s => (cat.sections as readonly string[]).includes(s.code))
             .map(section => {
               const sectionIndicators = PBLL_INDICATORS.filter(
                 i => i.section === section.code && (i.detection === 'manual' || i.detection === 'semi')

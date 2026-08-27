@@ -19,15 +19,13 @@ export function PostSessionPage() {
   }, [sessionId])
 
   async function loadData() {
-    const [sessionRes, obsRes, audioRes] = await Promise.all([
-      supabase.from('sessions').select('patient_id, patients(full_name)').eq('id', sessionId!).single(),
-      supabase.from('observations').select('additional_notes').eq('session_id', sessionId!).single(),
-      supabase.from('audio_recordings').select('storage_path, transcription_json').eq('session_id', sessionId!).limit(1).single(),
-    ])
+    const sessionRes = await supabase.from('sessions').select('patient_id').eq('id', sessionId!).single()
+    const obsRes = await supabase.from('observations').select('additional_notes').eq('session_id', sessionId!).single()
+    const audioRes = await supabase.from('audio_recordings').select('storage_path, transcription_json').eq('session_id', sessionId!).limit(1).single()
 
     if (sessionRes.data) {
-      const p = sessionRes.data as unknown as { patients: { full_name: string } }
-      setPatient(p.patients)
+      const { data: patientData } = await supabase.from('patients').select('full_name').eq('id', sessionRes.data.patient_id).single()
+      if (patientData) setPatient(patientData)
     }
     if (obsRes.data?.additional_notes) setNotes(obsRes.data.additional_notes)
     if (audioRes.data) {
