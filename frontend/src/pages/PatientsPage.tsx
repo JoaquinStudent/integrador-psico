@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { usePatients, getInitials, getAge, formatDate } from '../lib/patients'
 import { useAuth } from '../lib/auth'
 import { supabase, supabaseConfigured } from '../lib/supabase'
-import type { Patient, PatientInsert, PatientUpdate } from '../types/database'
+import type { Patient, PatientInput } from '../types/api'
 
 const FILTERS = ['Todos', 'Con evaluación pendiente', 'Menores de edad', 'Este mes'] as const
 const PAGE_SIZE = 10
@@ -66,15 +66,15 @@ export function PatientsPage() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const pageData = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
 
-  const handleCreate = async (data: PatientInsert) => {
+  const handleCreate = async (data: PatientInput) => {
     const result = await createPatient(data)
     if (result?.error) return
     setShowModal(false)
   }
 
-  const handleEdit = async (data: PatientInsert) => {
+  const handleEdit = async (data: PatientInput) => {
     if (!editPatient) return
-    const result = await updatePatient(editPatient.id, data as PatientUpdate)
+    const result = await updatePatient(editPatient.id, data as Partial<PatientInput>)
     if (result?.error) return
     setEditPatient(null)
   }
@@ -202,7 +202,7 @@ export function PatientsPage() {
 
 function PatientModal({ onClose, onSubmit, userId, initial }: {
   onClose: () => void
-  onSubmit: (data: PatientInsert) => Promise<void>
+  onSubmit: (data: PatientInput) => Promise<void>
   userId: string
   initial?: Patient
 }) {

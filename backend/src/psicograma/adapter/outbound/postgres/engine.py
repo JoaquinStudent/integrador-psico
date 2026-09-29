@@ -69,10 +69,21 @@ async def session_for(user_id: UUID) -> AsyncIterator[AsyncSession]:
     """
     async with _session_factory() as session, session.begin():
         claims = json.dumps({"sub": str(user_id), "role": "authenticated"})
-        await session.execute(text("SET LOCAL ROLE authenticated"))
+
+        # set_config en vez de SET LOCAL: `SET` es una sentencia utilitaria y
+        # Postgres no admite parametros en ella ("syntax error at or near $1").
+        # set_config es una funcion, acepta el bind, y con is_local=true equivale
+        # a SET LOCAL. Interpolar el JSON en el SQL seria la otra salida, y seria
+        # una via de inyeccion.
         await session.execute(
-            text("SET LOCAL request.jwt.claims = :claims"), {"claims": claims}
+            text("select set_config('request.jwt.claims', :claims, true)"),
+            {"claims": claims},
         )
+        # El cambio de rol va despues: primero se deja la identidad puesta, luego
+        # se bajan los privilegios. `authenticated` no tiene BYPASSRLS, asi que a
+        # partir de aqui las policies se evaluan aunque el rol de conexion sea
+        # superusuario.
+        await session.execute(text("SET LOCAL ROLE authenticated"))
         yield session
 
 

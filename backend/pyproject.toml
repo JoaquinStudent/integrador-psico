@@ -42,6 +42,12 @@ packages = ["src/psicograma"]
 pythonpath = ["src"]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+# Un solo event loop para toda la corrida. El engine es de modulo, y asyncpg ata
+# sus conexiones al loop que las creo: con un loop por test, una conexion que
+# cruza de loop no falla, se cuelga. Los tests de dominio no usan red y no se
+# ven afectados.
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
 
 [tool.ruff]
 line-length = 100
