@@ -91,6 +91,10 @@ CREATE TABLE attitude_catalog (
     display_order   SMALLINT NOT NULL DEFAULT 0
 );
 
+-- Postgres no indexa las FK solo. Esta se recorre en cada consulta del catalogo
+-- y en el join de secciones al generar el informe.
+CREATE INDEX idx_indicator_catalog_section ON indicator_catalog(section_id);
+
 ALTER TABLE tests                 ENABLE ROW LEVEL SECURITY;
 ALTER TABLE indicator_categories  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE manual_sections       ENABLE ROW LEVEL SECURITY;
