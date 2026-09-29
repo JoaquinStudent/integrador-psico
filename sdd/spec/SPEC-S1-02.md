@@ -8,7 +8,7 @@
 
 Implementar la pantalla de listado de pacientes con tabla paginada, busqueda por nombre/documento, y filtros predefinidos.
 
-**Mock de referencia:** `mocks_psicograma/listado_de_pacientes/screen.png`
+**Mock de referencia:** `mocks/listado-pacientes/screen.png`
 
 ---
 
@@ -104,6 +104,6 @@ AND un boton "Nuevo paciente" prominente
 
 ## Validacion de Dominio
 
-- Tabla: `patients` (ver DOMAIN.md)
+- Tabla: `patients` (ver domain.md)
 - Columna edad: calculada desde `birth_date`, no almacenada
 - Estado "Informe pendiente" / "Al dia": derivado de join con `sessions` y `reports`

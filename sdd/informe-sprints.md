@@ -61,7 +61,7 @@
 | ID | Tarea | Estado |
 |---|---|---|
 | S3-01 | Observaciones post-sesion + transcripcion Whisper | DONE | PostSessionPage: transcripcion, notas editables, flujo → analisis |
-| S3-02 | JSON de ~202 indicadores PBLL | DONE | 202 indicadores, 18 secciones, 4 categorias. 24 auto + 25 semi + 153 manual |
+| S3-02 | JSON de 201 indicadores PBLL | DONE | 201 indicadores, 18 secciones, 4 categorias. 23 auto + 25 semi + 153 manual |
 | S3-03 | Medicion objetiva automatica | DONE | detectObjectiveIndicators(): DIM, UBI, PRE, TMP, BOR auto-detect con umbrales calibrables |
 | S3-04 | Criterios sugeridos por AI (Edge Function) | DONE | analyze-drawing: OpenRouter LLM → sugiere indicadores PBLL con confianza, upsert en indicators |
 | S3-05 | Checklist profesional por categorias | DONE | AnalysisPage: 3 tabs, checklist por 18 secciones, accept/reject, progress bar |

@@ -44,7 +44,7 @@ Al cerrar la sesión, el sistema entrega en el panel privado del examinador un
 1. **Medición objetiva** — métricas estructurales extraídas automáticamente
    del dibujo (tamaño, emplazamiento, presión promedio, tiempo total,
    latencia, secuencia de inicio, conteo de trazos/pausas/borrados).
-2. **Sugerencias del manual** — cruce de las métricas con los ~149 indicadores
+2. **Sugerencias del manual** — cruce de las métricas con los 201 indicadores
    del manual PBLL, cada sugerencia referenciada a su sección del manual y
    verificable por el profesional (aceptar / editar / descartar).
 
@@ -81,7 +81,7 @@ durante la sesión.
 
 El instrumento psicológico base es el test proyectivo **Persona Bajo la
 Lluvia (PBLL)**, documentado en el manual de referencia almacenado en
-`Test/Manual_del_Test_Persona_bajo_la_lluvia.md`.
+`manual-pbll/manual-persona-bajo-la-lluvia.md`.
 
 El manual organiza los indicadores en cuatro categorías:
 
@@ -93,7 +93,7 @@ El manual organiza los indicadores en cuatro categorías:
 | **D** | Mecanismos de defensa | D-1 a D-7 | Desplazamiento, regresión, anulación, aislamiento, represión, inhibición, defensas maníacas |
 
 Los indicadores están codificados en el sistema con 18 prefijos (`DIM-*`,
-`UBI-*`, `TRZ-*`, etc.) según se define en `DOMAIN.md`.
+`UBI-*`, `TRZ-*`, etc.) según se define en `domain.md`.
 
 ---
 

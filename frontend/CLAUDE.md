@@ -33,7 +33,7 @@ npm run lint             # ESLint
 
 ## Design System
 
-Clinical Precision — see `../mocks_psicograma/clinical_precision/DESIGN.md`
+Clinical Precision — see `../mocks/design-system/design.md`
 - Font: Inter (400, 500, 600, 700)
 - Primary: Deep Violet #251D4B (sidebar, headings)
 - Action: #453A7D (buttons)
@@ -44,5 +44,5 @@ Clinical Precision — see `../mocks_psicograma/clinical_precision/DESIGN.md`
 ## Conventions
 
 - UI language: Spanish
-- All mocks in `../mocks_psicograma/` (14 screens with screen.png + code.html)
-- Test manual in `../Test/Manual_del_Test_Persona_bajo_la_lluvia.md`
+- All mocks in `../mocks/` (13 pantallas con screen.png + code.html, mas design-system y logo)
+- Test manual in `../sdd/manual-pbll/manual-persona-bajo-la-lluvia.md`

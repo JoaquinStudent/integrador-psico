@@ -6,7 +6,7 @@
 > documento de tests de software ni de pruebas del sistema.**
 >
 > Los códigos entre corchetes (e.g. `[DIM-01]`) corresponden a la
-> codificación interna del sistema definida en `docs/DOMAIN.md`.
+> codificación interna del sistema definida en `sdd/domain.md`.
 
 ---
 

@@ -1,4 +1,4 @@
-# DOMAIN.md — Lenguaje Ubicuo y Convenciones
+# domain.md — Lenguaje Ubicuo y Convenciones
 
 > Ultima actualizacion: 2026-08-25
 
@@ -39,8 +39,11 @@
 | FKs | `patient_id`, `session_id` | `{tabla_singular}_id` |
 | Timestamps | `created_at`, `updated_at` | Siempre con timezone |
 | Booleanos | `is_active`, `has_umbrella` | Prefijo `is_` o `has_` |
-| Enums | `status`, `test_type` | Valores en snake_case: `draft`, `validated` |
-| JSON | `strokes_json`, `sections_json` | Sufijo `_json` |
+| Enums | `status`, `detection_type` | Valores en snake_case: `draft`, `validated` |
+| PK compuesta | `(session_id, indicator_code)` | Cuando la clave natural es la correcta; sin `id` surrogate redundante |
+| Catalogos | `indicator_catalog`, `quick_mark_catalog` | Sufijo `_catalog` para tablas de referencia estables |
+| Tablas puente | `session_indicators`, `session_quick_marks` | Prefijo con la entidad padre |
+| JSONB | `strokes.points` | Solo para datos atomicos que nunca se consultan por dentro. Sin sufijo `_json`. Una lista que se filtra u ordena va en su propia tabla (1FN) |
 
 ### Codigo TypeScript/React
 
@@ -56,13 +59,26 @@
 | CSS files | `Sidebar.css` | Mismo nombre que el componente |
 | Rutas | `/pacientes`, `/sesiones` | kebab-case, espanol |
 
-### API / Edge Functions
+### API (FastAPI)
 
 | Convencion | Ejemplo | Regla |
 |---|---|---|
-| Endpoints | `analyze-drawing`, `generate-report` | kebab-case, verbo-sustantivo |
+| Rutas | `/api/v1/sessions/{id}/analyze` | kebab-case, sustantivo-recurso en plural |
 | Request body | `{ session_id, indicators }` | snake_case (match DB) |
-| Response body | `{ data, error }` | Envoltorio estandar Supabase |
+| Response body | El recurso directo | Sin envoltorio. Los errores van por status HTTP + `application/problem+json` (RFC 9457) |
+
+### Repositorio (directorios y documentos)
+
+| Convencion | Ejemplo | Regla |
+|---|---|---|
+| Directorios | `manual-pbll/`, `referencia-ink-playground/` | kebab-case, minusculas, sin acentos ni espacios |
+| Documentos | `api-contracts.md`, `informe-sprints.md` | kebab-case, minusculas |
+| Orden explicito | `01-lean-canvas/`, `05-prototipo/` | Prefijo numerico con cero solo donde el orden importa |
+| Excepciones | `README.md`, `LICENSE`, `CONTRIBUTING.md`, `CLAUDE.md`, `AGENTS.md`, `SPEC-*.md` | Convenciones de ecosistema o de la regla R1. No se renombran |
+
+**Prohibido:** acentos en nombres de archivo (se corrompen a `_`: `an_lisis`, `sesi_n`), espacios,
+espacios iniciales, y mayusculas fuera de las excepciones. Los renombrados van con `git mv`; los que
+solo cambian mayusculas necesitan dos pasos en macOS (`git mv x tmp && git mv tmp X`).
 
 ---
 

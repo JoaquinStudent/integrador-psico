@@ -1,4 +1,4 @@
-# MEMORY.md — Registro de Decisiones y Estado del Sistema
+# memory.md — Registro de Decisiones y Estado del Sistema
 
 > Ultima actualizacion: 2026-08-26
 
@@ -8,7 +8,7 @@
 
 | Componente | Estado | Notas |
 |---|---|---|
-| Proyecto React+Vite | Operativo | `psicograma/`, build limpio, 101 modulos |
+| Proyecto React+Vite | Operativo | `frontend/`, build limpio, 101 modulos |
 | Supabase | Operativo | `qqhqsjobbbmkhyvteyfc.supabase.co`, 10 tablas, RLS activo |
 | Auth | Operativo | Login/registro funcional, trigger `handle_new_user` con `SET search_path = public` |
 | Layout Shell | Operativo | Sidebar + router + rutas protegidas |
@@ -17,9 +17,12 @@
 | Realtime | Operativo | Supabase Broadcast para sync trazos paciente→examinador |
 | Metricas en vivo | Operativo | 7 metricas calculadas client-side, broadcast cada 2s |
 | Observaciones | Operativo | Textarea + 6 marcas rapidas, auto-save con debounce |
-| Tests | No configurado | Sin framework de testing aun |
+| Backend FastAPI | Esqueleto operativo | `backend/`, dominio puro + puertos + app con auth JWT y `/health`. Falta repositorios y routers |
+| Schema v2 (2FN) | Escrito, **sin aplicar** | `sdd/database/schema.sql`, 21 tablas. Requiere decidir DROP-y-recrear vs migracion |
+| Seed de catalogos | Operativo | `seed-catalog.mjs` genera 1575 lineas de SQL desde el `.ts`; falla si el catalogo es inconsistente |
+| Tests | Backend si, frontend no | 14 tests de dominio en `backend/tests/`. El frontend sigue sin framework |
 | Deploy Vercel | Pendiente | Build funciona, falta conectar repo |
-| Git | Inicializado | `psicograma/`, sin remote |
+| Git | Inicializado | `frontend/`, sin remote |
 
 ---
 
@@ -65,7 +68,7 @@
 
 | Tarea | Estado | Notas |
 |---|---|---|
-| 3.2 JSON motor de reglas PBLL | DONE | 202 indicadores (24 auto, 25 semi, 153 manual), 18 secciones, 4 categorias. Archivo: `src/data/pbll-indicators.ts` |
+| 3.2 JSON motor de reglas PBLL | DONE | 201 indicadores (23 auto, 25 semi, 153 manual), 18 secciones, 4 categorias. Archivo: `frontend/src/data/pbll-indicators.ts` |
 | 3.3 Medicion objetiva automatica | DONE | `detectObjectiveIndicators()` en `src/lib/objectiveMeasurement.ts`. Auto-detecta DIM, UBI, PRE, TMP, BOR desde LiveMetrics. Umbrales calibrables en THRESHOLDS const |
 
 ---
@@ -82,7 +85,7 @@
 ### DT-002: Proyecto separado de Ink Playground
 **Fecha:** 2026-08-25
 **Contexto:** Se podia reusar el repo de Ink Playground o crear uno nuevo.
-**Decision:** Proyecto nuevo en `psicograma/`, separado de `integrador-psico/`. El canvas de Ink se copiara y adaptara en Sprint 2.
+**Decision:** Proyecto nuevo en `frontend/`, separado de `integrador-psico/`. El canvas de Ink se copiara y adaptara en Sprint 2.
 **Impacto:** Proyecto limpio, sin deuda tecnica del demo.
 **Estado:** Resuelto — StrokeBuilder, StrokeRenderer, useUndoRedo adaptados en `src/canvas/`. InkCanvas.tsx (1563 lineas) reescrito como DrawingCanvas (~90 lineas).
 
@@ -115,11 +118,49 @@
 **Decision:** Reescribir como DrawingCanvas (~90 lineas). Single canvas, solo pen+eraser, sin viewport transforms, sin sistema de elementos.
 **Impacto:** Codigo mas mantenible. Si se necesita pan/zoom futuro, se agrega ViewportManager.
 
-### DT-008: Indicadores PBLL son 202, no ~149
+### DT-008: Indicadores PBLL son 201, no ~149
 **Fecha:** 2026-08-26
 **Contexto:** El manual PBLL tiene mas indicadores de los estimados inicialmente. La seccion B-9 (Partes del cuerpo) tiene 69 indicadores por si sola.
-**Decision:** Extraer los 202 indicadores completos con tipado TypeScript. Clasificar cada uno como `auto` (24), `semi` (25) o `manual` (153) segun si el sistema puede detectarlos automaticamente desde los datos de trazos.
+**Decision:** Extraer los 201 indicadores completos con tipado TypeScript. Clasificar cada uno como `auto` (23), `semi` (25) o `manual` (153) segun si el sistema puede detectarlos automaticamente desde los datos de trazos.
 **Impacto:** El checklist profesional (S3-05) va a ser mas extenso. El motor de reglas tiene buena cobertura para analisis asistido.
+
+---
+
+### DT-009: Frontend se queda en React; la reescritura es del backend
+**Fecha:** 2026-09-28
+**Contexto:** Se evaluo migrar a Astro + Vue. La rubrica de APF2 exige hexagonal y 2FN, no un stack concreto.
+**Decision:** React 19 + Vite se mantienen. Astro esta pensado para sitios de contenido (islas sin JS, SSG/SSR, SEO) y Psicograma es 100% detras de login, con estado compartido, canvas a 60 fps y espejo por WebSocket. En hexagonal la UI es un adaptador de entrada: cambiarla no mueve ninguna frontera arquitectonica. Lo que si se reescribe es la capa de datos (`frontend/src/lib/*.ts`).
+**Impacto:** Se conservan las 13 pantallas, el canvas y el realtime. El esfuerzo va al backend, que es donde la rubrica y la escalabilidad si cobran.
+
+### DT-010: FastAPI, no Django
+**Fecha:** 2026-09-28
+**Contexto:** Se comparo Django, Django Ninja, Litestar y FastAPI para el backend Python.
+**Decision:** FastAPI. El ORM de Django es ActiveRecord — el modelo *es* la persistencia, que es justo lo contrario de lo que exige hexagonal. Sus baterias (admin, auth, migraciones) estan duplicadas porque Supabase Auth ya resuelve identidad. FastAPI no impone ORM ni estructura: el router *es* el adaptador, los modelos Pydantic *son* los DTO de frontera y `Depends` inyecta los puertos. Async-nativo, que importa porque generar un informe con LLM mantiene una request abierta 10-30 s.
+**Impacto:** OpenAPI automatico cubre la documentacion tecnica que pide la consigna. Litestar se descarto por comunidad pequena, mal trade en un proyecto academico.
+
+### DT-011: El backend es el unico que habla con la base de datos
+**Fecha:** 2026-09-28
+**Contexto:** En v1 el navegador tenia la `anon key` y consultaba las 10 tablas via PostgREST.
+**Decision:** El frontend pierde todo acceso a datos; se queda solo con Supabase Auth (login) y Realtime (transporte). RLS **no** se elimina: el backend conecta con un rol dedicado sin `BYPASSRLS` y cada transaccion propaga la identidad (`SET LOCAL ROLE authenticated` + `request.jwt.claims`), de modo que las policies siguen evaluandose. Los repositorios filtran por `user_id` como primera capa; RLS es la segunda.
+**Impacto:** La superficie expuesta pasa de todo el esquema a los endpoints de `api-contracts.md`. Un `WHERE` olvidado ya no filtra datos de otro psicologo. El realtime sigue en Supabase pero con canales privados autorizados por token del backend: es pub/sub efimero que no persiste nada, relevarlo por FastAPI seria operar un hub WebSocket propio para nada.
+
+### DT-012: Schema v2 normalizado a 2FN
+**Fecha:** 2026-09-28
+**Contexto:** `indicators` tenia clave candidata `(session_id, code)` con `category`, `manual_section`, `title` e `interpretation` dependiendo solo de `code` — dependencia parcial, los 201 indicadores se repetian por sesion. Ademas cinco columnas JSONB guardaban listas (violacion de 1FN).
+**Decision:** 21 tablas. `indicator_catalog` + `session_indicators` corrigen la 2FN; las listas JSONB pasan a tablas propias con catalogo; `sessions.test_type` TEXT pasa a FK de `tests`. Se anade la tabla `strokes`. **Excepcion:** `strokes.points` se queda JSONB — serie temporal atomica de miles de puntos que nunca se consulta por dentro; normalizarla serian ~5.000 filas por sesion sin beneficio de query.
+**Impacto:** Los 201 indicadores salen de `frontend/src/data/pbll-indicators.ts` y entran a la base, que es el "motor de reglas configurable" que el Capitulo 1 promete. Normalizar a nivel de trazo hace consultables A-6 (secuencia) y B-3 (borrados). **Pendiente de aplicar contra Supabase.**
+
+### DT-013: Son 201 indicadores, no 202
+**Fecha:** 2026-09-28
+**Contexto:** `memory.md` e `informe-sprints.md` decian 202 (24 auto). El conteo real del array es 201 (23 auto, 25 semi, 153 manual).
+**Decision:** Corregir a 201/23 en toda la documentacion. El generador `seed-catalog.mjs` emite el conteo en la cabecera del SQL, asi que la cifra deja de mantenerse a mano.
+**Impacto:** **El Capitulo 1 entregado sigue diciendo 149 indicadores (76 automaticos, 35 checklist) y excluye explicitamente las categorias C y D citando Lin et al. (2022), pero el motor carga las 4 categorias.** Esa incoherencia hay que resolverla antes de APF2: o el motor deja de cargar C y D (recomendado, alinea con la justificacion etica ya defendida), o se rehace la limitacion del Capitulo 1. El seed trae el `UPDATE` comentado para desactivar C y D si se elige la primera.
+
+### DT-014: Nomenclatura del repositorio
+**Fecha:** 2026-09-28
+**Contexto:** Acentos corrompidos a `_` en 7 directorios de mocks, espacios y prefijos sin padding, erratas (`avance-proyect`, `Proyect Charter`, `Gants`, `Desing`, `Lean Canva`) y un archivo con espacio inicial.
+**Decision:** kebab-case minusculas sin acentos ni espacios para directorios y documentos; prefijo `01-` solo donde el orden importa. Excepciones: `README.md`, `LICENSE`, `CONTRIBUTING.md`, `CLAUDE.md`, `AGENTS.md`, `SPEC-*.md`. Convencion anadida a `domain.md`. `psicograma/` pasa a `frontend/` por simetria con `backend/`.
+**Impacto:** 305 renombrados, todos con `git mv` para conservar historia. Los que solo cambian mayusculas necesitan dos pasos en macOS (`git mv x tmp && git mv tmp X`) o git no los registra. Build del frontend verificado despues: 107 modulos, `tsc -b` limpio.
 
 ---
 
@@ -142,4 +183,4 @@
 | ID | Sprint | Error | Estado |
 |---|---|---|---|
 | E-001 | 1 | "Database error saving new user" en registro | RESUELTO — DT-004 |
-| E-002 | 2 | Metricas de pausa usan timeMillis relativo (por stroke), no timestamps absolutos entre strokes | CONOCIDO — aproximacion aceptable para MVP |
+| E-002 | 2 | Metricas de pausa usan timeMillis relativo (por stroke), no timestamps absolutos entre strokes | RESUELTO en el backend — `strokes.started_at_ms`/`ended_at_ms` son offsets absolutos, y `measure_drawing.py` calcula el hueco real. El calculo TS del cliente sigue siendo aproximado hasta que el analisis pase por la API |

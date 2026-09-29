@@ -7,7 +7,7 @@ export interface PbllIndicator {
   detection: 'auto' | 'semi' | 'manual'
 }
 
-// ponytail: ~201 indicators extracted from Test/Manual_del_Test_Persona_bajo_la_lluvia.md
+// ponytail: 201 indicators extracted from manual-pbll/manual-persona-bajo-la-lluvia.md
 // detection: auto = measurable from stroke data, semi = stroke data assists, manual = visual/clinical judgment
 export const PBLL_INDICATORS: PbllIndicator[] = [
   // =========================================================================
