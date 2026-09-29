@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { usePatients, getInitials } from '../lib/patients'
 import { useAuth } from '../lib/auth'
 import { createSession } from '../lib/sessions'
-import type { Patient } from '../types/database'
+import type { Patient } from '../types/api'
 
 const STEPS = ['Paciente', 'Test', 'Consentimiento'] as const
 

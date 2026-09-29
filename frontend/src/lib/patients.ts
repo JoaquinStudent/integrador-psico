@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase, supabaseConfigured } from './supabase'
-import type { Patient, PatientInsert, PatientUpdate } from '../types/database'
+import type { Patient, PatientInput } from '../types/api'
 
 export function usePatients() {
   const [patients, setPatients] = useState<Patient[]>([])
@@ -12,14 +12,14 @@ export function usePatients() {
       .then(({ data }) => { setPatients(data ?? []); setLoading(false) })
   }, [])
 
-  const createPatient = async (p: PatientInsert) => {
+  const createPatient = async (p: PatientInput) => {
     if (!supabaseConfigured) return { data: null, error: new Error('Supabase no configurado') }
     const { data, error } = await supabase.from('patients').insert(p).select().single()
     if (data) setPatients(prev => [data, ...prev])
     return { data, error }
   }
 
-  const updatePatient = async (id: string, updates: PatientUpdate) => {
+  const updatePatient = async (id: string, updates: Partial<PatientInput>) => {
     if (!supabaseConfigured) return { data: null, error: new Error('Supabase no configurado') }
     const { data, error } = await supabase.from('patients').update(updates).eq('id', id).select().single()
     if (data) setPatients(prev => prev.map(p => p.id === id ? data : p))

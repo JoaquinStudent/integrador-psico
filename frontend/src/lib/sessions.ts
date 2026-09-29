@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase, supabaseConfigured } from './supabase'
-import type { Session, Patient } from '../types/database'
+import type { Session, Patient } from '../types/api'
 
 interface ConsentData {
   audio: boolean
