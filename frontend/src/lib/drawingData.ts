@@ -11,7 +11,7 @@ export async function saveDrawingData(sessionId: string, strokes: Stroke[], canv
   if (canvas) {
     const blob = await new Promise<Blob | null>(r => canvas.toBlob(r, 'image/png'))
     if (blob) {
-      const path = `drawings/${sessionId}.png`
+      const path = `sessions/${sessionId}/drawing.png`
       const { error } = await supabase.storage.from('session-files').upload(path, blob, { upsert: true })
       if (!error) {
         const { data } = supabase.storage.from('session-files').getPublicUrl(path)
