@@ -1,6 +1,7 @@
-# SPEC-S1-02: Listado de Pacientes
+# SPEC-S2-02: Listado de Pacientes
 
-> Estado: BACKLOG | Sprint: 1 | Epica: Pacientes
+> Estado: DONE | Sprint: 2 | Epica: Pacientes | Realiza: RF-06
+> Renumerado desde `SPEC-S1-02` al pasar a la estructura de 6 sprints + auditoria
 
 ---
 
