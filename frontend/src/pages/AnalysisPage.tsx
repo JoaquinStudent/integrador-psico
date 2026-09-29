@@ -3,14 +3,14 @@ import { useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { PBLL_INDICATORS, INDICATOR_SECTIONS, INDICATOR_CATEGORIES } from '../data/pbll-indicators'
 import { analyzeDrawing } from '../lib/analyzeDrawing'
-import type { Indicator } from '../types/database'
+import type { SessionIndicator } from '../types/api'
 
 type Tab = 'objective' | 'detected' | 'verification'
 
 export function AnalysisPage() {
   const { id: sessionId } = useParams<{ id: string }>()
   const [tab, setTab] = useState<Tab>('objective')
-  const [indicators, setIndicators] = useState<Indicator[]>([])
+  const [indicators, setSessionIndicators] = useState<SessionIndicator[]>([])
   const [metrics, setMetrics] = useState<Record<string, unknown> | null>(null)
   const [patient, setPatient] = useState<{ full_name: string } | null>(null)
   const [drawingUrl, setDrawingUrl] = useState<string | null>(null)
@@ -30,7 +30,7 @@ export function AnalysisPage() {
     const drawingRes = await supabase.from('drawing_data').select('final_image_url').eq('session_id', sessionId!).single()
 
     if (metricsRes.data) setMetrics(metricsRes.data as Record<string, unknown>)
-    if (indicatorsRes.data) setIndicators(indicatorsRes.data)
+    if (indicatorsRes.data) setSessionIndicators(indicatorsRes.data)
     if (sessionRes.data) {
       const { data: patientData } = await supabase.from('patients').select('full_name').eq('id', sessionRes.data.patient_id).single()
       if (patientData) setPatient(patientData)
@@ -67,13 +67,13 @@ export function AnalysisPage() {
     setAnalyzing(false)
   }
 
-  const toggleIndicator = useCallback(async (code: string) => {
+  const toggleSessionIndicator = useCallback(async (code: string) => {
     if (!sessionId) return
     const existing = indicators.find(i => i.code === code)
     if (existing) {
       const newStatus = existing.status === 'validated' ? 'rejected' : 'validated'
       await supabase.from('indicators').update({ status: newStatus }).eq('id', existing.id)
-      setIndicators(prev => prev.map(i => i.id === existing.id ? { ...i, status: newStatus } : i))
+      setSessionIndicators(prev => prev.map(i => i.id === existing.id ? { ...i, status: newStatus } : i))
     } else {
       const ind = PBLL_INDICATORS.find(i => i.code === code)
       if (!ind) return
@@ -88,7 +88,7 @@ export function AnalysisPage() {
         status: 'validated' as const,
         confidence: 'high' as const,
       }).select().single()
-      if (data) setIndicators(prev => [...prev, data as Indicator])
+      if (data) setSessionIndicators(prev => [...prev, data as SessionIndicator])
     }
   }, [sessionId, indicators])
 
@@ -108,7 +108,7 @@ export function AnalysisPage() {
   }
 
   const validatedCount = indicators.filter(i => i.status === 'validated').length
-  const totalManualIndicators = PBLL_INDICATORS.filter(i => i.detection === 'manual' || i.detection === 'semi').length
+  const totalManualSessionIndicators = PBLL_INDICATORS.filter(i => i.detection === 'manual' || i.detection === 'semi').length
   const autoDetected = indicators.filter(i => i.source === 'auto')
   const suggestions = indicators.filter(i => i.status === 'suggestion')
 
@@ -155,13 +155,13 @@ export function AnalysisPage() {
 
           <div className="analysis-tab-content">
             {tab === 'objective' && <ObjectiveTab metrics={metrics} onAnalyze={runAnalysis} analyzing={analyzing} />}
-            {tab === 'detected' && <DetectedTab indicators={autoDetected} suggestions={suggestions} onToggle={toggleIndicator} />}
+            {tab === 'detected' && <DetectedTab indicators={autoDetected} suggestions={suggestions} onToggle={toggleSessionIndicator} />}
             {tab === 'verification' && (
               <VerificationTab
                 indicators={indicators}
                 expandedSections={expandedSections}
                 onToggleSection={toggleSection}
-                onToggleIndicator={toggleIndicator}
+                onToggleSessionIndicator={toggleSessionIndicator}
               />
             )}
           </div>
@@ -170,10 +170,10 @@ export function AnalysisPage() {
           <div className="analysis-bottom-bar">
             <div className="progress-info">
               <span className="progress-label">PROGRESO GENERAL</span>
-              <span className="progress-count">{validatedCount} de {totalManualIndicators}</span>
+              <span className="progress-count">{validatedCount} de {totalManualSessionIndicators}</span>
             </div>
             <div className="progress-bar">
-              <div className="progress-fill" style={{ width: `${totalManualIndicators > 0 ? (validatedCount / totalManualIndicators) * 100 : 0}%` }} />
+              <div className="progress-fill" style={{ width: `${totalManualSessionIndicators > 0 ? (validatedCount / totalManualSessionIndicators) * 100 : 0}%` }} />
             </div>
             <button className="btn-save-verification" onClick={saveVerification} disabled={saving}>
               {saving ? 'Guardando...' : 'Guardar verificacion'}
@@ -220,8 +220,8 @@ function ObjectiveTab({ metrics, onAnalyze, analyzing }: { metrics: Record<strin
 }
 
 function DetectedTab({ indicators, suggestions, onToggle }: {
-  indicators: Indicator[]
-  suggestions: Indicator[]
+  indicators: SessionIndicator[]
+  suggestions: SessionIndicator[]
   onToggle: (code: string) => void
 }) {
   const all = [...suggestions, ...indicators.filter(i => i.status !== 'suggestion')]
@@ -268,11 +268,11 @@ function DetectedTab({ indicators, suggestions, onToggle }: {
   )
 }
 
-function VerificationTab({ indicators, expandedSections, onToggleSection, onToggleIndicator }: {
-  indicators: Indicator[]
+function VerificationTab({ indicators, expandedSections, onToggleSection, onToggleSessionIndicator }: {
+  indicators: SessionIndicator[]
   expandedSections: Set<string>
   onToggleSection: (code: string) => void
-  onToggleIndicator: (code: string) => void
+  onToggleSessionIndicator: (code: string) => void
 }) {
   return (
     <div className="verification-tab">
@@ -282,11 +282,11 @@ function VerificationTab({ indicators, expandedSections, onToggleSection, onTogg
           {INDICATOR_SECTIONS
             .filter(s => (cat.sections as readonly string[]).includes(s.code))
             .map(section => {
-              const sectionIndicators = PBLL_INDICATORS.filter(
+              const sectionSessionIndicators = PBLL_INDICATORS.filter(
                 i => i.section === section.code && (i.detection === 'manual' || i.detection === 'semi')
               )
-              if (sectionIndicators.length === 0) return null
-              const markedCount = sectionIndicators.filter(
+              if (sectionSessionIndicators.length === 0) return null
+              const markedCount = sectionSessionIndicators.filter(
                 si => indicators.some(i => i.code === si.code && i.status === 'validated')
               ).length
               const isExpanded = expandedSections.has(section.code)
@@ -296,13 +296,13 @@ function VerificationTab({ indicators, expandedSections, onToggleSection, onTogg
                   <button className="section-header" onClick={() => onToggleSection(section.code)}>
                     <div>
                       <span className="section-name">{section.name}</span>
-                      <span className="section-count">{markedCount} de {sectionIndicators.length} marcados</span>
+                      <span className="section-count">{markedCount} de {sectionSessionIndicators.length} marcados</span>
                     </div>
                     <span className={`chevron ${isExpanded ? 'open' : ''}`}>▾</span>
                   </button>
                   {isExpanded && (
                     <div className="section-items">
-                      {sectionIndicators.map(si => {
+                      {sectionSessionIndicators.map(si => {
                         const existing = indicators.find(i => i.code === si.code)
                         const isChecked = existing?.status === 'validated'
                         const isSuggestion = existing?.status === 'suggestion'
@@ -310,7 +310,7 @@ function VerificationTab({ indicators, expandedSections, onToggleSection, onTogg
                           <label
                             key={si.code}
                             className={`indicator-row ${isChecked ? 'checked' : ''} ${isSuggestion ? 'suggested' : ''}`}
-                            onClick={() => onToggleIndicator(si.code)}
+                            onClick={() => onToggleSessionIndicator(si.code)}
                           >
                             <div className="indicator-check">
                               <div className={`checkbox ${isChecked ? 'on' : ''}`}>
