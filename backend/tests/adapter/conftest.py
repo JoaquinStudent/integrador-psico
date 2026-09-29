@@ -63,6 +63,43 @@ async def _delete_examiner(client: httpx.AsyncClient, ex: Examiner) -> None:
     await client.delete(f"{url}/{ex.id}", headers=headers)
 
 
+DOMINIO_TEST = "@psicograma.test"
+"""Las cuentas de prueba usan este dominio para poder identificarlas y barrerlas.
+
+Nunca va a coincidir con una cuenta real: `.test` es un TLD reservado (RFC 2606)
+que no se puede registrar.
+"""
+
+
+async def _borrar_cuentas_de_test(client: httpx.AsyncClient) -> None:
+    """Barre cuentas de prueba que quedaron de corridas anteriores.
+
+    Primero los pacientes: `patients.created_by` referencia `profiles` sin
+    ON DELETE CASCADE, asi que borrar la cuenta falla si le quedan pacientes. Y eso
+    es deliberado en el esquema — no se destruyen registros clinicos por borrar un
+    usuario.
+    """
+    url, headers = _admin()
+    async with engine.connect() as conn:
+        cuentas = (
+            await conn.execute(
+                text("select id from auth.users where email like :patron"),
+                {"patron": f"%{DOMINIO_TEST}"},
+            )
+        ).scalars().all()
+
+    if not cuentas:
+        return
+
+    ids = [str(c) for c in cuentas]
+    async with engine.begin() as conn:
+        await conn.execute(
+            text("delete from patients where created_by::text = any(:ids)"), {"ids": ids}
+        )
+    for uid in cuentas:
+        await client.delete(f"{url}/{uid}", headers=headers)
+
+
 @pytest_asyncio.fixture(scope="session")
 async def examiners() -> AsyncIterator[tuple[Examiner, Examiner]]:
     """Dos examinadores efimeros. Se borran siempre, incluso si un test falla.
@@ -77,6 +114,11 @@ async def examiners() -> AsyncIterator[tuple[Examiner, Examiner]]:
       transacciones ya cerraron.
     """
     async with httpx.AsyncClient(timeout=30) as client:
+        # Limpieza al arrancar, no solo al terminar: si una corrida se interrumpe
+        # —un Ctrl-C, un kill— el teardown no se ejecuta y las cuentas quedan
+        # huerfanas en el proyecto. Barrer al inicio hace el fixture autoreparable.
+        await _borrar_cuentas_de_test(client)
+
         a = await _create_examiner(client, "a")
         b = await _create_examiner(client, "b")
         try:
