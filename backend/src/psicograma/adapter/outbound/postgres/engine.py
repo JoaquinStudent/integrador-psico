@@ -29,8 +29,26 @@ from ....config.settings import get_settings
 
 _settings = get_settings()
 
+
+def _async_dsn(url: str) -> str:
+    """Fuerza el driver asyncpg.
+
+    Supabase entrega la cadena como `postgresql://...`, y con eso SQLAlchemy
+    resuelve el dialecto a psycopg y falla con ModuleNotFoundError. Corregirlo a
+    mano en cada `.env` del equipo es una pieza de conocimiento que se pierde;
+    normalizarlo aqui es una linea.
+    """
+    if url.startswith("postgresql+"):
+        return url
+    if url.startswith("postgresql://"):
+        return url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    if url.startswith("postgres://"):  # forma antigua, aun circula
+        return url.replace("postgres://", "postgresql+asyncpg://", 1)
+    return url
+
+
 engine = create_async_engine(
-    _settings.database_url,
+    _async_dsn(_settings.database_url),
     echo=_settings.db_echo,
     poolclass=NullPool,
     connect_args={

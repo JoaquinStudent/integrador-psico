@@ -65,7 +65,7 @@ export function createAudioRecorder(sessionId: string, onState: (s: AudioRecorde
     const path = `sessions/${sessionId}/audio_${Date.now()}.webm`
 
     const { error: uploadError } = await supabase.storage
-      .from('audio-recordings')
+      .from('session-files')
       .upload(path, blob, { contentType: 'audio/webm', upsert: false })
 
     if (uploadError) {
