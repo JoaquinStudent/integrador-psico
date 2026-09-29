@@ -1,28 +1,28 @@
 # memory.md — Registro de Decisiones y Estado del Sistema
 
-> Ultima actualizacion: 2026-08-26
+> Ultima actualizacion: 2026-09-29
 
 ---
 
 ## Estado del Sistema
 
+> Corte: 29/09/2026
+
 | Componente | Estado | Notas |
 |---|---|---|
-| Proyecto React+Vite | Operativo | `frontend/`, build limpio, 101 modulos |
-| Supabase | Operativo | `qqhqsjobbbmkhyvteyfc.supabase.co`, 10 tablas, RLS activo |
-| Auth | Operativo | Login/registro funcional, trigger `handle_new_user` con `SET search_path = public` |
-| Layout Shell | Operativo | Sidebar + router + rutas protegidas |
-| Design System | Operativo | CSS vars en `index.css`, Clinical Precision, ~1200 lineas |
-| Canvas/Dibujo | Operativo | DrawingCanvas (pen+eraser+undo), adaptado de Ink Playground |
-| Realtime | Operativo | Supabase Broadcast para sync trazos paciente→examinador |
-| Metricas en vivo | Operativo | 7 metricas calculadas client-side, broadcast cada 2s |
-| Observaciones | Operativo | Textarea + 6 marcas rapidas, auto-save con debounce |
-| Backend FastAPI | Esqueleto operativo | `backend/`, dominio puro + puertos + app con auth JWT y `/health`. Falta repositorios y routers |
-| Schema v2 (2FN) | Escrito, **sin aplicar** | `sdd/database/schema.sql`, 22 tablas. Requiere decidir DROP-y-recrear vs migracion |
-| Seed de catalogos | Operativo | `seed-catalog.mjs` genera 1575 lineas de SQL desde el `.ts`; falla si el catalogo es inconsistente |
-| Tests | Backend si, frontend no | 14 tests de dominio en `backend/tests/`. El frontend sigue sin framework |
-| Deploy Vercel | Pendiente | Build funciona, falta conectar repo |
-| Git | Inicializado | `frontend/`, sin remote |
+| Supabase | Operativo | Proyecto **nuevo** `gfqdxrnvameusgjmeadi`, PostgreSQL 17.6. El proyecto v1 queda intacto como rollback |
+| Schema v2 (2FN) | **Aplicado** | 22 tablas, RLS en todas, ninguna FK sin indice |
+| Seed de catalogos | **Aplicado** | 201 indicadores, 18 secciones, 4 categorias, 6 marcas, 8 actitudes |
+| Storage | Operativo | Bucket privado `session-files`, 50 MB, 4 policies, rutas `sessions/{id}/...` |
+| Auth | Operativo | Supabase Auth con **firma ES256**; el backend verifica contra el JWKS |
+| Backend FastAPI | **16 rutas operativas** | Sesion completa por API: paciente, sesion, consentimiento, dibujo, observaciones, metricas, catalogos |
+| Dominio | Operativo | Medicion objetiva + motor de reglas, Python puro, frontera verificada por `check-hexagon.sh` |
+| Repositorios | Operativo | 3 puertos implementados + `store.py` para el CRUD sin dominio |
+| Tests backend | **67 en verde** | 14 de dominio (sin red) + 53 de integracion contra la base real. ~5 min de corrida |
+| Frontend: canvas, realtime, layout, design system | Operativo | Sin cambios; el canvas y el espejo no pasan por el backend |
+| Frontend: capa de datos | **ROTO a proposito** | 16 errores de tipo y 22 llamadas a tablas de la v1. Es el trabajo pendiente, ver E-003 |
+| Deploy | Pendiente | Ni frontend ni backend desplegados |
+| Git | Operativo | `origin/srs-specs-y-esquema-2fn`. **`main` esta 8 commits atras** |
 
 ---
 
@@ -70,6 +70,27 @@
 |---|---|---|
 | 3.2 JSON motor de reglas PBLL | DONE | 201 indicadores (23 auto, 25 semi, 153 manual), 18 secciones, 4 categorias. Archivo: `frontend/src/data/pbll-indicators.ts` |
 | 3.3 Medicion objetiva automatica | DONE | `detectObjectiveIndicators()` en `src/lib/objectiveMeasurement.ts`. Auto-detecta DIM, UBI, PRE, TMP, BOR desde LiveMetrics. Umbrales calibrables en THRESHOLDS const |
+
+> **Nota sobre la numeracion.** A partir de aqui el proyecto se reorganizo en
+> **6 sprints + 1 auditoria** (ver `spec/SPEC-INDEX.md`). Los sprints 0 a 3 de
+> arriba corresponden a los sprints 1 a 4 de la numeracion nueva.
+
+### Sprint 5 — Rearquitectura (2026-09-28 / 29)
+
+| Tarea | Estado | Notas |
+|---|---|---|
+| S5-01 Esquema 2FN | DONE | 22 tablas aplicadas en el proyecto nuevo. RLS en todas, ninguna FK sin indice |
+| S5-02 Catalogo en base de datos | DONE | 201 indicadores sembrados. `seed-catalog.mjs` falla si el catalogo es inconsistente; `check-sql.py` cruza reset, schema y seed sin conectarse |
+| S5-03 Dominio, puertos y servicios | DONE | Medicion y motor de reglas portados de TS. 14 tests sin red. Corrige E-002 |
+| S5-04 Repositorios y propagacion de identidad | DONE | 22 modelos verificados contra la base por reflexion. 3 puertos implementados. **Probado que RLS tapa un `WHERE` olvidado**. Criterio 3 sin cumplir, ver DT-027 |
+| S5-05 Endpoints de analisis y audio | **PARCIAL** | Hechas 16 rutas: paciente, sesion, consentimiento, dibujo, observaciones, metricas y catalogos. Faltan `analyze`, indicadores y audio |
+| S5-06 Retirar el acceso directo a BD | **EN CURSO** | `apiClient.ts` y `types/api.ts` hechos, `database.ts` eliminado. Quedan 22 llamadas a tablas en 8 archivos (E-003) |
+| S5-07 Migraciones Alembic | BACKLOG | Fuera del alcance de la semana; el esquema ya esta aplicado |
+
+**Infraestructura resuelta esta semana:** proyecto Supabase nuevo, bucket privado
+`session-files` con sus 4 policies, y los dos scripts de verificacion
+(`smoke-test.py`, `check-storage.py`) para que cualquiera del equipo compruebe su
+entorno sin depender de nadie.
 
 ---
 
@@ -180,6 +201,66 @@
 **Decision:** Separar la recoleccion de la **medicion pre** del resto de la auditoria y arrancarla de inmediato, en paralelo al desarrollo.
 **Impacto:** La medicion pre solo existe mientras el centro trabaje a mano. Si los psicologos adoptan el sistema antes de tomarla, es **irrecuperable**: el Capitulo 1 ya documenta que no hay estudios peruanos de donde tomarla prestada, y sin ella la hipotesis de trabajo no se puede contrastar. Analisis previsto: mediana, rango y prueba de Wilcoxon de rangos con signo — no prueba t, porque el n es pequeno y no se asume normalidad.
 
+### DT-018: Proyecto Supabase nuevo en vez de reset del actual
+**Fecha:** 2026-09-29
+**Contexto:** El esquema v2 no es una migracion: `CREATE TABLE` sin `IF NOT EXISTS` sobre una base con las 10 tablas de la v1 revienta a mitad y la deja aplicada por partes.
+**Decision:** Crear un proyecto limpio. Se descarta correr `reset.sql` sobre el actual.
+**Impacto:** La razon de peso no es la limpieza, es el **rollback**: el proyecto v1 con su app queda intacto, asi que si algo del v2 falla antes de la entrega hay algo que mostrar. Ademas elimina los dos pasos mas riesgosos: el `DROP` destructivo y el backfill de `profiles` —que si se olvida, los usuarios pueden loguearse pero al crear un paciente les revienta una FK con un mensaje que no dice nada de la causa. `reset.sql` se conserva para el caso de tener que reusar un proyecto.
+
+### DT-019: Auth verifica ES256 contra el JWKS, no HS256
+**Fecha:** 2026-09-29
+**Contexto:** `auth.py` verificaba solo HS256 con el secreto compartido. El proyecto nuevo firma los tokens con **ES256** (clave asimetrica).
+**Decision:** Leer el algoritmo de la cabecera del token y enrutar: asimetrico contra el JWKS del proyecto, HS256 contra el secreto. Se soportan los dos.
+**Impacto:** Tal como estaba **habria rechazado todo token valido** con un 401 sin explicacion. Soportar ambos permite que el mismo codigo sirva con el proyecto de cualquier integrante, sin que cada uno toque nada. Los tests usan tokens reales a proposito: un mock habria tapado exactamente este bug.
+
+### DT-020: `SET` no acepta parametros; va `set_config()`
+**Fecha:** 2026-09-29
+**Contexto:** `session_for()` hacia `SET LOCAL request.jwt.claims = :claims` y fallaba con `syntax error at or near "$1"`. `SET` es una sentencia utilitaria, no una consulta.
+**Decision:** `select set_config('request.jwt.claims', :claims, true)`, que es funcion y acepta el bind.
+**Impacto:** **Toda la propagacion de identidad estaba muerta**, y con ella la segunda capa de autorizacion. Lo encontraron los tests antes de que existiera un solo endpoint. Interpolar el JSON en el SQL era la otra salida y habria sido una via de inyeccion. Tambien quedo probado lo que importa: el examinador B consulta `patients` sin filtrar por dueno y no ve al paciente de A.
+
+### DT-021: Toda columna con default declara `server_default`
+**Fecha:** 2026-09-29
+**Contexto:** 22 tests de la API fallaban con `NotNullViolation` en `patients.registered_at`. Si la base pone un default y el modelo no lo declara, SQLAlchemy manda NULL explicito.
+**Decision:** `FetchedValue()` en las 39 columnas afectadas, que no duplica la expresion del default en Python. Y un test que compara la paridad contra la base.
+**Impacto:** Si alguien agrega una columna con default y no la declara en el modelo, el test falla en vez de descubrirse en runtime.
+
+### DT-022: El CRUD sin dominio no atraviesa el hexagono
+**Fecha:** 2026-09-29
+**Contexto:** Crear un paciente o listar sesiones no tiene reglas de negocio. Definirles un puerto seria un Protocol con una implementacion y ningun consumidor de dominio.
+**Decision:** Ese acceso a datos vive en `adapter/outbound/postgres/store.py` y no implementa ningun puerto. Los repositorios de `repositories.py` siguen siendo los que cumplen puertos, porque el dominio si los consume.
+**Impacto:** La frontera que importa sigue intacta y `check-hexagon.sh` la verifica. Se evita una capa de traduccion que no decide nada.
+
+### DT-023: Los errores se traducen con manejadores, no con decoradores
+**Fecha:** 2026-09-29
+**Contexto:** El primer intento envolvia cada handler con un decorador `@translate` para mapear `NotFound`/`Conflict` a HTTP.
+**Decision:** Manejadores de excepcion registrados en `app.py`.
+**Impacto:** Un decorador rompe la introspeccion de firmas de FastAPI, de la que dependen la inyeccion por `Depends` y la generacion del OpenAPI.
+
+### DT-024: Ninguna restriccion de la base sale como 500
+**Fecha:** 2026-09-29
+**Contexto:** La API dejaba escapar un `IntegrityError` crudo. El cuerpo de un error de Postgres trae nombres de constraint, de tabla y de columna.
+**Decision:** Manejador de `IntegrityError` que responde 409 **sin detalle** y registra la causa del lado del servidor. Ademas, los casos concretos se validan antes —la marca rapida se busca en el catalogo— para dar un mensaje util en vez de depender de la red de seguridad.
+**Impacto:** Devolver el mensaje de Postgres le describe el esquema a quien esta probando entradas. La restriccion queda como respaldo, no como primera linea.
+
+### DT-025: `types/database.ts` se elimina; los tipos describen la API
+**Fecha:** 2026-09-29
+**Contexto:** Ese archivo tipaba el esquema de Postgres con el generico `Database` de Supabase y quedo describiendo la **v1** despues de migrar a v2. TypeScript compilaba feliz mientras la app fallaba en runtime contra tablas que ya no existen.
+**Decision:** Borrarlo y poner `types/api.ts`, que describe el contrato HTTP. `supabase.ts` pierde el generico `<Database>`.
+**Impacto:** **Tipos que mienten son peores que no tener tipos.** Consecuencia a tener presente: al quitar el generico, las llamadas `supabase.from(...)` que quedan pasaron a estar sin tipar, asi que el compilador ya no las detecta. La medida honesta del avance es `grep -rn "supabase.from" frontend/src/`.
+
+### DT-026: El canal de realtime se queda sin token, y RNF-13 pasa a riesgo
+**Fecha:** 2026-09-29
+**Contexto:** `POST /sessions/{id}/realtime-token` estaba planificado para cumplir RNF-13 (canales privados). Pero los canales privados de Supabase se autorizan con el JWT del usuario y RLS sobre `realtime.messages`, y **el paciente no tiene cuenta**: usa la tablet sin loguearse.
+**Decision:** Sacarlo del alcance de la semana. El canal sigue siendo broadcast con el UUID de la sesion.
+**Impacto:** No hay token que emitirle al paciente salvo habilitando login anonimo, y firmar uno propio no sirve porque el proyecto verifica con ES256 y esa clave privada no es nuestra. **RNF-13 pasa de cumplido a riesgo abierto** y asi debe reportarlo `SPEC-AUD-02`. Mitigacion parcial: el canal no transporta datos persistidos y el id de sesion es un UUID.
+
+### DT-027: El rol de conexion todavia tiene BYPASSRLS
+**Fecha:** 2026-09-29
+**Contexto:** El backend conecta como `postgres`, que es superusuario. El criterio 3 de `SPEC-S5-04` exige un rol sin `BYPASSRLS`.
+**Decision:** Dejarlo para despues de la demo. Escribir el SQL del rol dedicado ahora, aplicarlo despues.
+**Impacto:** Dentro de `session_for()` RLS **si** aplica, porque `SET LOCAL ROLE authenticated` baja los privilegios y ese rol no tiene bypass — esta probado en `test_el_rol_efectivo_no_puede_saltarse_rls`. El riesgo real es un camino que se olvide de `session_for()`. Se posterga porque un GRANT faltante deja el backend sin poder leer nada, y con la entrega encima ese no es un riesgo que convenga tomar. **Queda como criterio de `SPEC-S5-04` sin cumplir.**
+
 ---
 
 ## Lecciones Aprendidas
@@ -193,6 +274,15 @@
 | L-005 | 1 | Trigger functions en Supabase deben llevar `SET search_path = public` o no encuentran tablas del schema public |
 | L-006 | 1 | La INSERT policy en profiles necesita `WITH CHECK (true)` para que el trigger pueda insertar |
 | L-007 | 2 | Supabase Broadcast no requiere config extra en el client — `supabase.channel()` funciona out of the box |
+| L-008 | 5 | Supabase entrega el DSN como `postgresql://`, y SQLAlchemy lo resuelve a psycopg y falla con `ModuleNotFoundError`. `engine.py` lo normaliza a `+asyncpg`: pedirle a cada integrante que lo recuerde es una pieza de conocimiento que se pierde |
+| L-009 | 5 | El puerto 5432 (session pooler) sirve para el runtime y ademas soporta prepared statements. El 6543 (transaction pooler) no, y de ahi el `statement_cache_size: 0`. Alembic va al 5432 |
+| L-010 | 5 | Un objeto `mapped_column` no se puede reusar entre tablas en SQLAlchemy. Los objetos de **tipo** si. De ahi que `pk()` sea una fabrica y `TS` una constante |
+| L-011 | 5 | **BSD sed (macOS) no soporta `\b`.** Un renombrado con `\b` no falla: no hace nada, y pasa desapercibido |
+| L-012 | 5 | `tsc -b` cachea en `*.tsbuildinfo`: una segunda corrida puede no reportar nada y parecer exito. Para verificar de verdad, `tsc --noEmit -p tsconfig.app.json` |
+| L-013 | 5 | Los codigos ANSI rompen `grep -c "error TS"`, porque la cadena no es contigua. Hay que limpiar el color antes de contar |
+| L-014 | 5 | `pytest-asyncio` con fixtures de scope `session` y loop por funcion **cuelga** asyncpg, que ata sus conexiones al loop que las creo. Se resuelve con `asyncio_default_fixture_loop_scope = "session"` |
+| L-015 | 5 | Borrar datos en el teardown de un fixture por test bloquea contra la transaccion del examinador dueno, que todavia tiene lock sobre la fila. La limpieza va al cierre de la sesion de tests. Sintoma engañoso: los tests que **no** ven la fila (por RLS) pasan, y solo cuelga el que si la lee |
+| L-016 | 5 | Postgres cancela por `statement_timeout` en vez de esperar para siempre: un deadlock se ve como lentitud, no como cuelgue. La corrida tardaba 11m35s y bajo a 1m22s al corregirlo |
 
 ---
 
@@ -202,3 +292,18 @@
 |---|---|---|---|
 | E-001 | 1 | "Database error saving new user" en registro | RESUELTO — DT-004 |
 | E-002 | 2 | Metricas de pausa usan timeMillis relativo (por stroke), no timestamps absolutos entre strokes | RESUELTO en el backend — `strokes.started_at_ms`/`ended_at_ms` son offsets absolutos, y `measure_drawing.py` calcula el hueco real. El calculo TS del cliente sigue siendo aproximado hasta que el analisis pase por la API |
+| E-003 | 5 | **Al aplicar el esquema v2 la app quedo rota.** El frontend consulta `observations`, `indicators`, `drawing_data` y `sessions.test_type`, que ya no existen. 22 llamadas en 8 archivos | ABIERTO — es el trabajo pendiente del Dia 2. Medida honesta: `grep -rn "supabase.from" frontend/src/`. El build **no** lo detecta: al quitar el generico `<Database>` esas llamadas quedaron sin tipar (DT-025) |
+| E-004 | 5 | `drawingData.ts` usa `getPublicUrl()` sobre un bucket privado: `final_image_url` queda como link muerto y la imagen no carga en la pantalla de analisis | ABIERTO — se resuelve guardando la **ruta** y firmandola al leer con `FileStore.signed_url()`, que ya esta declarado como puerto. Corresponde a `SPEC-S5-05` |
+
+---
+
+## Riesgos Abiertos
+
+Ver `informe-sprints.md` para el detalle y el estado. Los que bloquean:
+
+| ID | Riesgo |
+|---|---|
+| R-01 | El Capitulo 1 declara 149 indicadores y excluye las categorias C y D; el motor carga 201 en 4 categorias. **Decision pendiente del equipo** |
+| R-05 | La linea base de tiempos es irrecuperable si el centro adopta el sistema antes de medirla. Sin ella no hay Capitulo 4 |
+| R-07 | RNF-13 (canales privados de realtime) no se cumple, ver DT-026 |
+| R-08 | El rol de conexion tiene `BYPASSRLS`, ver DT-027 |

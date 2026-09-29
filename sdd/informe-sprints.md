@@ -149,6 +149,9 @@ procedimiento manual.
 | R-04 | El esquema v2 esta escrito pero no aplicado; bloquea S5-04 en adelante | **ABIERTO** — requiere decision sobre migracion de datos |
 | R-05 | **La linea base de tiempos es irrecuperable si el centro adopta el sistema antes de medirla.** Sin ella no hay Capitulo 4 | **ABIERTO** — la recoleccion arranca ya, no en noviembre (DT-017) |
 | R-06 | Falta `patients.anonymized_at` en el esquema: sin ese campo, la supresion a solicitud (RNF-16) no se puede verificar | **ABIERTO** — revision de Alembic en SPEC-S6-05 |
+| R-07 | **RNF-13 no se cumple**: el canal de realtime no es privado. El paciente no tiene cuenta, asi que no hay token que emitirle sin habilitar login anonimo | **ABIERTO** — DT-026. El canal no transporta datos persistidos, pero hay que reportarlo asi en `SPEC-AUD-02` |
+| R-08 | El rol de conexion del backend tiene `BYPASSRLS`. Dentro de `session_for()` RLS si aplica y esta probado; el riesgo es un camino que se olvide de usarlo | **ABIERTO** — DT-027. Criterio 3 de `SPEC-S5-04` sin cumplir; se aplica el rol dedicado despues de la demo |
+| R-09 | La app esta rota: 22 llamadas a tablas de la v1 en 8 archivos del frontend, y el build **no** lo detecta | **ABIERTO** — E-003. Es el trabajo inmediato |
 
 ---
 
