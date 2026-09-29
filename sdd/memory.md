@@ -18,7 +18,7 @@
 | Metricas en vivo | Operativo | 7 metricas calculadas client-side, broadcast cada 2s |
 | Observaciones | Operativo | Textarea + 6 marcas rapidas, auto-save con debounce |
 | Backend FastAPI | Esqueleto operativo | `backend/`, dominio puro + puertos + app con auth JWT y `/health`. Falta repositorios y routers |
-| Schema v2 (2FN) | Escrito, **sin aplicar** | `sdd/database/schema.sql`, 21 tablas. Requiere decidir DROP-y-recrear vs migracion |
+| Schema v2 (2FN) | Escrito, **sin aplicar** | `sdd/database/schema.sql`, 22 tablas. Requiere decidir DROP-y-recrear vs migracion |
 | Seed de catalogos | Operativo | `seed-catalog.mjs` genera 1575 lineas de SQL desde el `.ts`; falla si el catalogo es inconsistente |
 | Tests | Backend si, frontend no | 14 tests de dominio en `backend/tests/`. El frontend sigue sin framework |
 | Deploy Vercel | Pendiente | Build funciona, falta conectar repo |
@@ -147,7 +147,7 @@
 ### DT-012: Schema v2 normalizado a 2FN
 **Fecha:** 2026-09-28
 **Contexto:** `indicators` tenia clave candidata `(session_id, code)` con `category`, `manual_section`, `title` e `interpretation` dependiendo solo de `code` — dependencia parcial, los 201 indicadores se repetian por sesion. Ademas cinco columnas JSONB guardaban listas (violacion de 1FN).
-**Decision:** 21 tablas. `indicator_catalog` + `session_indicators` corrigen la 2FN; las listas JSONB pasan a tablas propias con catalogo; `sessions.test_type` TEXT pasa a FK de `tests`. Se anade la tabla `strokes`. **Excepcion:** `strokes.points` se queda JSONB — serie temporal atomica de miles de puntos que nunca se consulta por dentro; normalizarla serian ~5.000 filas por sesion sin beneficio de query.
+**Decision:** 22 tablas. `indicator_catalog` + `session_indicators` corrigen la 2FN; las listas JSONB pasan a tablas propias con catalogo; `sessions.test_type` TEXT pasa a FK de `tests`. Se anade la tabla `strokes`. **Excepcion:** `strokes.points` se queda JSONB — serie temporal atomica de miles de puntos que nunca se consulta por dentro; normalizarla serian ~5.000 filas por sesion sin beneficio de query.
 **Impacto:** Los 201 indicadores salen de `frontend/src/data/pbll-indicators.ts` y entran a la base, que es el "motor de reglas configurable" que el Capitulo 1 promete. Normalizar a nivel de trazo hace consultables A-6 (secuencia) y B-3 (borrados). **Pendiente de aplicar contra Supabase.**
 
 ### DT-013: Son 201 indicadores, no 202
@@ -161,6 +161,24 @@
 **Contexto:** Acentos corrompidos a `_` en 7 directorios de mocks, espacios y prefijos sin padding, erratas (`avance-proyect`, `Proyect Charter`, `Gants`, `Desing`, `Lean Canva`) y un archivo con espacio inicial.
 **Decision:** kebab-case minusculas sin acentos ni espacios para directorios y documentos; prefijo `01-` solo donde el orden importa. Excepciones: `README.md`, `LICENSE`, `CONTRIBUTING.md`, `CLAUDE.md`, `AGENTS.md`, `SPEC-*.md`. Convencion anadida a `domain.md`. `psicograma/` pasa a `frontend/` por simetria con `backend/`.
 **Impacto:** 305 renombrados, todos con `git mv` para conservar historia. Los que solo cambian mayusculas necesitan dos pasos en macOS (`git mv x tmp && git mv tmp X`) o git no los registra. Build del frontend verificado despues: 107 modulos, `tsc -b` limpio.
+
+### DT-015: 15 SPECs escritos, 30 quedan como deuda declarada
+**Fecha:** 2026-09-28
+**Contexto:** La regla R1 exige SPEC aprobado antes de codigo, pero existia 1 archivo de 47. Se evaluo redactar los 30 retroactivos de funcionalidad ya entregada.
+**Decision:** Redactar solo los **15 que guian trabajo pendiente** (Sprint 5 pendiente, Sprint 6 completo, auditoria). Los 30 en DONE quedan documentados a posteriori en `memory.md` e `informe-sprints.md`, con la deuda declarada en `SPEC-INDEX.md`.
+**Impacto:** Los 41 RF y los 30 RNF del SRS quedan trazados a al menos un SPEC, verificado de forma automatica. Escribir Given-When-Then de lo ya entregado no habria mejorado ni el codigo ni la nota.
+
+### DT-016: Correccion de alcance en SPEC-S5-05
+**Fecha:** 2026-09-28
+**Contexto:** El indice titulaba `SPEC-S5-05` como "endpoints de analisis, audio e informe", pero los endpoints de informe son de `SPEC-S6-01` a `SPEC-S6-04`. Dos SPECs reclamaban el mismo trabajo.
+**Decision:** `SPEC-S5-05` queda como "Endpoints de analisis y audio" — la ruta que necesita la demo. El informe queda integro en Sprint 6.
+**Impacto:** Se elimina el solapamiento que violaba la regla R5. Al redactar tambien aparecio que el esquema no tiene donde registrar que un paciente fue anonimizado: falta `patients.anonymized_at`, que va en una revision de Alembic (SPEC-S6-05).
+
+### DT-017: La linea base de tiempos se recolecta ya, no en noviembre
+**Fecha:** 2026-09-28
+**Contexto:** `SPEC-AUD-05` produce el unico dato del Capitulo 4 y estaba agendado para el 02/11.
+**Decision:** Separar la recoleccion de la **medicion pre** del resto de la auditoria y arrancarla de inmediato, en paralelo al desarrollo.
+**Impacto:** La medicion pre solo existe mientras el centro trabaje a mano. Si los psicologos adoptan el sistema antes de tomarla, es **irrecuperable**: el Capitulo 1 ya documenta que no hay estudios peruanos de donde tomarla prestada, y sin ella la hipotesis de trabajo no se puede contrastar. Analisis previsto: mediana, rango y prueba de Wilcoxon de rangos con signo — no prueba t, porque el n es pequeno y no se asume normalidad.
 
 ---
 
