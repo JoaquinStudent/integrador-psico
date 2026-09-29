@@ -42,7 +42,7 @@ Deno.serve(async (req: Request) => {
 
     // 1. Descargar audio de Storage
     const { data: audioData, error: dlError } = await supabase.storage
-      .from("audio-recordings")
+      .from("session-files")
       .download(audio_path)
 
     if (dlError || !audioData) {
