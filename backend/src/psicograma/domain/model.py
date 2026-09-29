@@ -5,6 +5,7 @@ Si este modulo llega a importar infraestructura, `scripts/check-hexagon.sh` fall
 
 from __future__ import annotations
 
+import datetime as dt
 from dataclasses import dataclass
 from enum import StrEnum
 
@@ -171,14 +172,17 @@ class ValidatedIndicator:
 
 # --- Informe ----------------------------------------------------------------
 
+# Los titulos llevan acentos porque son contenido del documento clinico, no
+# identificadores de codigo: se imprimen en el PDF que lee el profesional y que se
+# entrega al paciente (RNF-21).
 REPORT_SECTIONS: tuple[tuple[int, str, bool], ...] = (
-    # (numero, titulo, necesita_llm)
-    (1, "Datos de identificacion", False),
-    (2, "Motivo de evaluacion", False),
+    # (numero, titulo, necesita_redaccion)
+    (1, "Datos de identificación", False),
+    (2, "Motivo de evaluación", False),
     (3, "Instrumento aplicado", False),
-    (4, "Condiciones de administracion", False),
-    (5, "Descripcion del dibujo", True),
-    (6, "Observaciones conductuales", True),
+    (4, "Condiciones de administración", False),
+    (5, "Descripción del dibujo", True),
+    (6, "Observaciones conductuales", False),
     (7, "Indicadores de recursos expresivos", True),
     (8, "Indicadores de contenido", True),
     (9, "Conclusiones del profesional", False),  # se entrega vacia, a proposito
@@ -188,6 +192,14 @@ CONCLUSIONS_SECTION = 9
 """La seccion 9 la escribe el psicologo. El sistema no emite conclusiones
 diagnosticas: es la linea que el Capitulo 1 del proyecto declara y defiende."""
 
+LLM_SECTIONS: frozenset[int] = frozenset(n for n, _, llm in REPORT_SECTIONS if llm)
+"""Solo 3 de 9 secciones necesitan redaccion asistida.
+
+La 6 quedo fuera a proposito: son las observaciones del **propio examinador**, y
+parafrasearlas es riesgoso —reescribir "tono de voz bajo" puede alterar un dato
+clinico—. Se presentan textuales y el profesional las redacta si quiere.
+"""
+
 
 @dataclass(frozen=True, slots=True)
 class ReportSection:
@@ -195,3 +207,66 @@ class ReportSection:
     title: str
     content: str
     is_ai_generated: bool = False
+
+
+# --- Contexto para armar el informe -----------------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class ConsentSummary:
+    audio_authorized: bool
+    digital_authorized: bool
+    confidential_ack: bool
+    signed_at: dt.date | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class ReportContext:
+    """Todo lo que el informe necesita, ya reunido por la capa de aplicacion.
+
+    El dominio recibe datos, no repositorios: asi `compose_report` se prueba sin
+    base de datos y sin red.
+    """
+
+    patient_name: str
+    patient_birth_date: dt.date
+    patient_document: str
+    examiner_name: str
+    test_name: str
+    test_code: str
+    session_date: dt.date
+
+    examiner_license: str | None = None
+    session_duration_min: int | None = None
+    reason: str | None = None
+    consent: ConsentSummary | None = None
+    attitudes: tuple[str, ...] = ()
+    metrics: DrawingMetrics | None = None
+    observations: str = ""
+    quick_marks: tuple[tuple[str, int], ...] = ()   # (etiqueta, offset_ms)
+    verbalizations: tuple[str, ...] = ()
+    validated: tuple[ValidatedIndicator, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class DraftRequest:
+    """Una seccion que hay que redactar, con el material ya filtrado.
+
+    El dominio **no** llama al modelo: declara que hace falta redactar y con que
+    hechos. La capa de aplicacion resuelve el pedido contra el puerto `LlmDrafter`.
+    """
+
+    section_number: int
+    title: str
+    facts: str
+
+
+@dataclass(frozen=True, slots=True)
+class ComposedReport:
+    ready: tuple[ReportSection, ...]
+    to_draft: tuple[DraftRequest, ...]
+
+    @property
+    def section_count(self) -> int:
+        """Siempre 9: lo que no se redacta sale listo, vacio si no hay material."""
+        return len(self.ready) + len(self.to_draft)
