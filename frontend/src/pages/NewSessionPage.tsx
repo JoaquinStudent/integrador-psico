@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState, type PointerEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { usePatients, getInitials } from '../lib/patients'
 import { useAuth } from '../lib/auth'
@@ -15,17 +15,23 @@ export function NewSessionPage() {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
   const [patientSearch, setPatientSearch] = useState('')
   const [consent, setConsent] = useState({ audio: false, digital: false, confidential: false })
+  const [signatureDataUrl, setSignatureDataUrl] = useState<string | undefined>()
   const [creating, setCreating] = useState(false)
+  const signatureRef = useRef<HTMLCanvasElement>(null)
+  const drawingSignature = useRef(false)
 
   const canNext = step === 0 ? !!selectedPatient
     : step === 1 ? true
-    : consent.audio && consent.digital && consent.confidential
+    : consent.audio && consent.digital && consent.confidential && !!signatureDataUrl
 
   const handleNext = async () => {
     if (step < 2) { setStep(s => s + 1); return }
     if (!selectedPatient || !user || creating) return
     setCreating(true)
-    const { sessionId, error } = await createSession(selectedPatient.id, 'PBLL', consent, user.id)
+    const { sessionId, error } = await createSession(selectedPatient.id, 'PBLL', {
+      ...consent,
+      signatureDataUrl,
+    }, user.id)
     if (error || !sessionId) { setCreating(false); alert(error?.message ?? 'Error al crear sesión'); return }
     navigate(`/sesion/${sessionId}/paciente/bienvenida`)
   }
@@ -34,6 +40,55 @@ export function NewSessionPage() {
     ? patients.filter(p => p.full_name.toLowerCase().includes(patientSearch.toLowerCase()) ||
         p.document_number.includes(patientSearch))
     : patients
+
+  const signaturePoint = (event: PointerEvent<HTMLCanvasElement>) => {
+    const canvas = signatureRef.current
+    if (!canvas) return null
+    const rect = canvas.getBoundingClientRect()
+    return {
+      x: (event.clientX - rect.left) * (canvas.width / rect.width),
+      y: (event.clientY - rect.top) * (canvas.height / rect.height),
+    }
+  }
+
+  const startSignature = (event: PointerEvent<HTMLCanvasElement>) => {
+    const canvas = signatureRef.current
+    const point = signaturePoint(event)
+    if (!canvas || !point) return
+    canvas.setPointerCapture(event.pointerId)
+    drawingSignature.current = true
+    const context = canvas.getContext('2d')
+    if (!context) return
+    context.strokeStyle = '#251D4B'
+    context.lineWidth = 3
+    context.lineCap = 'round'
+    context.lineJoin = 'round'
+    context.beginPath()
+    context.moveTo(point.x, point.y)
+  }
+
+  const moveSignature = (event: PointerEvent<HTMLCanvasElement>) => {
+    if (!drawingSignature.current) return
+    const point = signaturePoint(event)
+    const context = signatureRef.current?.getContext('2d')
+    if (!point || !context) return
+    context.lineTo(point.x, point.y)
+    context.stroke()
+  }
+
+  const endSignature = () => {
+    if (!drawingSignature.current) return
+    drawingSignature.current = false
+    const canvas = signatureRef.current
+    if (canvas) setSignatureDataUrl(canvas.toDataURL('image/png'))
+  }
+
+  const clearSignature = () => {
+    const canvas = signatureRef.current
+    const context = canvas?.getContext('2d')
+    if (canvas && context) context.clearRect(0, 0, canvas.width, canvas.height)
+    setSignatureDataUrl(undefined)
+  }
 
   return (
     <div>
@@ -140,9 +195,22 @@ export function NewSessionPage() {
                 <label className="form-label" style={{ textTransform: 'uppercase', fontSize: 12, letterSpacing: '0.05em' }}>
                   Firma del paciente / apoderado
                 </label>
-                <div className="signature-area">
-                  <span className="text-secondary">Firme aquí</span>
+                <div className={`signature-area${signatureDataUrl ? ' has-signature' : ''}`}>
+                  <canvas
+                    ref={signatureRef}
+                    width={760}
+                    height={180}
+                    aria-label="Área para dibujar la firma"
+                    onPointerDown={startSignature}
+                    onPointerMove={moveSignature}
+                    onPointerUp={endSignature}
+                    onPointerCancel={endSignature}
+                  />
+                  {!signatureDataUrl && <span className="signature-placeholder text-secondary">Firme aquí</span>}
                 </div>
+                <button type="button" className="signature-clear" onClick={clearSignature} disabled={!signatureDataUrl}>
+                  Limpiar firma
+                </button>
               </div>
             </div>
           )}

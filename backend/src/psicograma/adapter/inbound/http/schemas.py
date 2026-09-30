@@ -63,6 +63,11 @@ class PatientOut(Model):
     age: int | None = None
     evaluation_count: int | None = None
     has_pending_evaluation: bool | None = None
+    anonymized_at: dt.datetime | None = None
+
+
+class PatientStatusIn(Model):
+    is_active: bool
 
 
 # =============================================================================
@@ -105,6 +110,10 @@ class SessionOut(Model):
     completed_at: dt.datetime | None
     created_at: dt.datetime
     patient: PatientOut | None = None
+
+
+class SessionPage(Page[SessionOut]):
+    pass
 
 
 class ConsentIn(Model):
@@ -197,6 +206,80 @@ class MetricsOut(Model):
     erase_count: int
     area_pct: float
     sequence_start: str | None
+
+
+class IndicatorSuggestionOut(Model):
+    code: str
+    confidence: str | None = None
+    evidence: str | None = None
+
+
+class AnalysisOut(Model):
+    metrics: MetricsOut
+    suggestions: list[IndicatorSuggestionOut]
+    llm_available: bool = False
+
+
+class SessionIndicatorOut(Model):
+    code: str
+    status: str
+    source: str
+    confidence: str | None = None
+    evidence: str | None = None
+    validated_by: UUID | None = None
+    validated_at: dt.datetime | None = None
+    title: str | None = None
+    interpretation: str | None = None
+    category: str | None = None
+
+
+class IndicatorStatusIn(Model):
+    status: Literal["validated", "rejected"]
+
+
+class RecordingOut(Model):
+    id: UUID
+    session_id: UUID
+    storage_path: str
+    duration_seconds: int | None
+    transcribed_at: dt.datetime | None
+
+
+class TranscriptSegmentOut(Model):
+    segment_index: int
+    start_ms: int
+    end_ms: int
+    text: str
+    segment_type: str
+
+
+# =============================================================================
+# Informes
+# =============================================================================
+
+
+class ReportSectionOut(Model):
+    id: UUID | None = None
+    section_number: int
+    title: str
+    content: str
+    is_ai_generated: bool
+    edited_by_examiner: bool
+
+
+class ReportOut(Model):
+    id: UUID
+    session_id: UUID
+    status: Literal["draft", "validated"]
+    validated_at: dt.datetime | None
+    created_at: dt.datetime | None = None
+    updated_at: dt.datetime | None = None
+    patient_name: str | None = None
+    sections: list[ReportSectionOut]
+
+
+class ReportSectionPatch(Model):
+    content: str = Field(max_length=20000)
 
 
 # =============================================================================

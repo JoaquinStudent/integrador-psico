@@ -1,16 +1,16 @@
 import { useState, useRef, useCallback } from 'react'
 import type { QuickMark } from '../../lib/observations'
-import { saveObservations } from '../../lib/observations'
+import { addQuickMark, saveObservations } from '../../lib/observations'
 import { formatTime } from '../../canvas/metricsCalculator'
 
 const QUICK_MARKS = [
-  'Pausa prolongada',
-  'Uso borrador',
-  'Comentario espontáneo',
-  'Muestra inseguridad',
-  'Preguntó por el paraguas',
-  'Rotó la hoja',
-]
+  ['pausa_prolongada', 'Pausa prolongada'],
+  ['uso_borrador', 'Uso borrador'],
+  ['comentario_espontaneo', 'Comentario espontáneo'],
+  ['muestra_inseguridad', 'Muestra inseguridad'],
+  ['pregunto_por_el_paraguas', 'Preguntó por el paraguas'],
+  ['roto_la_hoja', 'Rotó la hoja'],
+] as const
 
 interface Props {
   sessionId: string
@@ -33,10 +33,11 @@ export function ObservationsPanel({ sessionId, elapsedMs }: Props) {
   }
 
   const handleQuickMark = (mark: string) => {
-    const entry: QuickMark = { mark, timestamp: formatTime(elapsedMs) }
+    const entry: QuickMark = { mark, timestamp: formatTime(elapsedMs), markedAtMs: elapsedMs }
     const next = [...marks, entry]
     setMarks(next)
-    saveObservations(sessionId, next, notes)
+    void addQuickMark(sessionId, mark, elapsedMs)
+    void saveObservations(sessionId, next, notes)
   }
 
   return (
@@ -54,13 +55,13 @@ export function ObservationsPanel({ sessionId, elapsedMs }: Props) {
       <div className="quick-marks-section">
         <span className="quick-marks-label">Marcas rápidas</span>
         <div className="quick-marks-list">
-          {QUICK_MARKS.map(m => (
+          {QUICK_MARKS.map(([code, label]) => (
             <button
-              key={m}
-              className={`quick-mark-chip${m === 'Preguntó por el paraguas' ? ' amber' : ''}`}
-              onClick={() => handleQuickMark(m)}
+              key={code}
+              className={`quick-mark-chip${code === 'pregunto_por_el_paraguas' ? ' amber' : ''}`}
+              onClick={() => handleQuickMark(code)}
             >
-              {m}
+              {label}
             </button>
           ))}
         </div>

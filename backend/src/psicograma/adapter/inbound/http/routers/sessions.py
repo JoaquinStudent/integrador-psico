@@ -8,10 +8,9 @@ existencia de un registro a quien prueba ids ajenos.
 
 from __future__ import annotations
 
-import datetime as dt
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Query, status
 
 from .....config.container import (
     Drawings,
@@ -20,25 +19,41 @@ from .....config.container import (
     Patients,
     Sessions,
 )
-from .....domain.services import measure
 from ..schemas import (
     ConsentIn,
     ConsentOut,
     DrawingIn,
     DrawingOut,
-    MetricsOut,
     ObservationsIn,
     ObservationsOut,
     PatientOut,
     QuickMarkIn,
     SessionIn,
     SessionOut,
+    SessionPage,
     SessionPatch,
     StrokeOut,
     TestOut,
 )
 
 router = APIRouter(prefix="/sessions", tags=["sesiones"])
+
+
+@router.get("", response_model=SessionPage)
+async def listar(
+    store: Sessions,
+    patients: Patients,
+    status_filter: str | None = Query(None, alias="status"),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(25, ge=1, le=100),
+) -> SessionPage:
+    rows, total = await store.list_all(status=status_filter, page=page, page_size=page_size)
+    return SessionPage(
+        items=[await _to_out(store, row, patients) for row in rows],
+        total=total,
+        page=page,
+        page_size=page_size,
+    )
 
 
 async def _to_out(store: Sessions, row, patients: Patients | None = None) -> SessionOut:
@@ -154,33 +169,6 @@ async def leer_dibujo(session_id: UUID, sessions: Sessions, drawings: Drawings) 
             for s in dibujo.strokes
         ],
     )
-
-
-@router.get("/{session_id}/metrics", response_model=MetricsOut)
-async def metricas(session_id: UUID, sessions: Sessions, drawings: Drawings) -> MetricsOut:
-    """Las 7 metricas objetivas.
-
-    Si ya se calcularon, se devuelven; si no, se miden al vuelo desde los trazos.
-    Asi el examinador ve metricas aunque todavia no haya corrido el analisis.
-    """
-    sesion = await sessions.get(session_id)
-    guardadas = await drawings.get_metrics(session_id)
-    if guardadas is not None:
-        return MetricsOut.model_validate(guardadas)
-
-    dibujo = await drawings.get_drawing(session_id)
-    if dibujo is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "la sesion no tiene dibujo")
-
-    duracion = _duracion_ms(sesion)
-    return MetricsOut.model_validate(measure(dibujo, session_duration_ms=duracion))
-
-
-def _duracion_ms(sesion) -> int:
-    inicio, fin = sesion.started_at, sesion.completed_at or dt.datetime.now(dt.UTC)
-    if inicio is None:
-        return 0
-    return int((fin - inicio).total_seconds() * 1000)
 
 
 # =============================================================================

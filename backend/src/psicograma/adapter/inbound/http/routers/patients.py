@@ -8,8 +8,17 @@ from uuid import UUID
 
 from fastapi import APIRouter, Query, status
 
-from .....config.container import Patients, Sessions
-from ..schemas import Page, PatientIn, PatientOut, SessionOut, TestOut
+from .....config.container import Patients, Reports, Sessions
+from ..schemas import (
+    Page,
+    PatientIn,
+    PatientOut,
+    PatientStatusIn,
+    ReportOut,
+    SessionOut,
+    TestOut,
+)
+from .reports import _out as report_out
 
 router = APIRouter(prefix="/patients", tags=["pacientes"])
 
@@ -88,6 +97,17 @@ async def actualizar(patient_id: UUID, data: PatientIn, store: Patients) -> Pati
     return out
 
 
+@router.patch("/{patient_id}/status", response_model=PatientOut)
+async def estado(patient_id: UUID, data: PatientStatusIn, store: Patients) -> PatientOut:
+    row = await store.set_active(patient_id, data.is_active)
+    return PatientOut.model_validate(row)
+
+
+@router.post("/{patient_id}/anonymize", response_model=PatientOut)
+async def anonimizar(patient_id: UUID, store: Patients) -> PatientOut:
+    return PatientOut.model_validate(await store.anonymize(patient_id))
+
+
 @router.get("/{patient_id}/sessions", response_model=list[SessionOut])
 async def sesiones(
     patient_id: UUID, patients: Patients, sessions: Sessions
@@ -107,3 +127,10 @@ async def sesiones(
         )
         for r in rows
     ]
+
+
+@router.get("/{patient_id}/reports", response_model=list[ReportOut])
+async def informes(patient_id: UUID, patients: Patients, reports: Reports) -> list[ReportOut]:
+    await patients.get(patient_id)
+    return [report_out(report, patient, await reports.sections(report.id))
+            for report, patient in await reports.list(patient_id=patient_id)]

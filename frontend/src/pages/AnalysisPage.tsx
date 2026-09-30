@@ -1,19 +1,20 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useParams } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+import { useNavigate, useParams } from 'react-router-dom'
+import { api } from '../lib/apiClient'
 import { PBLL_INDICATORS, INDICATOR_SECTIONS, INDICATOR_CATEGORIES } from '../data/pbll-indicators'
 import { analyzeDrawing } from '../lib/analyzeDrawing'
 import type { SessionIndicator } from '../types/api'
+import { generateReport } from '../lib/reports'
 
 type Tab = 'objective' | 'detected' | 'verification'
 
 export function AnalysisPage() {
   const { id: sessionId } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const [tab, setTab] = useState<Tab>('objective')
   const [indicators, setSessionIndicators] = useState<SessionIndicator[]>([])
   const [metrics, setMetrics] = useState<Record<string, unknown> | null>(null)
   const [patient, setPatient] = useState<{ full_name: string } | null>(null)
-  const [drawingUrl, setDrawingUrl] = useState<string | null>(null)
   const [analyzing, setAnalyzing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set())
@@ -24,22 +25,19 @@ export function AnalysisPage() {
   }, [sessionId])
 
   async function loadData() {
-    const metricsRes = await supabase.from('stroke_metrics').select('*').eq('session_id', sessionId!).single()
-    const indicatorsRes = await supabase.from('indicators').select('*').eq('session_id', sessionId!)
-    const sessionRes = await supabase.from('sessions').select('patient_id').eq('id', sessionId!).single()
-    const drawingRes = await supabase.from('drawing_data').select('final_image_url').eq('session_id', sessionId!).single()
-
-    if (metricsRes.data) setMetrics(metricsRes.data as Record<string, unknown>)
-    if (indicatorsRes.data) setSessionIndicators(indicatorsRes.data)
-    if (sessionRes.data) {
-      const { data: patientData } = await supabase.from('patients').select('full_name').eq('id', sessionRes.data.patient_id).single()
-      if (patientData) setPatient(patientData)
-    }
-    if (drawingRes.data?.final_image_url) {
-      const { data: urlData } = supabase.storage
-        .from('drawings')
-        .getPublicUrl(drawingRes.data.final_image_url)
-      setDrawingUrl(urlData.publicUrl)
+    try {
+      const [metrics, indicators, session] = await Promise.all([
+        api.get<Record<string, unknown>>(`/sessions/${sessionId}/metrics`),
+        api.get<SessionIndicator[]>(`/sessions/${sessionId}/indicators`),
+        api.get<{ patient_id: string }>(`/sessions/${sessionId}`),
+      ])
+      setMetrics(metrics)
+      setSessionIndicators(indicators)
+      const patientData = await api.get<{ full_name: string }>(`/patients/${session.patient_id}`)
+      setPatient(patientData)
+    } catch {
+      setMetrics(null)
+      setSessionIndicators([])
     }
   }
 
@@ -72,23 +70,15 @@ export function AnalysisPage() {
     const existing = indicators.find(i => i.code === code)
     if (existing) {
       const newStatus = existing.status === 'validated' ? 'rejected' : 'validated'
-      await supabase.from('indicators').update({ status: newStatus }).eq('id', existing.id)
-      setSessionIndicators(prev => prev.map(i => i.id === existing.id ? { ...i, status: newStatus } : i))
+      await api.put(`/sessions/${sessionId}/indicators/${code}`, { status: newStatus })
+      setSessionIndicators(prev => prev.map(i => i.code === code ? { ...i, status: newStatus } : i))
     } else {
       const ind = PBLL_INDICATORS.find(i => i.code === code)
       if (!ind) return
-      const { data } = await supabase.from('indicators').insert({
-        session_id: sessionId,
-        code: ind.code,
-        category: ind.category,
-        manual_section: ind.section,
-        title: ind.title,
-        interpretation: ind.interpretation,
-        source: 'manual' as const,
-        status: 'validated' as const,
-        confidence: 'high' as const,
-      }).select().single()
-      if (data) setSessionIndicators(prev => [...prev, data as SessionIndicator])
+      const created = await api.post<SessionIndicator[]>(`/sessions/${sessionId}/indicators/bulk`, {
+        codes: [ind.code],
+      })
+      if (created[0]) setSessionIndicators(prev => [...prev, created[0]])
     }
   }, [sessionId, indicators])
 
@@ -112,6 +102,16 @@ export function AnalysisPage() {
   const autoDetected = indicators.filter(i => i.source === 'auto')
   const suggestions = indicators.filter(i => i.status === 'suggestion')
 
+  async function openReport() {
+    if (!sessionId) return
+    try {
+      const report = await generateReport(sessionId)
+      navigate(`/informes/${report.id}`)
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : 'No se pudo generar el informe')
+    }
+  }
+
   return (
     <div className="analysis-page">
       <div className="analysis-header">
@@ -130,11 +130,7 @@ export function AnalysisPage() {
             {patient && <span className="drawing-patient">Paciente: {patient.full_name}</span>}
           </div>
           <div className="drawing-preview">
-            {drawingUrl ? (
-              <img src={drawingUrl} alt="Dibujo del paciente" />
-            ) : (
-              <div className="drawing-placeholder">Sin imagen disponible</div>
-            )}
+            <div className="drawing-placeholder">La imagen se cargará desde el Storage privado.</div>
           </div>
         </div>
 
@@ -155,7 +151,9 @@ export function AnalysisPage() {
 
           <div className="analysis-tab-content">
             {tab === 'objective' && <ObjectiveTab metrics={metrics} onAnalyze={runAnalysis} analyzing={analyzing} />}
-            {tab === 'detected' && <DetectedTab indicators={autoDetected} suggestions={suggestions} onToggle={toggleSessionIndicator} />}
+            {tab === 'detected' && <DetectedTab indicators={autoDetected} suggestions={suggestions} onToggle={toggleSessionIndicator} onReject={code => {
+              if (sessionId) void api.put(`/sessions/${sessionId}/indicators/${code}`, { status: 'rejected' }).then(loadData)
+            }} />}
             {tab === 'verification' && (
               <VerificationTab
                 indicators={indicators}
@@ -175,6 +173,9 @@ export function AnalysisPage() {
             <div className="progress-bar">
               <div className="progress-fill" style={{ width: `${totalManualSessionIndicators > 0 ? (validatedCount / totalManualSessionIndicators) * 100 : 0}%` }} />
             </div>
+            <button className="btn-save-verification" onClick={openReport} disabled={saving}>
+              Generar informe
+            </button>
             <button className="btn-save-verification" onClick={saveVerification} disabled={saving}>
               {saving ? 'Guardando...' : 'Guardar verificacion'}
             </button>
@@ -219,10 +220,11 @@ function ObjectiveTab({ metrics, onAnalyze, analyzing }: { metrics: Record<strin
   )
 }
 
-function DetectedTab({ indicators, suggestions, onToggle }: {
+function DetectedTab({ indicators, suggestions, onToggle, onReject }: {
   indicators: SessionIndicator[]
   suggestions: SessionIndicator[]
   onToggle: (code: string) => void
+  onReject: (code: string) => void
 }) {
   const all = [...suggestions, ...indicators.filter(i => i.status !== 'suggestion')]
 
@@ -245,9 +247,7 @@ function DetectedTab({ indicators, suggestions, onToggle }: {
               </div>
               <div className="suggestion-actions">
                 <button className="btn-accept" onClick={() => onToggle(s.code)} title="Aceptar">✓</button>
-                <button className="btn-reject" onClick={() => {
-                  supabase.from('indicators').update({ status: 'rejected' }).eq('id', s.id)
-                }} title="Rechazar">✕</button>
+                <button className="btn-reject" onClick={() => onReject(s.code)} title="Rechazar">✕</button>
               </div>
             </div>
           ))}

@@ -17,6 +17,7 @@ tiene BYPASSRLS.
 
 from __future__ import annotations
 
+import datetime as dt
 from uuid import UUID
 
 from sqlalchemy import select
@@ -261,3 +262,91 @@ class PostgresSessionIndicatorRepository:
             if entry is not None:  # la FK lo garantiza; se es defensivo por si acaso
                 out.append(ValidatedIndicator(entry=entry, evidence=row.evidence))
         return out
+
+    async def list_for_session(self, session_id: UUID) -> list[dict]:
+        rows = (
+            await self._s.execute(
+                select(m.SessionIndicator, m.IndicatorCatalogRow)
+                .join(
+                    m.IndicatorCatalogRow,
+                    m.IndicatorCatalogRow.code == m.SessionIndicator.indicator_code,
+                )
+                .where(m.SessionIndicator.session_id == session_id)
+                .order_by(m.SessionIndicator.indicator_code)
+            )
+        ).all()
+        return [
+            {
+                "code": indicator.indicator_code,
+                "status": indicator.status,
+                "source": indicator.source,
+                "confidence": indicator.confidence,
+                "evidence": indicator.evidence,
+                "validated_by": indicator.validated_by,
+                "validated_at": indicator.validated_at,
+                "title": catalog.title,
+                "interpretation": catalog.interpretation,
+                "category": "",
+            }
+            for indicator, catalog in rows
+        ]
+
+    async def set_status(
+        self, session_id: UUID, code: str, status: IndicatorStatus, user_id: UUID
+    ) -> dict:
+        row = (
+            await self._s.execute(
+                select(m.SessionIndicator)
+                .where(m.SessionIndicator.session_id == session_id)
+                .where(m.SessionIndicator.indicator_code == code)
+            )
+        ).scalar_one_or_none()
+        if row is None:
+            raise KeyError(code)
+        row.status = status.value
+        row.validated_by = user_id
+        row.validated_at = dt.datetime.now(dt.UTC)
+        await self._s.flush()
+        return {
+            "code": row.indicator_code,
+            "status": row.status,
+            "source": row.source,
+            "confidence": row.confidence,
+            "evidence": row.evidence,
+            "validated_by": row.validated_by,
+            "validated_at": row.validated_at,
+        }
+
+    async def add_manual(self, session_id: UUID, codes: list[str], user_id: UUID) -> list[dict]:
+        valid_codes = (
+            await self._s.execute(
+                select(m.IndicatorCatalogRow.code).where(
+                    m.IndicatorCatalogRow.code.in_(codes)
+                )
+            )
+        ).scalars().all()
+        for code in valid_codes:
+            stmt = pg_insert(m.SessionIndicator).values(
+                session_id=session_id,
+                indicator_code=code,
+                status=IndicatorStatus.VALIDATED.value,
+                source="manual",
+                confidence="high",
+                validated_by=user_id,
+                validated_at=dt.datetime.now(dt.UTC),
+            )
+            await self._s.execute(
+                stmt.on_conflict_do_update(
+                    index_elements=[
+                        m.SessionIndicator.session_id,
+                        m.SessionIndicator.indicator_code,
+                    ],
+                    set_={
+                        "status": IndicatorStatus.VALIDATED.value,
+                        "source": "manual",
+                        "validated_by": user_id,
+                        "validated_at": dt.datetime.now(dt.UTC),
+                    },
+                )
+            )
+        return await self.list_for_session(session_id)

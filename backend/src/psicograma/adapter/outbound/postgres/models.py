@@ -146,6 +146,7 @@ class Patient(Base):
     registered_at: Mapped[dt.datetime] = mapped_column(TS, server_default=FetchedValue())
     created_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("profiles.id"))
     is_active: Mapped[bool] = mapped_column(Boolean, server_default=FetchedValue())
+    anonymized_at: Mapped[dt.datetime | None] = mapped_column(TS)
 
 
 # =============================================================================

@@ -901,6 +901,37 @@ body {
   align-items: center;
   justify-content: center;
   background: rgba(252, 248, 255, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.signature-area canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.signature-placeholder {
+  position: absolute;
+  pointer-events: none;
+}
+
+.signature-clear {
+  border: 0;
+  background: transparent;
+  color: var(--color-primary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  margin-top: 6px;
+  padding: 0;
+}
+
+.signature-clear:disabled {
+  color: var(--color-text-secondary);
+  cursor: default;
 }
 
 /* Summary sidebar */
@@ -1889,3 +1920,17 @@ body {
   font-size: 0.875rem;
 }
 .btn-continue:hover { opacity: 0.9; }
+/* Reportes */
+.report-layout { display:grid; grid-template-columns:240px minmax(0, 1fr); gap:24px; align-items:start; }
+.report-index { position:sticky; top:24px; display:flex; flex-direction:column; gap:4px; }
+.report-index a { padding:9px 12px; color:var(--text-secondary,#52636d); text-decoration:none; border-radius:8px; font-size:13px; }
+.report-index a:hover { background:#eef6f8; color:#176b87; }
+.report-index-empty { color:#a66b19 !important; }
+.report-section { margin-bottom:16px; scroll-margin-top:20px; }
+.report-section-header { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+.report-section-header h2 { flex:1; margin:0; font-size:17px; color:#176b87; }
+.report-section textarea { width:100%; box-sizing:border-box; resize:vertical; border:1px solid #d8e4e8; border-radius:8px; padding:12px; font:inherit; line-height:1.55; color:#243447; }
+.report-section-empty textarea { border-color:#d59b38; background:#fffaf0; }
+.badge-blue { background:#e5f2f7; color:#176b87; }.badge-purple { background:#f0eafd; color:#6246a5; }
+.form-success { margin:12px 0; padding:10px 14px; color:#176b58; background:#e7f6ef; border-radius:8px; }.form-error { margin:12px 0; padding:10px 14px; color:#9b352b; background:#fff0ee; border-radius:8px; }
+@media (max-width: 800px) { .report-layout { grid-template-columns:1fr; }.report-index { position:static; } }
