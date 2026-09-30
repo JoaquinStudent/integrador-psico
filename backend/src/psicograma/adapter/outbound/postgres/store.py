@@ -18,7 +18,12 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ....domain.model import ConsentSummary, DrawingMetrics, ReportContext
+from ....domain.model import (
+    CONCLUSIONS_SECTION,
+    ConsentSummary,
+    DrawingMetrics,
+    ReportContext,
+)
 from . import models as m
 from .repositories import PostgresSessionIndicatorRepository
 
@@ -535,6 +540,22 @@ class AudioStore:
     def __init__(self, session: AsyncSession) -> None:
         self._s = session
 
+    async def list_for_session(self, session_id: UUID) -> list[m.AudioRecording]:
+        """Grabaciones de una sesion, la mas reciente primero.
+
+        Sin esto el frontend no tenia forma de averiguar el id de la grabacion para
+        pedir su transcripcion: solo conocia la ruta en Storage, que no sirve como
+        identificador.
+        """
+        rows = (
+            await self._s.execute(
+                select(m.AudioRecording)
+                .where(m.AudioRecording.session_id == session_id)
+                .order_by(m.AudioRecording.created_at.desc())
+            )
+        ).scalars().all()
+        return list(rows)
+
     async def create(
         self, session_id: UUID, path: str, duration_seconds: int | None
     ) -> m.AudioRecording:
@@ -761,8 +782,21 @@ class ReportStore:
         report, patient, sections = await self.get(report_id)
         if report.status != "draft":
             raise Conflict("el informe ya está validado")
-        if len(sections) != 9 or any(not s.content.strip() for s in sections):
-            raise Conflict("todas las secciones del informe deben estar completas")
+        if len(sections) != 9:
+            raise Conflict("el informe debe tener las 9 secciones")
+
+        # Se exige la seccion 9 y nada mas, segun SPEC-S6-03.
+        #
+        # Antes se pedia que **todas** las secciones tuvieran contenido, y eso
+        # contradecia la regla clinica del proyecto: las secciones 7 y 8 salen
+        # vacias a proposito cuando no hay indicadores validados de esa categoria.
+        # Con las dos reglas juntas, un informe legitimo nunca se podia validar y el
+        # flujo quedaba sin salida: sin validar no hay PDF.
+        conclusiones = next(s for s in sections if s.section_number == CONCLUSIONS_SECTION)
+        if not conclusiones.content.strip():
+            raise Conflict(
+                "las conclusiones del profesional (seccion 9) son obligatorias"
+            )
         has_indicator = await self._s.scalar(
             select(func.count())
             .select_from(m.SessionIndicator)
