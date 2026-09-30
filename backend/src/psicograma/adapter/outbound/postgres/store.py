@@ -256,7 +256,10 @@ class SessionStore:
         page: int = 1,
         page_size: int = 25,
     ) -> tuple[list[m.Session], int]:
-        stmt = select(m.Session)
+        # Filtro explicito por examinador. RLS tambien lo haria, pero apoyarse solo
+        # en RLS deja una unica linea de defensa: si un camino futuro no pasa por
+        # `session_for()`, este listado devolveria las sesiones de todos.
+        stmt = select(m.Session).where(m.Session.created_by == self._uid)
         if status:
             stmt = stmt.where(m.Session.status == status)
         total = await self._s.scalar(select(func.count()).select_from(stmt.subquery())) or 0
@@ -283,6 +286,58 @@ class SessionStore:
             row.completed_at = dt.datetime.now(dt.UTC)
         await self._s.flush()
         return row
+
+    async def summary(self) -> dict:
+        """Los tres KPI del panel y las ultimas sesiones, **solo de este examinador**.
+
+        Vive en el store y no en el router por dos razones. Una, para que el filtro
+        por `created_by` este junto al resto del acceso a datos y no se olvide al
+        agregar un contador. Dos, porque un conteo que suma filas ajenas filtra
+        informacion aunque no muestre nombres: revela cuantos pacientes y sesiones
+        atiende el otro profesional.
+        """
+        mias = m.Session.created_by == self._uid
+        hace_una_semana = dt.datetime.now(dt.UTC) - dt.timedelta(days=7)
+
+        sesiones_semana = await self._s.scalar(
+            select(func.count())
+            .select_from(m.Session)
+            .where(mias, m.Session.created_at >= hace_una_semana)
+        ) or 0
+
+        # "Evaluacion pendiente": sesion completada sin informe validado. Misma
+        # definicion que el filtro de pacientes, para que no se desincronicen.
+        pendientes = await self._s.scalar(
+            select(func.count())
+            .select_from(m.Session)
+            .outerjoin(m.Report, m.Report.session_id == m.Session.id)
+            .where(mias, m.Session.status == "completed")
+            .where((m.Report.id.is_(None)) | (m.Report.status != "validated"))
+        ) or 0
+
+        pacientes_activos = await self._s.scalar(
+            select(func.count())
+            .select_from(m.Patient)
+            .where(m.Patient.created_by == self._uid, m.Patient.is_active.is_(True))
+        ) or 0
+
+        recientes = (
+            await self._s.execute(
+                select(m.Session, m.Patient, m.Test)
+                .join(m.Patient, m.Patient.id == m.Session.patient_id)
+                .join(m.Test, m.Test.id == m.Session.test_id)
+                .where(mias)
+                .order_by(m.Session.created_at.desc())
+                .limit(5)
+            )
+        ).all()
+
+        return {
+            "sessions_this_week": sesiones_semana,
+            "pending_analysis": pendientes,
+            "active_patients": pacientes_activos,
+            "recent_sessions": recientes,
+        }
 
     async def save_consent(self, session_id: UUID, data: dict) -> m.ConsentRecord:
         await self.get(session_id)  # valida pertenencia

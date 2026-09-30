@@ -295,3 +295,50 @@ async def test_los_indicadores_de_otro_examinador_no_se_leen(
     await db_a.commit()
 
     assert await PostgresSessionIndicatorRepository(db_b).list_validated(sid) == []
+
+
+# =============================================================================
+# Defensa en profundidad: el filtro de aplicacion, aislado de RLS
+# =============================================================================
+#
+# Los tests de la API pasan tanto si el filtro existe como si no, porque RLS tapa
+# igual. Estos corren el store con una conexion **que salta RLS** —el rol de la
+# cadena todavia es superusuario, riesgo R-08— de modo que lo unico que puede
+# proteger es el `WHERE` de la aplicacion. Si alguien lo quita, estos fallan.
+
+
+@pytest.mark.asyncio
+async def test_el_listado_de_sesiones_filtra_sin_depender_de_rls(
+    sesion_con_dibujo, perfiles_creados
+):
+    from psicograma.adapter.outbound.postgres.engine import engine
+    from psicograma.adapter.outbound.postgres.store import SessionStore
+
+    _, b = perfiles_creados
+    async with engine.begin() as raw:       # sin session_for: RLS no aplica
+        assert await raw.scalar(
+            text("select rolbypassrls from pg_roles where rolname = current_user")
+        ) is True, "si el rol dejara de tener bypassrls, este test ya no prueba nada"
+
+        rows, total = await SessionStore(raw, b.id).list_all()
+        ajenas = [r for r in rows if r.created_by != b.id]
+        assert not ajenas, "el listado devolvio sesiones de otro examinador"
+        assert total == 0
+
+
+@pytest.mark.asyncio
+async def test_el_resumen_del_panel_filtra_sin_depender_de_rls(
+    sesion_con_dibujo, perfiles_creados
+):
+    """Un conteo que suma filas ajenas filtra informacion aunque no muestre nombres:
+    revela cuantos pacientes y sesiones atiende el otro profesional."""
+    from psicograma.adapter.outbound.postgres.engine import engine
+    from psicograma.adapter.outbound.postgres.store import SessionStore
+
+    _, b = perfiles_creados
+    async with engine.begin() as raw:
+        datos = await SessionStore(raw, b.id).summary()
+
+    assert datos["sessions_this_week"] == 0
+    assert datos["active_patients"] == 0
+    assert datos["recent_sessions"] == []

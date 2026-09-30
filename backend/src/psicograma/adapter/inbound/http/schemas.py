@@ -327,3 +327,15 @@ class LabeledOut(Model):
     code: str
     label: str
     display_order: int
+
+
+# =============================================================================
+# Panel
+# =============================================================================
+
+
+class DashboardSummary(Model):
+    sessions_this_week: int
+    pending_analysis: int
+    active_patients: int
+    recent_sessions: list[SessionOut]

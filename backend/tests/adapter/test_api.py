@@ -412,3 +412,41 @@ def test_marca_inexistente_en_el_catalogo_es_409(cliente_a):
     assert r.status_code == 409
     assert "no-existe" in r.json()["detail"]
     assert "fkey" not in r.text, "no se filtran nombres de constraint al cliente"
+
+
+# =============================================================================
+# Aislamiento entre examinadores en los endpoints agregados
+# =============================================================================
+#
+# Los endpoints que devuelven colecciones o conteos no reciben un id que validar,
+# asi que es facil que queden sin filtro y nadie lo note: la respuesta "se ve bien"
+# porque el examinador que prueba solo tiene datos propios. Estos tests usan dos
+# cuentas justamente para que eso no pase inadvertido.
+
+
+def test_el_listado_de_sesiones_no_mezcla_examinadores(cliente_a, cliente_b):
+    sid = _sesion(cliente_a)
+    ids_de_b = {s["id"] for s in cliente_b.get("/api/v1/sessions").json()["items"]}
+    assert sid not in ids_de_b
+
+
+def test_el_panel_no_cuenta_datos_de_otro_examinador(cliente_a, cliente_b):
+    """Un conteo que suma filas ajenas filtra informacion aunque no muestre nombres:
+    revela cuantos pacientes y sesiones tiene el otro profesional."""
+    antes = cliente_b.get("/api/v1/dashboard/summary").json()
+
+    _sesion(cliente_a)   # A crea paciente y sesion
+    _sesion(cliente_a)
+
+    despues = cliente_b.get("/api/v1/dashboard/summary").json()
+
+    assert despues["sessions_this_week"] == antes["sessions_this_week"]
+    assert despues["active_patients"] == antes["active_patients"]
+
+
+def test_el_panel_no_expone_pacientes_de_otro_examinador(cliente_a, cliente_b):
+    """`recent_sessions` embebe el paciente con nombre y documento. Si no filtra, es
+    exposicion directa de datos clinicos identificables."""
+    sid = _sesion(cliente_a)
+    recientes = cliente_b.get("/api/v1/dashboard/summary").json()["recent_sessions"]
+    assert sid not in {s["id"] for s in recientes}
