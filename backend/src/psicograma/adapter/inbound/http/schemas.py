@@ -276,6 +276,10 @@ class ReportOut(Model):
     updated_at: dt.datetime | None = None
     patient_name: str | None = None
     sections: list[ReportSectionOut]
+    # El informe se entrega aunque el redactor falle. Estos dos campos le dicen al
+    # editor que las secciones vacias son un pendiente, no una plantilla vacia.
+    llm_available: bool = True
+    pending_sections: list[int] = []
 
 
 class ReportSectionPatch(Model):

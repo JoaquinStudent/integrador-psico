@@ -106,6 +106,15 @@ export function AnalysisPage() {
     if (!sessionId) return
     try {
       const report = await generateReport(sessionId)
+      // El informe se genera igual sin el redactor; avisar cuales quedaron en blanco
+      // evita que el profesional crea que el sistema no midio nada.
+      const pendientes = report.pending_sections ?? []
+      if (pendientes.length > 0) {
+        window.alert(
+          `El informe se generó, pero el asistente de redacción no respondió. ` +
+          `Escribe a mano estas secciones: ${pendientes.join(', ')}.`
+        )
+      }
       navigate(`/informes/${report.id}`)
     } catch (error) {
       window.alert(error instanceof Error ? error.message : 'No se pudo generar el informe')
