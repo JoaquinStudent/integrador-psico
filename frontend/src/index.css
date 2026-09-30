@@ -702,32 +702,41 @@ body {
 /* Stepper */
 .stepper {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
-  margin-bottom: 32px;
-  padding: 20px 0;
+  align-items: flex-start;
+  list-style: none;
+  max-width: 620px;
+  margin: 0 auto 32px;
+  padding: 20px 12px;
 }
 
+/* Cada paso es una fila: [linea][circulo + etiqueta]. Solo los pasos que llevan
+   linea crecen, asi la linea se queda con el espacio sobrante y nada desborda. */
 .step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.step-item + .step-item { flex: 1 1 0; }
+
+.step-line {
+  flex: 1 1 auto;
+  min-width: 12px;
+  height: 3px;
+  margin-top: 16px;           /* centro del circulo de 36px */
+  border-radius: 2px;
+  background: var(--color-border);
+}
+
+.step-line.done { background: var(--color-green); }
+
+.step-item-body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  position: relative;
-}
-
-.step-line {
-  position: absolute;
-  top: 16px;
-  right: 100%;
-  width: 120px;
-  height: 3px;
-  background: var(--color-border);
-  margin-right: 8px;
-}
-
-.step-line.done {
-  background: var(--color-green);
+  flex: 0 0 auto;
+  width: 96px;
 }
 
 .step-circle {
@@ -743,6 +752,7 @@ body {
   border: 2px solid var(--color-border);
   color: var(--color-text-secondary);
   margin-bottom: 8px;
+  flex-shrink: 0;
 }
 
 .step-circle.active {
@@ -757,10 +767,13 @@ body {
   color: #fff;
 }
 
+/* Sin `nowrap`: una etiqueta larga como "Consentimiento" parte en dos lineas en vez
+   de estirar el paso y empujar el resto fuera del contenedor. */
 .step-label {
-  font-size: 13px;
+  font-size: 12px;
+  line-height: 1.3;
+  text-align: center;
   color: var(--color-text-secondary);
-  white-space: nowrap;
 }
 
 .step-label.active {
@@ -2031,3 +2044,33 @@ body {
 }
 
 .audio-not-allowed { color: var(--color-text-secondary); font-size: 12px; }
+
+/* --- Sesion ya cerrada (se abrio desde el listado o la ficha) -------------- */
+
+.session-closed { display: flex; justify-content: center; padding: 40px 24px; }
+.session-closed-card {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 10px;
+  width: 100%; max-width: 520px; padding: 28px;
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
+}
+.session-closed-card .page-title { margin: 4px 0 0; }
+.session-closed-card .page-subtitle { margin: 0; }
+
+.session-closed-facts {
+  display: flex; flex-wrap: wrap; gap: 20px;
+  margin: 14px 0 6px; padding: 14px 0;
+  width: 100%;
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+.session-closed-facts dt {
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--color-text-secondary); margin-bottom: 3px;
+}
+.session-closed-facts dd {
+  margin: 0; font-size: 13px; color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.session-closed-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
