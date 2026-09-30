@@ -33,7 +33,11 @@ export function NewSessionPage() {
       signatureDataUrl,
     }, user.id)
     if (error || !sessionId) { setCreating(false); alert(error?.message ?? 'Error al crear sesión'); return }
-    navigate(`/sesion/${sessionId}/paciente/bienvenida`)
+    // Al monitoreo, no a la pantalla del paciente: el examinador se queda conduciendo
+    // la toma desde su computadora y la tablet se abre con el enlace que le da esa
+    // pantalla. Antes navegaba a `/paciente/bienvenida` y el examinador terminaba
+    // mirando el lienzo del paciente en su propio laptop, sin nadie en el monitoreo.
+    navigate(`/sesion/${sessionId}`)
   }
 
   const filteredPatients = patientSearch

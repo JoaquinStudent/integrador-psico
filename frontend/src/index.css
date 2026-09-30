@@ -1934,3 +1934,100 @@ body {
 .badge-blue { background:#e5f2f7; color:#176b87; }.badge-purple { background:#f0eafd; color:#6246a5; }
 .form-success { margin:12px 0; padding:10px 14px; color:#176b58; background:#e7f6ef; border-radius:8px; }.form-error { margin:12px 0; padding:10px 14px; color:#9b352b; background:#fff0ee; border-radius:8px; }
 @media (max-width: 800px) { .report-layout { grid-template-columns:1fr; }.report-index { position:static; } }
+
+/* --- Guion PBLL y enlace de la tablet (sesion en vivo) --------------------- */
+
+/* La columna de observaciones ahora lleva guion + notas: scroll propio para que el
+   guion no empuje el textarea fuera de la pantalla en un portatil de 13". */
+.session-col-observations {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.protocol-panel { display: flex; flex-direction: column; gap: 10px; }
+.protocol-header { display: flex; flex-direction: column; gap: 8px; }
+
+.protocol-steps { display: flex; flex-wrap: wrap; gap: 4px; }
+.protocol-step {
+  font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+  padding: 3px 7px; border-radius: var(--radius-sm);
+  background: var(--color-bg); color: var(--color-text-secondary);
+}
+.protocol-step.active { background: var(--color-primary); color: #fff; }
+
+.protocol-current {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 12px; border-radius: var(--radius);
+  background: var(--color-surface); border: 1px solid var(--color-border);
+}
+
+/* Lo que el examinador dice, literal. Se distingue del resto a proposito: es la
+   consigna del manual y no admite parafraseo. */
+.protocol-say {
+  margin: 0; font-size: 14px; font-weight: 600; line-height: 1.4;
+  color: var(--color-primary);
+}
+.protocol-say.sm { font-size: 13px; }
+
+.protocol-do { margin: 0; padding-left: 16px; display: flex; flex-direction: column; gap: 5px; }
+.protocol-do li { font-size: 12px; line-height: 1.45; color: var(--color-text); }
+
+.protocol-source {
+  font-size: 10px; color: var(--color-text-secondary);
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+
+.protocol-answers { display: flex; flex-direction: column; gap: 6px; }
+.protocol-answer {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 8px 10px; border-radius: var(--radius-sm);
+  background: var(--color-bg); border-left: 3px solid transparent;
+}
+.protocol-answer.highlighted {
+  background: var(--color-amber-bg); border-left-color: var(--color-amber);
+}
+.protocol-answer-situation { font-size: 12px; font-weight: 600; color: var(--color-text); }
+.protocol-answer-note { margin: 0; font-size: 11px; line-height: 1.45; color: var(--color-text-secondary); }
+
+.tablet-link-card {
+  display: flex; flex-direction: column; gap: 10px;
+  max-width: 460px; margin: auto; padding: 20px;
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
+}
+.tablet-link-warning {
+  margin: 0; padding: 8px 10px; border-radius: var(--radius-sm);
+  background: var(--color-amber-bg); color: var(--color-text);
+  font-size: 12px; line-height: 1.45;
+}
+.tablet-link-warning code { font-size: 11px; }
+.tablet-link-label {
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--color-text-secondary);
+}
+.tablet-link-row { display: flex; gap: 6px; }
+.tablet-link-input {
+  flex: 1; min-width: 0; padding: 8px 10px;
+  border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+  font-family: ui-monospace, monospace; font-size: 12px; color: var(--color-text);
+  background: var(--color-bg);
+}
+.tablet-link-copy {
+  padding: 8px 14px; border: none; border-radius: var(--radius-sm);
+  background: var(--color-primary); color: #fff;
+  font-size: 12px; font-weight: 600; cursor: pointer;
+}
+.tablet-link-copy:hover { background: var(--color-secondary); }
+.tablet-link-hint { margin: 0; font-size: 12px; line-height: 1.45; color: var(--color-text-secondary); }
+.tablet-link-waiting {
+  display: flex; align-items: center; gap: 8px; margin-top: 4px;
+  font-size: 12px; color: var(--color-text-secondary);
+}
+.tablet-link-waiting .status-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--color-amber); animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+.audio-not-allowed { color: var(--color-text-secondary); font-size: 12px; }

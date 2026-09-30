@@ -292,6 +292,15 @@ Lo que evita la repeticion: dos tests que corren con una conexion **que salta RL
 
 ---
 
+### DT-031: La sesion en vivo, y por que la tablet no teclea un UUID
+**Fecha:** 2026-09-30
+**Contexto:** Tras firmar el consentimiento, `NewSessionPage` navegaba a `/sesion/:id/paciente/bienvenida`: el **examinador** terminaba viendo el lienzo del paciente en su propio laptop y nadie quedaba en el monitoreo. El cronometro contaba desde `session.started_at`, que se lee una sola vez al montar; como el examinador abre el monitoreo antes de que el paciente toque "Comenzar", ese valor era `null`, el efecto salia por el return y el reloj se quedaba en `00:00` toda la sesion. La grabacion solo arrancaba con un click.
+**Decision:** El examinador va al monitoreo y de ahi sale el enlace para la tablet. La tablet se loguea con la cuenta del examinador —es el dispositivo del consultorio— en vez de un token publico: un token pide tabla nueva, endpoints sin autenticar y revisar RLS a una semana de entregar. El reloj arranca con el `started_at` que reemite la tablet. La grabacion arranca con el primer trazo, **solo si el consentimiento autorizo el audio**, y el boton sigue siendo del examinador.
+**Impacto:** Se agrego `/sesion/activa`, una ruta que resuelve cual es la sesion lista (`consent` primero, `active` despues, para la tablet que vuelve a mitad de la toma). Existe porque nadie teclea un UUID en una tablet: se guarda **una** direccion en favoritos. El guion del manual PBLL vive en `lib/protocoloPbll.ts` como datos con cita a la seccion, no en JSX, para que se revise contra el manual.
+**Verificado:** 13 comprobaciones por HTTP contra la base real (ciclo completo, consentimiento, las dos rutas del listado, `started_at` idempotente, preflight CORS desde la IP LAN y cerrado a origenes no declarados). El espejo, el reloj corriendo y la grabacion **no** se probaron en navegador: la extension de Chrome no estaba conectada.
+
+---
+
 ## Lecciones Aprendidas
 
 | ID | Sprint | Leccion |
@@ -313,6 +322,8 @@ Lo que evita la repeticion: dos tests que corren con una conexion **que salta RL
 | L-015 | 5 | Borrar datos en el teardown de un fixture por test bloquea contra la transaccion del examinador dueno, que todavia tiene lock sobre la fila. La limpieza va al cierre de la sesion de tests. Sintoma engañoso: los tests que **no** ven la fila (por RLS) pasan, y solo cuelga el que si la lee |
 | L-016 | 5 | Postgres cancela por `statement_timeout` en vez de esperar para siempre: un deadlock se ve como lentitud, no como cuelgue. La corrida tardaba 11m35s y bajo a 1m22s al corregirlo |
 | L-017 | 6 | **Una variable exportada en `~/.zshrc` le gana al `.env`**: pydantic-settings da prioridad al entorno real. Una `OPENROUTER_API_KEY` vieja exportada en el perfil hacia que el adaptador recibiera 401 mientras `curl` con la clave del `.env` daba 200. Sintoma: la clave "esta bien" y el proveedor la rechaza. Se descarta con `env -u OPENROUTER_API_KEY` |
+| L-018 | 6 | **El `broadcast` de Supabase no reenvia lo pasado.** Un examinador que recarga el monitoreo a mitad de la toma se pierde el `connected: true` y ve "Sin conexion" con el paciente dibujando delante. Se resuelve reemitiendo el estado completo en el tick de 2 s que ya existia, no con Presence |
+| L-019 | 6 | **`localhost` no es una direccion, es "yo".** Un `VITE_API_URL` fijo en `http://localhost:8000` deja a la tablet sin API, porque para ella localhost es la tablet. `apiClient` ahora lo deduce de `window.location.hostname`: asi no hay ninguna IP escrita en un archivo, y la IP de esta maquina cambio de `.125` a `.234` entre planificar y ejecutar |
 
 ---
 

@@ -130,6 +130,14 @@ export interface ConsentInput {
   signature_url?: string
 }
 
+export interface Consent {
+  audio_authorized: boolean
+  digital_authorized: boolean
+  confidential_ack: boolean
+  signature_url: string | null
+  signed_at: string
+}
+
 // =============================================================================
 // Dibujo
 // =============================================================================

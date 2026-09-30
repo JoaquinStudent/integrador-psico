@@ -1,33 +1,40 @@
-import { useState, useRef, useCallback } from 'react'
-import { createAudioRecorder, type AudioRecorderState } from '../../lib/audioRecorder'
+import type { AudioRecorderState } from '../../lib/audioRecorder'
 import { formatTime } from '../../canvas/metricsCalculator'
 
 interface Props {
-  sessionId: string
+  state: AudioRecorderState
+  onToggle: () => void
+  /** `false` cuando el consentimiento no autorizó el audio: no se graba y se explica. */
+  allowed: boolean
 }
 
-export function AudioRecorder({ sessionId }: Props) {
-  const [state, setState] = useState<AudioRecorderState>({ status: 'idle', durationMs: 0 })
-  const recorderRef = useRef<ReturnType<typeof createAudioRecorder> | null>(null)
-
-  const handleToggle = useCallback(() => {
-    if (state.status === 'idle' || state.status === 'done' || state.status === 'error') {
-      const rec = createAudioRecorder(sessionId, setState)
-      recorderRef.current = rec
-      rec.start()
-    } else if (state.status === 'recording') {
-      recorderRef.current?.stop()
-    }
-  }, [sessionId, state.status])
-
+/**
+ * Controles de grabación. El grabador ya no vive acá.
+ *
+ * Lo tiene `ExaminerSessionPage`, porque la grabación arranca sola con el primer
+ * trazo del paciente y ese evento llega por el canal en vivo, no por un click. Este
+ * componente solo muestra el estado y entrega el gesto manual de parar y reanudar,
+ * que sigue siendo del examinador.
+ */
+export function AudioRecorder({ state, onToggle, allowed }: Props) {
   const isRecording = state.status === 'recording'
   const isUploading = state.status === 'uploading'
+
+  if (!allowed) {
+    return (
+      <div className="audio-recorder">
+        <span className="audio-rec-status audio-not-allowed" title="El consentimiento de esta sesión no autorizó la grabación de audio">
+          Audio no autorizado
+        </span>
+      </div>
+    )
+  }
 
   return (
     <div className="audio-recorder">
       <button
         className={`audio-rec-btn ${isRecording ? 'recording' : ''}`}
-        onClick={handleToggle}
+        onClick={onToggle}
         disabled={isUploading}
         title={isRecording ? 'Detener grabacion' : 'Grabar audio'}
       >

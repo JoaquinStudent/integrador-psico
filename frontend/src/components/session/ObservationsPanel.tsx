@@ -15,9 +15,11 @@ const QUICK_MARKS = [
 interface Props {
   sessionId: string
   elapsedMs: number
+  /** Avisa hacia arriba qué se marcó, para que el guion resalte qué responder. */
+  onMark?: (mark: string) => void
 }
 
-export function ObservationsPanel({ sessionId, elapsedMs }: Props) {
+export function ObservationsPanel({ sessionId, elapsedMs, onMark }: Props) {
   const [notes, setNotes] = useState('')
   const [marks, setMarks] = useState<QuickMark[]>([])
   const saveTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
@@ -36,6 +38,7 @@ export function ObservationsPanel({ sessionId, elapsedMs }: Props) {
     const entry: QuickMark = { mark, timestamp: formatTime(elapsedMs), markedAtMs: elapsedMs }
     const next = [...marks, entry]
     setMarks(next)
+    onMark?.(mark)
     void addQuickMark(sessionId, mark, elapsedMs)
     void saveObservations(sessionId, next, notes)
   }

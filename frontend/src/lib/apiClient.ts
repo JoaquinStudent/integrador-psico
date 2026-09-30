@@ -12,7 +12,25 @@
 
 import { supabase } from './supabase'
 
-const BASE = (import.meta.env.VITE_API_URL ?? 'http://localhost:8000') + '/api/v1'
+/**
+ * Dónde está la API.
+ *
+ * Sin `VITE_API_URL` se deduce del host desde el que se cargó la aplicación, no se
+ * fija en `localhost`. La razón es la tablet del paciente: para ella `localhost` es
+ * ella misma, así que un valor fijo la deja sin API. Deducirlo hace que el laptop en
+ * `localhost:5173` pegue a `localhost:8000` y la tablet en `192.168.x.x:5173` pegue a
+ * `192.168.x.x:8000`, sin configurar nada y sin una IP escrita en ningún archivo —
+ * que además cambia cada vez que se cambia de red.
+ *
+ * `VITE_API_URL` sigue mandando cuando existe, que es lo que hará el despliegue.
+ */
+function apiBase(): string {
+  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL
+  const { protocol, hostname } = window.location
+  return `${protocol}//${hostname}:8000`
+}
+
+const BASE = apiBase() + '/api/v1'
 
 /** Error de la API con el cuerpo RFC 9457 ya desempaquetado. */
 export class ApiError extends Error {
