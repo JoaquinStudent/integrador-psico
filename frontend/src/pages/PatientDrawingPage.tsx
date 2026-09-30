@@ -4,9 +4,11 @@ import type { Stroke } from '../canvas/types'
 import { DrawingCanvas } from '../canvas/DrawingCanvas'
 import { useUndoRedo, useUndoRedoKeyboard } from '../canvas/useUndoRedo'
 import { saveDrawingData } from '../lib/drawingData'
+import { api } from '../lib/apiClient'
 import { createSessionChannel, broadcastStroke, broadcastEraseStroke, broadcastStatus, broadcastMetrics } from '../lib/realtime'
 import { serializeStrokes } from '../canvas/serialization'
 import { calculateMetrics } from '../canvas/metricsCalculator'
+import type { Session } from '../types/api'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 
 const W = 1100, H = 850
@@ -21,38 +23,72 @@ export function PatientDrawingPage() {
   const sessionStartRef = useRef(Date.now())
   const firstStrokeTimeRef = useRef<number | null>(null)
   const eraseCountRef = useRef(0)
+  // `started_at` del servidor. Es el reloj que cronometra el examinador, y se lee de
+  // la sesión en vez de pasarse por la URL para que aguante una recarga de la tablet.
+  const startedAtRef = useRef<string | null>(null)
+  const finishedRef = useRef(false)
 
   useUndoRedoKeyboard(strokeState.undo, strokeState.redo)
+
+  useEffect(() => {
+    if (!sessionId) return
+    api.get<Session>(`/sessions/${sessionId}`)
+      .then(s => { startedAtRef.current = s.started_at ?? null })
+      .catch(() => { /* sin esto el examinador cronometra desde su propia lectura */ })
+  }, [sessionId])
 
   useEffect(() => {
     if (!sessionId) return
     const ch = createSessionChannel(sessionId)
     ch.subscribe()
     channelRef.current = ch
-    broadcastStatus(ch, { connected: true, orientation: 'horizontal' })
     return () => {
       broadcastStatus(ch, { connected: false })
       ch.unsubscribe()
     }
   }, [sessionId])
 
-  // Broadcast metrics every 2s
+  // Un solo tick de 2 s emite metricas **y** estado. El estado va completo cada vez,
+  // no solo cuando cambia: el broadcast no reenvia lo pasado, asi que un examinador
+  // que abre o recarga el monitoreo a mitad de la toma se sincroniza en 2 s.
   useEffect(() => {
-    const iv = setInterval(() => {
-      if (!channelRef.current) return
+    const emitir = () => {
+      const ch = channelRef.current
+      if (!ch) return
       const m = calculateMetrics(strokeState.current, sessionStartRef.current, eraseCountRef.current, W, H, firstStrokeTimeRef.current)
-      broadcastMetrics(channelRef.current, m)
-    }, 2000)
+      broadcastMetrics(ch, m)
+      broadcastStatus(ch, {
+        connected: true,
+        orientation: 'horizontal',
+        startedAt: startedAtRef.current,
+        drawingStarted: strokeState.current.length > 0,
+        patientFinished: finishedRef.current,
+      })
+    }
+    emitir()
+    const iv = setInterval(emitir, 2000)
     return () => clearInterval(iv)
   }, [strokeState.current])
 
   const handleStrokeComplete = useCallback((stroke: Stroke) => {
-    if (!firstStrokeTimeRef.current) firstStrokeTimeRef.current = Date.now()
+    const primero = !firstStrokeTimeRef.current
+    if (primero) firstStrokeTimeRef.current = Date.now()
     const next = [...strokeState.current, stroke]
     strokeState.set(next)
-    if (channelRef.current) {
+    const ch = channelRef.current
+    if (ch) {
       const [serialized] = serializeStrokes([stroke])
-      broadcastStroke(channelRef.current, serialized)
+      broadcastStroke(ch, serialized)
+      // El primer trazo no espera al tick: es lo que arranca la grabacion del
+      // examinador, y hasta 2 s de audio perdido son 2 s de sesion sin registrar.
+      if (primero) {
+        broadcastStatus(ch, {
+          connected: true,
+          orientation: 'horizontal',
+          startedAt: startedAtRef.current,
+          drawingStarted: true,
+        })
+      }
     }
   }, [strokeState])
 
@@ -73,10 +109,16 @@ export function PatientDrawingPage() {
     setSaving(true)
     const canvas = document.querySelector<HTMLCanvasElement>('.drawing-paper canvas')
     await saveDrawingData(sessionId!, strokeState.current, canvas)
+    finishedRef.current = true
     if (channelRef.current) {
       const m = calculateMetrics(strokeState.current, sessionStartRef.current, eraseCountRef.current, W, H, firstStrokeTimeRef.current)
       broadcastMetrics(channelRef.current, m)
-      broadcastStatus(channelRef.current, { patientFinished: true })
+      broadcastStatus(channelRef.current, {
+        connected: true,
+        startedAt: startedAtRef.current,
+        drawingStarted: true,
+        patientFinished: true,
+      })
     }
     navigate(`/sesion/${sessionId}/paciente/cierre`)
   }

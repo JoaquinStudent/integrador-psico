@@ -11,6 +11,7 @@ import { NewSessionPage } from './pages/NewSessionPage'
 import { PatientWelcomePage } from './pages/PatientWelcomePage'
 import { PatientDrawingPage } from './pages/PatientDrawingPage'
 import { PatientClosePage } from './pages/PatientClosePage'
+import { TabletEntryPage } from './pages/TabletEntryPage'
 import { ExaminerSessionPage } from './pages/ExaminerSessionPage'
 import { PlaceholderPage } from './pages/PlaceholderPage'
 import { AnalysisPage } from './pages/AnalysisPage'
@@ -26,6 +27,10 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
 
           {/* Patient views — full screen, no sidebar */}
+          {/* Atajo de la tablet: una sola dirección para guardar en favoritos, que
+              resuelve cuál es la sesión lista. Gana sobre `sesion/:id` porque React
+              Router puntúa el segmento estático por encima del dinámico. */}
+          <Route path="sesion/activa" element={<ProtectedRoute><TabletEntryPage /></ProtectedRoute>} />
           <Route path="sesion/:id/paciente/bienvenida" element={<ProtectedRoute><PatientWelcomePage /></ProtectedRoute>} />
           <Route path="sesion/:id/paciente/dibujo" element={<ProtectedRoute><PatientDrawingPage /></ProtectedRoute>} />
           <Route path="sesion/:id/paciente/cierre" element={<ProtectedRoute><PatientClosePage /></ProtectedRoute>} />
