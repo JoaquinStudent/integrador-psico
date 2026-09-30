@@ -96,19 +96,25 @@ export function NewSessionPage() {
 
   return (
     <div>
-      <div className="stepper">
+      {/* La línea va **entre** los pasos, como hermana en el flex, no dentro del paso.
+          Antes era `position:absolute; right:100%; width:120px`: colgaba fuera de su
+          caja, se dibujaba encima de la etiqueta anterior y los 120px fijos desbordaban
+          el contenedor. Como hermana con `flex:1` se reparte el espacio que haya. */}
+      <ol className="stepper" aria-label="Pasos para iniciar la sesión">
         {STEPS.map((label, i) => (
-          <div key={label} className="step-item">
-            {i > 0 && <div className={`step-line${i <= step ? ' done' : ''}`} />}
-            <div className={`step-circle${i < step ? ' done' : i === step ? ' active' : ''}`}>
-              {i < step ? (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
-              ) : i + 1}
+          <li key={label} className="step-item" aria-current={i === step ? 'step' : undefined}>
+            {i > 0 && <div className={`step-line${i <= step ? ' done' : ''}`} aria-hidden="true" />}
+            <div className="step-item-body">
+              <div className={`step-circle${i < step ? ' done' : i === step ? ' active' : ''}`}>
+                {i < step ? (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                ) : i + 1}
+              </div>
+              <span className={`step-label${i === step ? ' active' : ''}`}>{label}</span>
             </div>
-            <span className={`step-label${i === step ? ' active' : ''}`}>{label}</span>
-          </div>
+          </li>
         ))}
-      </div>
+      </ol>
 
       <div className="wizard-layout">
         <div className="wizard-main">

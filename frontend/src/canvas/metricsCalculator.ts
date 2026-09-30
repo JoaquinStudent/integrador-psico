@@ -64,8 +64,13 @@ export function calculateMetrics(
 }
 
 export function formatTime(ms: number): string {
-  const totalSec = Math.floor(ms / 1000)
-  const min = Math.floor(totalSec / 60)
+  const totalSec = Math.max(0, Math.floor(ms / 1000))
   const sec = totalSec % 60
-  return `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`
+  const min = Math.floor(totalSec / 60) % 60
+  const hrs = Math.floor(totalSec / 3600)
+  const mmss = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`
+  // Las horas solo aparecen si las hay, para que una toma de 20 min siga leyendose
+  // "20:00". Sin esto, una sesion que quedo abierta de un dia para otro mostraba
+  // los minutos acumulados: "790:23" en vez de "13:10:23".
+  return hrs > 0 ? `${hrs}:${mmss}` : mmss
 }
