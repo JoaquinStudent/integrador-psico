@@ -242,6 +242,10 @@ class RecordingOut(Model):
     session_id: UUID
     storage_path: str
     duration_seconds: int | None
+    # En que momento de la sesion empezo a grabar, mismo reloj que `marked_at_ms`.
+    # Es lo que permite poner la transcripcion y las marcas en un solo eje. `None` en
+    # las grabaciones anteriores a la migracion 002: ahi no se puede alinear.
+    started_at_ms: int | None = None
     transcribed_at: dt.datetime | None
 
 
@@ -299,6 +303,19 @@ class QuickMarkIn(Model):
 class QuickMarkOut(Model):
     mark_code: str
     marked_at_ms: int
+
+
+class VerbalizationIn(Model):
+    text: str = Field(min_length=1, max_length=2000)
+    offset_ms: int | None = Field(default=None, ge=0)
+    source: Literal["transcription", "examiner"] = "transcription"
+
+
+class VerbalizationOut(Model):
+    id: UUID
+    text: str
+    offset_ms: int | None
+    source: str
 
 
 class ObservationsIn(Model):

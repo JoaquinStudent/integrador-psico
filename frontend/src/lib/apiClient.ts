@@ -134,9 +134,12 @@ export const api = {
   del: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
 
   /** Subida de archivos: audio de la sesión, PNG del dibujo. */
-  upload: <T>(path: string, file: Blob, filename: string) => {
+  upload: <T>(path: string, file: Blob, filename: string, fields?: Record<string, string | number>) => {
     const form = new FormData()
     form.append('file', file, filename)
+    // Los campos extra viajan en el mismo multipart que el archivo, asi que subir
+    // una grabacion sigue siendo una sola peticion.
+    for (const [k, v] of Object.entries(fields ?? {})) form.append(k, String(v))
     return request<T>(path, { method: 'POST', form })
   },
 
