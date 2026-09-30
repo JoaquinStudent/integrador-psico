@@ -342,3 +342,244 @@ async def test_el_resumen_del_panel_filtra_sin_depender_de_rls(
     assert datos["sessions_this_week"] == 0
     assert datos["active_patients"] == 0
     assert datos["recent_sessions"] == []
+
+
+# =============================================================================
+# Generacion del informe — el cableado router -> redactor -> store
+# =============================================================================
+
+
+@pytest.mark.asyncio
+async def test_generar_informe_deja_las_nueve_secciones(
+    db_a, sesion_con_dibujo, perfiles_creados, monkeypatch
+):
+    """Recorre `generate_report` de punta a punta contra la base real, con el
+    redactor sustituido.
+
+    Sin este test el unico sitio donde se descubre un error de cableado del router
+    —un import que falta, un campo de mas en el dict de secciones— es el navegador
+    del examinador. El redactor va monkeypatcheado porque la suite no debe salir a
+    la red: que OpenRouter contesta es otro problema, y no uno que un test de
+    integracion pueda garantizar.
+    """
+    from psicograma.adapter.inbound.http.routers import reports as router_mod
+    from psicograma.adapter.outbound.postgres.store import ReportStore
+
+    a, _ = perfiles_creados
+    sid = sesion_con_dibujo["session_id"]
+
+    # Sin metricas persistidas la 5 no pide redaccion: `compose_report` la deja vacia
+    # antes que inventar un "0% de la hoja". Solo POST /analyze las escribe, asi que
+    # aqui se insertan a mano.
+    await db_a.execute(
+        text(
+            "insert into stroke_metrics (session_id, total_time_ms, latency_ms, "
+            "stroke_count, pressure_avg, pause_count, erase_count, area_pct) "
+            "values (:s, 372000, 4200, 142, 0.62, 4, 2, 0.59)"
+        ),
+        {"s": sid},
+    )
+
+    # Uno de categoria A (va a la 7) y uno de B (va a la 8): sin un validado de cada
+    # categoria la seccion correspondiente sale vacia a proposito.
+    repo = PostgresSessionIndicatorRepository(db_a)
+    await repo.upsert_suggestions(sid, [
+        IndicatorSuggestion(code="DIM-01", confidence=Confidence.HIGH, evidence="e1"),
+        IndicatorSuggestion(code="CUE-01", confidence=Confidence.HIGH, evidence="e2"),
+    ])
+    await db_a.execute(
+        text(
+            "update session_indicators set status='validated', validated_by=:by, "
+            "validated_at=now() where session_id=:s"
+        ),
+        {"by": a.id, "s": sid},
+    )
+
+    class Redactor:
+        disponible = True
+
+        async def draft_section(self, title: str, facts: str) -> str:
+            return f"prosa de prueba para {title}"
+
+    monkeypatch.setattr(router_mod, "build_drafter", Redactor)
+
+    out = await router_mod.generate_report(sid, ReportStore(db_a, a.id))
+
+    assert [s.section_number for s in out.sections] == list(range(1, 10))
+    assert out.pending_sections == []
+    assert out.llm_available is True
+
+    # La 9 vacia y la 5/7/8 con contenido: es el reparto que define el sprint.
+    por_numero = {s.section_number: s for s in out.sections}
+    assert por_numero[9].content == ""
+    for n in (5, 7, 8):
+        assert por_numero[n].content, f"la seccion {n} quedo vacia"
+        assert por_numero[n].is_ai_generated is True
+
+
+@pytest.mark.asyncio
+async def test_si_el_redactor_cae_la_cinco_sale_con_la_plantilla(
+    db_a, sesion_con_dibujo, perfiles_creados, monkeypatch
+):
+    """La garantia del sprint: el informe se entrega completo sin el modelo.
+
+    La 5 tiene version por plantilla —las mediciones listadas— y la 7 y la 8 no,
+    porque son interpretacion: sin redaccion no hay nada honesto que poner ahi.
+    """
+    from psicograma.adapter.inbound.http.routers import reports as router_mod
+    from psicograma.adapter.outbound.llm.drafter import LlmNoDisponible
+    from psicograma.adapter.outbound.postgres.store import ReportStore
+
+    a, _ = perfiles_creados
+    sid = sesion_con_dibujo["session_id"]
+    await db_a.execute(
+        text(
+            "insert into stroke_metrics (session_id, total_time_ms, latency_ms, "
+            "stroke_count, pressure_avg, pause_count, erase_count, area_pct) "
+            "values (:s, 372000, 4200, 142, 0.62, 4, 2, 0.59)"
+        ),
+        {"s": sid},
+    )
+
+    class Caido:
+        disponible = False
+
+        async def draft_section(self, title: str, facts: str) -> str:
+            raise LlmNoDisponible("sin clave")
+
+    monkeypatch.setattr(router_mod, "build_drafter", Caido)
+
+    out = await router_mod.generate_report(sid, ReportStore(db_a, a.id))
+
+    por_numero = {s.section_number: s for s in out.sections}
+    assert out.llm_available is False
+    assert out.pending_sections == [5]
+    assert "142" in por_numero[5].content
+    assert por_numero[5].is_ai_generated is False
+
+
+# =============================================================================
+# Audio: transcripcion, reintento y verbalizaciones
+# =============================================================================
+
+
+async def _grabacion(db, session_id, started_at_ms=None):
+    """Inserta una grabacion. El archivo en Storage no hace falta: estos tests no
+    bajan nada, sustituyen al transcriptor."""
+    return await db.scalar(
+        text(
+            "insert into audio_recordings (session_id, storage_path, duration_seconds, "
+            "started_at_ms) values (:s, :p, 300, :o) returning id"
+        ),
+        {"s": session_id, "p": f"sessions/{session_id}/audio_test.webm", "o": started_at_ms},
+    )
+
+
+@pytest.mark.asyncio
+async def test_reintentar_la_transcripcion_no_duplica_segmentos(db_a, sesion_con_dibujo):
+    """`transcript_segments` tiene UNIQUE (recording_id, segment_index).
+
+    Reintentar tiene que ser seguro: un fallo del proveedor a mitad de camino es normal
+    y el examinador va a volver a pulsar. Sin el borrado previo, el segundo intento
+    reventaria con un conflicto de clave.
+    """
+    from psicograma.adapter.outbound.postgres.store import AudioStore
+
+    store = AudioStore(db_a)
+    rid = await _grabacion(db_a, sesion_con_dibujo["session_id"])
+
+    primero = [(0, 2000, "no se dibujar bien"), (5000, 6000, "ya termine")]
+    await store.save_segments(rid, primero)
+    assert [s.text for s in await store.transcript(rid)] == [t for _, _, t in primero]
+
+    # Segundo intento, con un resultado distinto: reemplaza, no acumula.
+    segundo = [(0, 1500, "no se dibujar")]
+    await store.save_segments(rid, segundo)
+    filas = await store.transcript(rid)
+    assert [s.text for s in filas] == ["no se dibujar"]
+    assert [s.segment_index for s in filas] == [0]
+
+    grabacion = await store.get(rid)
+    assert grabacion.transcribed_at is not None
+
+
+@pytest.mark.asyncio
+async def test_el_offset_de_la_grabacion_alinea_el_audio_con_las_marcas(
+    db_a, sesion_con_dibujo, perfiles_creados
+):
+    """El cruce que pedia la tarea, y la razon por la que existe la migracion 002.
+
+    La grabacion arranca con el primer trazo, no con la sesion. Si un segmento del audio
+    se leyera con su tiempo crudo, caeria en un momento distinto de la sesion que la
+    marca que lo acompaña. Con `started_at_ms` los dos quedan en el mismo reloj.
+    """
+    from psicograma.adapter.outbound.postgres.store import AudioStore, ObservationStore
+
+    sid = sesion_con_dibujo["session_id"]
+    obs = ObservationStore(db_a)
+    audio = AudioStore(db_a)
+
+    # El paciente tardo 90 s en empezar a dibujar: ahi arranco la grabacion.
+    LATENCIA = 90_000
+    rid = await _grabacion(db_a, sid, started_at_ms=LATENCIA)
+
+    # El examinador marca en el minuto 2:30 de la SESION.
+    await obs.save(sid, "", [])
+    await obs.add_quick_mark(sid, "pregunto_por_el_paraguas", 150_000)
+
+    # Whisper situa la frase en el segundo 60 del AUDIO, que es el 2:30 de la sesion.
+    await audio.save_segments(rid, [(60_000, 62_000, "le pongo paraguas?")])
+
+    grabacion = await audio.get(rid)
+    segmento = (await audio.transcript(rid))[0]
+    en_la_sesion = grabacion.started_at_ms + segmento.start_ms
+
+    marcas = (await obs.get(sid))["quick_marks"]
+    assert en_la_sesion == marcas[0]["marked_at_ms"] == 150_000
+    # Y sin el offset caeria un minuto y medio antes: el error que esto evita.
+    assert segmento.start_ms != marcas[0]["marked_at_ms"]
+
+
+@pytest.mark.asyncio
+async def test_promover_una_frase_la_deja_en_el_informe(db_a, sesion_con_dibujo):
+    """Las verbalizaciones se leian desde `compose_report` pero nadie las escribia, asi
+    que el bloque "Verbalizaciones del paciente" nunca aparecia."""
+    from psicograma.adapter.outbound.postgres.store import ObservationStore
+
+    obs = ObservationStore(db_a)
+    sid = sesion_con_dibujo["session_id"]
+
+    tarde = await obs.add_verbalization(sid, "ya termine", 200_000, "transcription")
+    await obs.add_verbalization(sid, "no se dibujar bien", 30_000, "transcription")
+
+    # Orden por momento, no por cuando se eligieron: en el informe tienen que salir en
+    # el orden en que se dijeron.
+    assert [v.text for v in await obs.list_verbalizations(sid)] == [
+        "no se dibujar bien",
+        "ya termine",
+    ]
+
+    # Pulsar dos veces el mismo boton no duplica el dato en la seccion 6.
+    otra_vez = await obs.add_verbalization(sid, "ya termine", 200_000, "transcription")
+    assert otra_vez.id == tarde.id
+    assert len(await obs.list_verbalizations(sid)) == 2
+
+    await obs.delete_verbalization(sid, tarde.id)
+    assert [v.text for v in await obs.list_verbalizations(sid)] == ["no se dibujar bien"]
+
+
+@pytest.mark.asyncio
+async def test_no_se_puede_borrar_una_verbalizacion_de_otra_sesion(
+    db_a, sesion_con_dibujo, perfiles_creados
+):
+    """El `session_id` va en el WHERE del DELETE aunque el id ya sea unico: es el filtro
+    de aplicacion de DT-029, la primera capa antes de RLS."""
+    from psicograma.adapter.outbound.postgres.store import NotFound, ObservationStore
+
+    obs = ObservationStore(db_a)
+    sid = sesion_con_dibujo["session_id"]
+    v = await obs.add_verbalization(sid, "una frase", 1000, "examiner")
+
+    with pytest.raises(NotFound):
+        await obs.delete_verbalization(uuid.uuid4(), v.id)
+    assert len(await obs.list_verbalizations(sid)) == 1

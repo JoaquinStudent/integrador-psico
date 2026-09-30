@@ -242,6 +242,10 @@ class RecordingOut(Model):
     session_id: UUID
     storage_path: str
     duration_seconds: int | None
+    # En que momento de la sesion empezo a grabar, mismo reloj que `marked_at_ms`.
+    # Es lo que permite poner la transcripcion y las marcas en un solo eje. `None` en
+    # las grabaciones anteriores a la migracion 002: ahi no se puede alinear.
+    started_at_ms: int | None = None
     transcribed_at: dt.datetime | None
 
 
@@ -276,6 +280,10 @@ class ReportOut(Model):
     updated_at: dt.datetime | None = None
     patient_name: str | None = None
     sections: list[ReportSectionOut]
+    # El informe se entrega aunque el redactor falle. Estos dos campos le dicen al
+    # editor que las secciones vacias son un pendiente, no una plantilla vacia.
+    llm_available: bool = True
+    pending_sections: list[int] = []
 
 
 class ReportSectionPatch(Model):
@@ -295,6 +303,19 @@ class QuickMarkIn(Model):
 class QuickMarkOut(Model):
     mark_code: str
     marked_at_ms: int
+
+
+class VerbalizationIn(Model):
+    text: str = Field(min_length=1, max_length=2000)
+    offset_ms: int | None = Field(default=None, ge=0)
+    source: Literal["transcription", "examiner"] = "transcription"
+
+
+class VerbalizationOut(Model):
+    id: UUID
+    text: str
+    offset_ms: int | None
+    source: str
 
 
 class ObservationsIn(Model):

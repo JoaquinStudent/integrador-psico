@@ -702,32 +702,41 @@ body {
 /* Stepper */
 .stepper {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
-  margin-bottom: 32px;
-  padding: 20px 0;
+  align-items: flex-start;
+  list-style: none;
+  max-width: 620px;
+  margin: 0 auto 32px;
+  padding: 20px 12px;
 }
 
+/* Cada paso es una fila: [linea][circulo + etiqueta]. Solo los pasos que llevan
+   linea crecen, asi la linea se queda con el espacio sobrante y nada desborda. */
 .step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.step-item + .step-item { flex: 1 1 0; }
+
+.step-line {
+  flex: 1 1 auto;
+  min-width: 12px;
+  height: 3px;
+  margin-top: 16px;           /* centro del circulo de 36px */
+  border-radius: 2px;
+  background: var(--color-border);
+}
+
+.step-line.done { background: var(--color-green); }
+
+.step-item-body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  position: relative;
-}
-
-.step-line {
-  position: absolute;
-  top: 16px;
-  right: 100%;
-  width: 120px;
-  height: 3px;
-  background: var(--color-border);
-  margin-right: 8px;
-}
-
-.step-line.done {
-  background: var(--color-green);
+  flex: 0 0 auto;
+  width: 96px;
 }
 
 .step-circle {
@@ -743,6 +752,7 @@ body {
   border: 2px solid var(--color-border);
   color: var(--color-text-secondary);
   margin-bottom: 8px;
+  flex-shrink: 0;
 }
 
 .step-circle.active {
@@ -757,10 +767,13 @@ body {
   color: #fff;
 }
 
+/* Sin `nowrap`: una etiqueta larga como "Consentimiento" parte en dos lineas en vez
+   de estirar el paso y empujar el resto fuera del contenedor. */
 .step-label {
-  font-size: 13px;
+  font-size: 12px;
+  line-height: 1.3;
+  text-align: center;
   color: var(--color-text-secondary);
-  white-space: nowrap;
 }
 
 .step-label.active {
@@ -1934,3 +1947,188 @@ body {
 .badge-blue { background:#e5f2f7; color:#176b87; }.badge-purple { background:#f0eafd; color:#6246a5; }
 .form-success { margin:12px 0; padding:10px 14px; color:#176b58; background:#e7f6ef; border-radius:8px; }.form-error { margin:12px 0; padding:10px 14px; color:#9b352b; background:#fff0ee; border-radius:8px; }
 @media (max-width: 800px) { .report-layout { grid-template-columns:1fr; }.report-index { position:static; } }
+
+/* --- Guion PBLL y enlace de la tablet (sesion en vivo) --------------------- */
+
+/* La columna de observaciones ahora lleva guion + notas: scroll propio para que el
+   guion no empuje el textarea fuera de la pantalla en un portatil de 13". */
+.session-col-observations {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.protocol-panel { display: flex; flex-direction: column; gap: 10px; }
+.protocol-header { display: flex; flex-direction: column; gap: 8px; }
+
+.protocol-steps { display: flex; flex-wrap: wrap; gap: 4px; }
+.protocol-step {
+  font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+  padding: 3px 7px; border-radius: var(--radius-sm);
+  background: var(--color-bg); color: var(--color-text-secondary);
+}
+.protocol-step.active { background: var(--color-primary); color: #fff; }
+
+.protocol-current {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 12px; border-radius: var(--radius);
+  background: var(--color-surface); border: 1px solid var(--color-border);
+}
+
+/* Lo que el examinador dice, literal. Se distingue del resto a proposito: es la
+   consigna del manual y no admite parafraseo. */
+.protocol-say {
+  margin: 0; font-size: 14px; font-weight: 600; line-height: 1.4;
+  color: var(--color-primary);
+}
+.protocol-say.sm { font-size: 13px; }
+
+.protocol-do { margin: 0; padding-left: 16px; display: flex; flex-direction: column; gap: 5px; }
+.protocol-do li { font-size: 12px; line-height: 1.45; color: var(--color-text); }
+
+.protocol-source {
+  font-size: 10px; color: var(--color-text-secondary);
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+
+.protocol-answers { display: flex; flex-direction: column; gap: 6px; }
+.protocol-answer {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 8px 10px; border-radius: var(--radius-sm);
+  background: var(--color-bg); border-left: 3px solid transparent;
+}
+.protocol-answer.highlighted {
+  background: var(--color-amber-bg); border-left-color: var(--color-amber);
+}
+.protocol-answer-situation { font-size: 12px; font-weight: 600; color: var(--color-text); }
+.protocol-answer-note { margin: 0; font-size: 11px; line-height: 1.45; color: var(--color-text-secondary); }
+
+.tablet-link-card {
+  display: flex; flex-direction: column; gap: 10px;
+  max-width: 460px; margin: auto; padding: 20px;
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
+}
+.tablet-link-warning {
+  margin: 0; padding: 8px 10px; border-radius: var(--radius-sm);
+  background: var(--color-amber-bg); color: var(--color-text);
+  font-size: 12px; line-height: 1.45;
+}
+.tablet-link-warning code { font-size: 11px; }
+.tablet-link-label {
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--color-text-secondary);
+}
+.tablet-link-row { display: flex; gap: 6px; }
+.tablet-link-input {
+  flex: 1; min-width: 0; padding: 8px 10px;
+  border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+  font-family: ui-monospace, monospace; font-size: 12px; color: var(--color-text);
+  background: var(--color-bg);
+}
+.tablet-link-copy {
+  padding: 8px 14px; border: none; border-radius: var(--radius-sm);
+  background: var(--color-primary); color: #fff;
+  font-size: 12px; font-weight: 600; cursor: pointer;
+}
+.tablet-link-copy:hover { background: var(--color-secondary); }
+.tablet-link-hint { margin: 0; font-size: 12px; line-height: 1.45; color: var(--color-text-secondary); }
+.tablet-link-waiting {
+  display: flex; align-items: center; gap: 8px; margin-top: 4px;
+  font-size: 12px; color: var(--color-text-secondary);
+}
+.tablet-link-waiting .status-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--color-amber); animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+.audio-not-allowed { color: var(--color-text-secondary); font-size: 12px; }
+
+/* --- Sesion ya cerrada (se abrio desde el listado o la ficha) -------------- */
+
+.session-closed { display: flex; justify-content: center; padding: 40px 24px; }
+.session-closed-card {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 10px;
+  width: 100%; max-width: 520px; padding: 28px;
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
+}
+.session-closed-card .page-title { margin: 4px 0 0; }
+.session-closed-card .page-subtitle { margin: 0; }
+
+.session-closed-facts {
+  display: flex; flex-wrap: wrap; gap: 20px;
+  margin: 14px 0 6px; padding: 14px 0;
+  width: 100%;
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+.session-closed-facts dt {
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--color-text-secondary); margin-bottom: 3px;
+}
+.session-closed-facts dd {
+  margin: 0; font-size: 13px; color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.session-closed-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+
+/* --- Linea de tiempo de la sesion (transcripcion + marcas) ----------------- */
+
+.post-section-head {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 8px;
+}
+
+.session-timeline { display: flex; flex-direction: column; gap: 10px; }
+.timeline-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.timeline-list.unaligned { opacity: 0.75; border-top: 1px dashed var(--color-border); padding-top: 8px; }
+
+.timeline-row {
+  display: grid;
+  grid-template-columns: 52px 16px 1fr auto;
+  align-items: start;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.timeline-row:last-child { border-bottom: none; }
+
+.timeline-at {
+  font-size: 12px; font-variant-numeric: tabular-nums;
+  color: var(--color-primary); font-weight: 600; padding-top: 1px;
+}
+.timeline-kind { font-size: 11px; line-height: 18px; color: var(--color-text-secondary); }
+.timeline-row.marca .timeline-kind { color: var(--color-amber); }
+
+.timeline-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+/* El audio va entre comillas y en cursiva: es lo que alguien dijo, textual. Las marcas
+   son del examinador, y conviene que no se confundan con una cita. */
+.timeline-quote { font-size: 13px; line-height: 1.45; font-style: italic; color: var(--color-text); }
+.timeline-mark { font-size: 13px; font-weight: 500; color: var(--color-text); }
+.timeline-source {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+}
+
+.timeline-btn {
+  padding: 4px 9px; border-radius: var(--radius-sm); cursor: pointer;
+  border: 1px solid var(--color-border); background: var(--color-surface);
+  color: var(--color-primary); font-size: 11px; font-weight: 600; white-space: nowrap;
+}
+.timeline-btn:hover:not(:disabled) { background: var(--color-bg); }
+.timeline-btn:disabled { opacity: 0.5; cursor: default; }
+.timeline-btn.promoted {
+  background: var(--color-green-bg); border-color: var(--color-green); color: var(--color-green);
+}
+
+.timeline-empty, .timeline-hint {
+  margin: 0; font-size: 12px; line-height: 1.5; color: var(--color-text-secondary);
+}
+.timeline-warning {
+  margin: 0; padding: 8px 10px; border-radius: var(--radius-sm);
+  background: var(--color-amber-bg); color: var(--color-text);
+  font-size: 12px; line-height: 1.45;
+}

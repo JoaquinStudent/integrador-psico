@@ -261,6 +261,54 @@ entorno sin depender de nadie.
 **Decision:** Dejarlo para despues de la demo. Escribir el SQL del rol dedicado ahora, aplicarlo despues.
 **Impacto:** Dentro de `session_for()` RLS **si** aplica, porque `SET LOCAL ROLE authenticated` baja los privilegios y ese rol no tiene bypass — esta probado en `test_el_rol_efectivo_no_puede_saltarse_rls`. El riesgo real es un camino que se olvide de `session_for()`. Se posterga porque un GRANT faltante deja el backend sin poder leer nada, y con la entrega encima ese no es un riesgo que convenga tomar. **Queda como criterio de `SPEC-S5-04` sin cumplir.**
 
+### DT-028: La migracion 001 y por que existe el directorio
+**Fecha:** 2026-09-30
+**Contexto:** `patients.anonymized_at` y el CHECK ampliado de `sex` se agregaron a `schema.sql` y a `models.py` pero no a la base. SQLAlchemy selecciona todas las columnas mapeadas, asi que **toda** consulta que tocara `patients` fallaba y la aplicacion quedo inutilizable: 23 tests en rojo por una columna.
+**Decision:** Se crea `sdd/database/migrations/`, numerado. Mientras Alembic (`SPEC-S5-07`) siga fuera de alcance, todo cambio de esquema se escribe ahi.
+**Impacto:** Es el riesgo R-06 materializado. Quien clone el repo aplica `schema.sql` y despues las migraciones en orden. Lo que salvo el diagnostico fue `test_toda_columna_modelada_existe`, que compara los modelos contra la base viva; sin ese test el sintoma habria sido una app rota sin causa evidente.
+
+### DT-029: Filtro de aplicacion en los endpoints agregados, no solo RLS
+**Fecha:** 2026-09-30
+**Contexto:** Un review de seguridad marco dos endpoints sin filtro por examinador: `GET /sessions` (`list_all` hacia `select(Session)` sin `WHERE created_by`) y `GET /dashboard/summary` (cuatro consultas sin filtrar, y `recent_sessions` embebia nombre y documento del paciente).
+**Verificado:** **No hubo filtracion.** Con dos cuentas reales, RLS tapaba y el examinador B no veia nada de A.
+**Decision:** Agregar el filtro explicito igual, y mover el resumen del panel del router al store.
+**Impacto:** La proteccion dependia por completo de que `session_for()` hiciera `SET LOCAL ROLE authenticated`, y el rol de conexion todavia tiene BYPASSRLS (R-08). Era **una sola linea de defensa**: un camino que use `engine.connect()` directo, o un cambio a service_role por comodidad, y esos endpoints devuelven historias clinicas ajenas con nombre y documento. El diseno dice que los repositorios filtran como primera capa y RLS es la segunda; aqui faltaba la primera.
+
+Dos notas que conviene no perder:
+
+- **Los endpoints que devuelven colecciones o conteos son los que se escapan**, porque no reciben un id que validar y la respuesta "se ve bien" cuando quien prueba solo tiene datos propios.
+- **Un conteo que suma filas ajenas ya filtra informacion** aunque no muestre nombres: revela cuantos pacientes y sesiones atiende el otro profesional.
+
+Lo que evita la repeticion: dos tests que corren con una conexion **que salta RLS**, asi que lo unico que puede protegerlos es el `WHERE` de la aplicacion. Los tests de la API pasaban con filtro y sin el. Se verifico que tienen dientes quitando los filtros: fallan con `assert 6 == 0`. Uno comprueba ademas que el rol siga teniendo bypassrls y avisa si deja de tenerlo, porque en ese momento dejaria de probar lo que dice probar.
+
+---
+
+### DT-030: El adaptador de OpenRouter, y por que la seccion 5 tiene respaldo
+**Fecha:** 2026-09-29
+**Contexto:** Las secciones 5, 7 y 8 del informe salian vacias (`0 car`). `compose_report` emitia los tres `DraftRequest` correctamente, pero nadie los resolvia: no existia adaptador de LLM.
+**Decision:** `adapter/outbound/llm/` con `prompts.py` (el limite clinico) y `drafter.py` (httpx directo contra OpenRouter, sin SDK). `draft_all` las pide **en paralelo** y aisla fallos: una seccion que falla no tumba las otras dos ni el informe.
+**Impacto:** El router pone `llm_available` y `pending_sections` en la respuesta de generacion, y el frontend avisa cuales quedaron en blanco. Ademas se agrego `DraftRequest.fallback`: la **5 sale con las mediciones listadas** si el modelo no contesta, porque son datos objetivos y no interpretacion. La 7 y la 8 **no llevan respaldo a proposito** — sin redaccion no hay nada honesto que poner en una seccion interpretativa, y un parrafo de relleno en un informe firmado es peor que un blanco.
+**Verificado:** live contra OpenRouter (las tres secciones con prosa en espanol, citando las secciones del manual) y contra la base real con el redactor sustituido. 109 tests en verde.
+
+---
+
+### DT-031: La sesion en vivo, y por que la tablet no teclea un UUID
+**Fecha:** 2026-09-30
+**Contexto:** Tras firmar el consentimiento, `NewSessionPage` navegaba a `/sesion/:id/paciente/bienvenida`: el **examinador** terminaba viendo el lienzo del paciente en su propio laptop y nadie quedaba en el monitoreo. El cronometro contaba desde `session.started_at`, que se lee una sola vez al montar; como el examinador abre el monitoreo antes de que el paciente toque "Comenzar", ese valor era `null`, el efecto salia por el return y el reloj se quedaba en `00:00` toda la sesion. La grabacion solo arrancaba con un click.
+**Decision:** El examinador va al monitoreo y de ahi sale el enlace para la tablet. La tablet se loguea con la cuenta del examinador —es el dispositivo del consultorio— en vez de un token publico: un token pide tabla nueva, endpoints sin autenticar y revisar RLS a una semana de entregar. El reloj arranca con el `started_at` que reemite la tablet. La grabacion arranca con el primer trazo, **solo si el consentimiento autorizo el audio**, y el boton sigue siendo del examinador.
+**Impacto:** Se agrego `/sesion/activa`, una ruta que resuelve cual es la sesion lista (`consent` primero, `active` despues, para la tablet que vuelve a mitad de la toma). Existe porque nadie teclea un UUID en una tablet: se guarda **una** direccion en favoritos. El guion del manual PBLL vive en `lib/protocoloPbll.ts` como datos con cita a la seccion, no en JSX, para que se revise contra el manual.
+**Verificado:** 13 comprobaciones por HTTP contra la base real (ciclo completo, consentimiento, las dos rutas del listado, `started_at` idempotente, preflight CORS desde la IP LAN y cerrado a origenes no declarados). El espejo, el reloj corriendo y la grabacion **no** se probaron en navegador: la extension de Chrome no estaba conectada.
+
+---
+
+### DT-032: La cadena del audio, y los dos relojes que no coincidian
+**Fecha:** 2026-09-30
+**Contexto:** El audio se grababa y se subia, pero ahi terminaba: `POST /recordings/{id}/transcribe` era un `raise HTTPException(502)` fijo, `transcript_segments` solo se leia y `verbalizations` tambien —asi que el bloque "Verbalizaciones del paciente" de la seccion 6 nunca aparecia aunque `compose_report` ya lo tenia escrito—.
+**El hallazgo:** para cruzar la transcripcion con las marcas rapidas hacen falta ambas en el mismo reloj, y no lo estaban. Una marca es un offset desde `sessions.started_at`; un segmento de audio, desde el inicio de la **grabacion**, que arranca con el primer trazo. La diferencia es la latencia de inicio, que aqui es un indicador medido (TMP-01) y puede ser de minutos. `audio_recordings` no guardaba ese offset, y derivarlo de `created_at - duration_seconds` no sirve porque `created_at` es cuando termino de **subirse**.
+**Decision:** migracion 002 agrega `started_at_ms`, y el navegador manda tambien `duration_seconds`, que venia siempre NULL porque el endpoint pasaba `None`. Con eso `tiempo_de_sesion(segmento) = recording.started_at_ms + segmento.start_ms`.
+**Sobre interpretar:** Whisper **no separa hablantes**, asi que nada pasa al informe solo. El examinador promueve el segmento que fue del paciente, y elegirlo es atribuirlo. Volcar la transcripcion completa firmaria como dicho por el paciente lo que dijo el profesional. El puerto `Transcriber` ya existia con la forma exacta (`(start_ms, end_ms, text)`).
+**Verificado:** el adaptador contra la API real de Whisper con audio de verdad (1 segmento, contrato del puerto OK); `download()` contra una grabacion real de 4,3 MB, con su firma WebM comprobada; y contra la base, que reintentar no duplica y que el offset alinea el audio con la marca. 119 tests en verde.
+
 ---
 
 ## Lecciones Aprendidas
@@ -283,6 +331,14 @@ entorno sin depender de nadie.
 | L-014 | 5 | `pytest-asyncio` con fixtures de scope `session` y loop por funcion **cuelga** asyncpg, que ata sus conexiones al loop que las creo. Se resuelve con `asyncio_default_fixture_loop_scope = "session"` |
 | L-015 | 5 | Borrar datos en el teardown de un fixture por test bloquea contra la transaccion del examinador dueno, que todavia tiene lock sobre la fila. La limpieza va al cierre de la sesion de tests. Sintoma engañoso: los tests que **no** ven la fila (por RLS) pasan, y solo cuelga el que si la lee |
 | L-016 | 5 | Postgres cancela por `statement_timeout` en vez de esperar para siempre: un deadlock se ve como lentitud, no como cuelgue. La corrida tardaba 11m35s y bajo a 1m22s al corregirlo |
+| L-017 | 6 | **Una variable exportada en `~/.zshrc` le gana al `.env`**: pydantic-settings da prioridad al entorno real. Una `OPENROUTER_API_KEY` vieja exportada en el perfil hacia que el adaptador recibiera 401 mientras `curl` con la clave del `.env` daba 200. Sintoma: la clave "esta bien" y el proveedor la rechaza. Se descarta con `env -u OPENROUTER_API_KEY` |
+| L-018 | 6 | **El `broadcast` de Supabase no reenvia lo pasado.** Un examinador que recarga el monitoreo a mitad de la toma se pierde el `connected: true` y ve "Sin conexion" con el paciente dibujando delante. Se resuelve reemitiendo el estado completo en el tick de 2 s que ya existia, no con Presence |
+| L-019 | 6 | **`localhost` no es una direccion, es "yo".** Un `VITE_API_URL` fijo en `http://localhost:8000` deja a la tablet sin API, porque para ella localhost es la tablet. `apiClient` ahora lo deduce de `window.location.hostname`: asi no hay ninguna IP escrita en un archivo, y la IP de esta maquina cambio de `.125` a `.234` entre planificar y ejecutar |
+| L-020 | 6 | **Un fallo de CORS se ve como "la app no hace nada", no como un error de red.** Si el 5173 esta ocupado Vite arranca en 5174 sin mas aviso que una linea en consola, ese origen no esta en `CORS_ORIGINS` y el navegador bloquea **todas** las llamadas: la interfaz carga y ningun boton funciona. Se listan 5173-5175 en el `.env`. Y `CORS_ORIGINS` se lee una sola vez al arrancar: tocar el `.env` no basta, ni con `--reload`, que solo vigila los `.py` |
+| L-021 | 6 | **Una ruta de "en vivo" necesita comprobar el estado, no solo el id.** Basta que un listado enlace por id para que una sesion cerrada abra la maquinaria en vivo: reloj corriendo, canal suscrito y grabacion arrancando. El guard va en la pantalla, no en los enlaces —hay dos sitios que enlazan y habria un tercero manana |
+| L-022 | 6 | **`formatTime` era mm:ss sin horas.** Una sesion que quedo abierta de un dia para otro mostraba "790:23" en vez de "13:10:23". Las horas solo se muestran si las hay, para que una toma de 20 min siga leyendose "20:00" |
+| L-023 | 6 | **El bucket `session-files` limita `allowed_mime_types` a image/png, audio/webm y application/pdf.** Subir cualquier otro formato da 415 `invalid_mime_type`, y el endpoint lo traducia a un generico "No se pudo guardar el audio" que no dice nada. Por eso `.webm` en la ruta no es una suposicion sino lo unico que Storage acepta — y por eso no se puede probar la cadena completa con un audio sintetico en otro formato |
+| L-024 | 6 | **Dos offsets en la misma unidad no estan en el mismo reloj.** Marcas y transcripcion son ambas "milisegundos desde el inicio", pero de inicios distintos. Un cruce asi se ve bien y esta mal, que en un informe clinico es peor que no tenerlo: nadie revisa un numero que parece correcto |
 
 ---
 
@@ -294,6 +350,8 @@ entorno sin depender de nadie.
 | E-002 | 2 | Metricas de pausa usan timeMillis relativo (por stroke), no timestamps absolutos entre strokes | RESUELTO en el backend — `strokes.started_at_ms`/`ended_at_ms` son offsets absolutos, y `measure_drawing.py` calcula el hueco real. El calculo TS del cliente sigue siendo aproximado hasta que el analisis pase por la API |
 | E-003 | 5 | **Al aplicar el esquema v2 la app quedo rota.** El frontend consultaba `observations`, `indicators`, `drawing_data` y `sessions.test_type` | RESUELTO en código — consumidores migrados a `apiClient`; falta validación end-to-end contra Supabase |
 | E-004 | 5 | `drawingData.ts` usa `getPublicUrl()` sobre un bucket privado: `final_image_url` queda como link muerto y la imagen no carga en la pantalla de analisis | ABIERTO — se resuelve guardando la **ruta** y firmandola al leer con `FileStore.signed_url()`, que ya esta declarado como puerto. Corresponde a `SPEC-S5-05` |
+| E-005 | 6 | **El listado y la ficha del paciente mandaban toda sesion a `/sesion/:id`, la pantalla en vivo.** Abrir una sesion `completed` arrancaba el cronometro desde su `started_at` de hace dias, volvia a enganchar el canal realtime —con la tablet abierta, **relanzaba la grabacion**— y ofrecia "Finalizar sesion" otra vez, que llevaba de nuevo a la pantalla de notas de una sesion ya cerrada | RESUELTO — `EN_VIVO = [setup, consent, active]` guarda los cinco efectos y la vista; una sesion cerrada muestra una tarjeta de solo lectura con enlaces a analisis y observaciones |
+| E-006 | 6 | **El indicador de 3 pasos del asistente se desbordaba y pisaba las etiquetas.** La linea de union era `position:absolute; right:100%; width:120px`: colgaba fuera de la caja del paso, se dibujaba encima de la etiqueta anterior, y los 120px fijos mas `white-space:nowrap` en "Consentimiento" empujaban el conjunto fuera del contenedor | RESUELTO — la linea pasa a ser hermana en el flex con `flex:1`, se reparte el espacio disponible y la etiqueta puede partir en dos lineas |
 
 ---
 

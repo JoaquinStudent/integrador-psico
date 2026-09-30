@@ -12,7 +12,25 @@
 
 import { supabase } from './supabase'
 
-const BASE = (import.meta.env.VITE_API_URL ?? 'http://localhost:8000') + '/api/v1'
+/**
+ * Dónde está la API.
+ *
+ * Sin `VITE_API_URL` se deduce del host desde el que se cargó la aplicación, no se
+ * fija en `localhost`. La razón es la tablet del paciente: para ella `localhost` es
+ * ella misma, así que un valor fijo la deja sin API. Deducirlo hace que el laptop en
+ * `localhost:5173` pegue a `localhost:8000` y la tablet en `192.168.x.x:5173` pegue a
+ * `192.168.x.x:8000`, sin configurar nada y sin una IP escrita en ningún archivo —
+ * que además cambia cada vez que se cambia de red.
+ *
+ * `VITE_API_URL` sigue mandando cuando existe, que es lo que hará el despliegue.
+ */
+function apiBase(): string {
+  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL
+  const { protocol, hostname } = window.location
+  return `${protocol}//${hostname}:8000`
+}
+
+const BASE = apiBase() + '/api/v1'
 
 /** Error de la API con el cuerpo RFC 9457 ya desempaquetado. */
 export class ApiError extends Error {
@@ -116,9 +134,12 @@ export const api = {
   del: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
 
   /** Subida de archivos: audio de la sesión, PNG del dibujo. */
-  upload: <T>(path: string, file: Blob, filename: string) => {
+  upload: <T>(path: string, file: Blob, filename: string, fields?: Record<string, string | number>) => {
     const form = new FormData()
     form.append('file', file, filename)
+    // Los campos extra viajan en el mismo multipart que el archivo, asi que subir
+    // una grabacion sigue siendo una sola peticion.
+    for (const [k, v] of Object.entries(fields ?? {})) form.append(k, String(v))
     return request<T>(path, { method: 'POST', form })
   },
 

@@ -297,6 +297,10 @@ CREATE TABLE audio_recordings (
     session_id          UUID NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
     storage_path        TEXT NOT NULL,
     duration_seconds    INTEGER,
+    -- Offset desde sessions.started_at: el mismo reloj que session_quick_marks.
+    -- La grabacion arranca con el primer trazo, no con la sesion, asi que sin esto
+    -- los minutos del audio y los de las marcas no son comparables (migracion 002).
+    started_at_ms       INTEGER,
     transcribed_at      TIMESTAMPTZ,         -- NULL = pendiente de Whisper
     created_at          TIMESTAMPTZ NOT NULL DEFAULT now()
 );

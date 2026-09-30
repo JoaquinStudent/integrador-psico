@@ -130,6 +130,14 @@ export interface ConsentInput {
   signature_url?: string
 }
 
+export interface Consent {
+  audio_authorized: boolean
+  digital_authorized: boolean
+  confidential_ack: boolean
+  signature_url: string | null
+  signed_at: string
+}
+
 // =============================================================================
 // Dibujo
 // =============================================================================
@@ -205,6 +213,13 @@ export interface Verbalization {
 export interface Recording {
   id: string
   duration_seconds: number | null
+  /**
+   * En qué momento de la sesión empezó a grabar, mismo reloj que `marked_at_ms`.
+   * Es lo que permite poner la transcripción y las marcas en un solo eje: la
+   * grabación arranca con el primer trazo, no con la sesión. `null` en las
+   * grabaciones anteriores a la migración 002 — esas no se pueden alinear.
+   */
+  started_at_ms: number | null
   transcribed_at: string | null
 }
 
@@ -268,6 +283,10 @@ export interface Report {
   created_at?: string | null
   updated_at?: string | null
   patient_name?: string | null
+  // Solo vienen en la respuesta de generacion: si el redactor no contesto, estas son
+  // las secciones que el profesional tiene que escribir a mano.
+  llm_available?: boolean
+  pending_sections?: number[]
 }
 
 // =============================================================================
