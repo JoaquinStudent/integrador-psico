@@ -47,6 +47,16 @@ async def upload_recording(
     return RecordingOut.model_validate(row)
 
 
+@router.get("/sessions/{session_id}/recordings", response_model=list[RecordingOut])
+async def list_recordings(
+    session_id: UUID, sessions: Sessions, audio: Audio
+) -> list[RecordingOut]:
+    """Grabaciones de la sesion. Es lo que el examinador necesita para pedir la
+    transcripcion, porque el endpoint de transcribir identifica por id."""
+    await sessions.get(session_id)
+    return [RecordingOut.model_validate(r) for r in await audio.list_for_session(session_id)]
+
+
 @router.post("/recordings/{recording_id}/transcribe")
 async def transcribe(recording_id: UUID, audio: Audio):
     # El adaptador de Whisper se incorpora cuando OPENAI_API_KEY está configurada.

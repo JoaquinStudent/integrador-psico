@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { api } from '../lib/apiClient'
+import { api, mensajeDeError } from '../lib/apiClient'
 import { transcribeAudio, type TranscriptionSegment } from '../lib/audioRecorder'
 
 export function PostSessionPage() {
@@ -9,8 +9,12 @@ export function PostSessionPage() {
   const [patient, setPatient] = useState<{ full_name: string } | null>(null)
   const [notes, setNotes] = useState('')
   const [transcription, setTranscription] = useState<TranscriptionSegment[]>([])
-  const [audioPath] = useState<string | null>(null)
+  // El id de la grabación, no su ruta en Storage: el endpoint de transcribir
+  // identifica por id. Antes esto era `audioPath` y nunca se asignaba —no tenía
+  // setter—, así que el botón de transcribir salía por el return temprano siempre.
+  const [recordingId, setRecordingId] = useState<string | null>(null)
   const [transcribing, setTranscribing] = useState(false)
+  const [transcribeError, setTranscribeError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -24,14 +28,26 @@ export function PostSessionPage() {
     setPatient(patientData)
     const observations = await api.get<{ additional_notes: string }>(`/sessions/${sessionId}/observations`)
     setNotes(observations.additional_notes)
+
+    const grabaciones = await api.get<{ id: string }[]>(`/sessions/${sessionId}/recordings`)
+    if (grabaciones.length > 0) setRecordingId(grabaciones[0].id)
   }
 
   async function handleTranscribe() {
-    if (!sessionId || !audioPath) return
+    if (!sessionId || !recordingId) return
     setTranscribing(true)
-    const result = await transcribeAudio(sessionId, audioPath)
-    if (result) setTranscription(result.transcription)
-    setTranscribing(false)
+    setTranscribeError(null)
+    try {
+      const result = await transcribeAudio(recordingId)
+      setTranscription(result.transcription)
+    } catch (error) {
+      // El error se muestra. Que el proveedor no esté disponible es informacion que
+      // el examinador necesita, no algo que convenga esconder: antes un catch vacío
+      // dejaba la pantalla igual y parecía que el boton no hacía nada.
+      setTranscribeError(mensajeDeError(error))
+    } finally {
+      setTranscribing(false)
+    }
   }
 
   async function handleSave() {
@@ -60,7 +76,7 @@ export function PostSessionPage() {
         {/* Transcription panel */}
         <div className="post-section">
           <h2>Transcripcion de audio</h2>
-          {audioPath ? (
+          {recordingId ? (
             <>
               {transcription.length > 0 ? (
                 <div className="transcription-list">
@@ -77,6 +93,7 @@ export function PostSessionPage() {
                   <button className="btn-transcribe" onClick={handleTranscribe} disabled={transcribing}>
                     {transcribing ? 'Transcribiendo...' : 'Transcribir con Whisper'}
                   </button>
+                  {transcribeError && <p className="transcription-error">{transcribeError}</p>}
                 </div>
               )}
             </>
