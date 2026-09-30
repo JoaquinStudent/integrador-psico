@@ -15,12 +15,12 @@
 | Seed de catalogos | **Aplicado** | 201 indicadores, 18 secciones, 4 categorias, 6 marcas, 8 actitudes |
 | Storage | Operativo | Bucket privado `session-files`, 50 MB, 4 policies, rutas `sessions/{id}/...` |
 | Auth | Operativo | Supabase Auth con **firma ES256**; el backend verifica contra el JWKS |
-| Backend FastAPI | **16 rutas operativas** | Sesion completa por API: paciente, sesion, consentimiento, dibujo, observaciones, metricas, catalogos |
+| Backend FastAPI | **Rutas de sesiones, análisis y audio** | CRUD de pacientes/sesiones, dibujo, observaciones, métricas, indicadores y upload de audio; transcripción requiere proveedor |
 | Dominio | Operativo | Medicion objetiva + motor de reglas, Python puro, frontera verificada por `check-hexagon.sh` |
 | Repositorios | Operativo | 3 puertos implementados + `store.py` para el CRUD sin dominio |
 | Tests backend | **67 en verde** | 14 de dominio (sin red) + 53 de integracion contra la base real. ~5 min de corrida |
 | Frontend: canvas, realtime, layout, design system | Operativo | Sin cambios; el canvas y el espejo no pasan por el backend |
-| Frontend: capa de datos | **ROTO a proposito** | 16 errores de tipo y 22 llamadas a tablas de la v1. Es el trabajo pendiente, ver E-003 |
+| Frontend: capa de datos | **Migrada** | No quedan llamadas `supabase.from`, Storage ni Edge Functions fuera de Auth/Realtime; usa `apiClient` |
 | Deploy | Pendiente | Ni frontend ni backend desplegados |
 | Git | Operativo | `origin/srs-specs-y-esquema-2fn`. **`main` esta 8 commits atras** |
 
@@ -82,10 +82,10 @@
 | S5-01 Esquema 2FN | DONE | 22 tablas aplicadas en el proyecto nuevo. RLS en todas, ninguna FK sin indice |
 | S5-02 Catalogo en base de datos | DONE | 201 indicadores sembrados. `seed-catalog.mjs` falla si el catalogo es inconsistente; `check-sql.py` cruza reset, schema y seed sin conectarse |
 | S5-03 Dominio, puertos y servicios | DONE | Medicion y motor de reglas portados de TS. 14 tests sin red. Corrige E-002 |
-| S5-04 Repositorios y propagacion de identidad | DONE | 22 modelos verificados contra la base por reflexion. 3 puertos implementados. **Probado que RLS tapa un `WHERE` olvidado**. Criterio 3 sin cumplir, ver DT-027 |
-| S5-05 Endpoints de analisis y audio | **PARCIAL** | Hechas 16 rutas: paciente, sesion, consentimiento, dibujo, observaciones, metricas y catalogos. Faltan `analyze`, indicadores y audio |
-| S5-06 Retirar el acceso directo a BD | **EN CURSO** | `apiClient.ts` y `types/api.ts` hechos, `database.ts` eliminado. Quedan 22 llamadas a tablas en 8 archivos (E-003) |
-| S5-07 Migraciones Alembic | BACKLOG | Fuera del alcance de la semana; el esquema ya esta aplicado |
+| S5-04 Repositorios y propagacion de identidad | **EN PROCESO** | Repositorios de dibujo/indicadores y stores CRUD conectados; faltan pruebas contra el entorno configurado y cerrar el rol sin `BYPASSRLS` |
+| S5-05 Endpoints de analisis y audio | **PARCIAL** | Análisis determinista, indicadores y upload de audio expuestos; Whisper/LLM quedan en fallback controlado sin claves |
+| S5-06 Retirar el acceso directo a BD | **PARCIAL AVANZADO** | Consumidores migrados a `apiClient`; falta cerrar Realtime privado y completar carga de imágenes/transcripciones |
+| S5-07 Migraciones Alembic | **IMPLEMENTADO LOCALMENTE** | Alembic, revisión inicial no destructiva y guardas creadas; falta ejecutar `current/upgrade` contra Supabase con backup |
 
 **Infraestructura resuelta esta semana:** proyecto Supabase nuevo, bucket privado
 `session-files` con sus 4 policies, y los dos scripts de verificacion
@@ -292,7 +292,7 @@ entorno sin depender de nadie.
 |---|---|---|---|
 | E-001 | 1 | "Database error saving new user" en registro | RESUELTO — DT-004 |
 | E-002 | 2 | Metricas de pausa usan timeMillis relativo (por stroke), no timestamps absolutos entre strokes | RESUELTO en el backend — `strokes.started_at_ms`/`ended_at_ms` son offsets absolutos, y `measure_drawing.py` calcula el hueco real. El calculo TS del cliente sigue siendo aproximado hasta que el analisis pase por la API |
-| E-003 | 5 | **Al aplicar el esquema v2 la app quedo rota.** El frontend consulta `observations`, `indicators`, `drawing_data` y `sessions.test_type`, que ya no existen. 22 llamadas en 8 archivos | ABIERTO — es el trabajo pendiente del Dia 2. Medida honesta: `grep -rn "supabase.from" frontend/src/`. El build **no** lo detecta: al quitar el generico `<Database>` esas llamadas quedaron sin tipar (DT-025) |
+| E-003 | 5 | **Al aplicar el esquema v2 la app quedo rota.** El frontend consultaba `observations`, `indicators`, `drawing_data` y `sessions.test_type` | RESUELTO en código — consumidores migrados a `apiClient`; falta validación end-to-end contra Supabase |
 | E-004 | 5 | `drawingData.ts` usa `getPublicUrl()` sobre un bucket privado: `final_image_url` queda como link muerto y la imagen no carga en la pantalla de analisis | ABIERTO — se resuelve guardando la **ruta** y firmandola al leer con `FileStore.signed_url()`, que ya esta declarado como puerto. Corresponde a `SPEC-S5-05` |
 
 ---

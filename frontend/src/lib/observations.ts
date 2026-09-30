@@ -1,8 +1,9 @@
-import { supabase, supabaseConfigured } from './supabase'
+import { api } from './apiClient'
 
 export interface QuickMark {
   mark: string
   timestamp: string
+  markedAtMs?: number
 }
 
 export async function saveObservations(
@@ -10,9 +11,16 @@ export async function saveObservations(
   quickMarks: QuickMark[],
   additionalNotes: string
 ) {
-  if (!supabaseConfigured) return
-  await supabase.from('observations').update({
-    quick_marks: quickMarks,
+  void quickMarks
+  await api.put(`/sessions/${sessionId}/observations`, {
     additional_notes: additionalNotes,
-  }).eq('session_id', sessionId)
+    attitudes: [],
+  })
+}
+
+export async function addQuickMark(sessionId: string, code: string, markedAtMs: number) {
+  await api.post(`/sessions/${sessionId}/quick-marks`, {
+    mark_code: code,
+    marked_at_ms: markedAtMs,
+  })
 }

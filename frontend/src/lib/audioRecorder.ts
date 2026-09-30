@@ -1,4 +1,4 @@
-import { supabase } from './supabase'
+import { api, mensajeDeError } from './apiClient'
 
 export interface TranscriptionSegment {
   timestamp: string
@@ -10,6 +10,7 @@ export interface AudioRecorderState {
   durationMs: number
   error?: string
   storagePath?: string
+  recordingId?: string
 }
 
 export function createAudioRecorder(sessionId: string, onState: (s: AudioRecorderState) => void) {
@@ -62,29 +63,15 @@ export function createAudioRecorder(sessionId: string, onState: (s: AudioRecorde
     onState({ status: 'uploading', durationMs })
 
     const blob = new Blob(chunks, { type: 'audio/webm' })
-    const path = `sessions/${sessionId}/audio_${Date.now()}.webm`
-
-    const { error: uploadError } = await supabase.storage
-      .from('session-files')
-      .upload(path, blob, { contentType: 'audio/webm', upsert: false })
-
-    if (uploadError) {
-      onState({ status: 'error', durationMs, error: uploadError.message })
+    try {
+      const recording = await api.upload<{ id: string; storage_path: string }>(
+        `/sessions/${sessionId}/recordings`, blob, `audio_${Date.now()}.webm`
+      )
+      onState({ status: 'done', durationMs, storagePath: recording.storage_path, recordingId: recording.id })
+    } catch (error) {
+      onState({ status: 'error', durationMs, error: mensajeDeError(error) })
       return
     }
-
-    const { error: dbError } = await supabase.from('audio_recordings').insert({
-      session_id: sessionId,
-      storage_path: path,
-      duration_seconds: Math.round(durationMs / 1000),
-    })
-
-    if (dbError) {
-      onState({ status: 'error', durationMs, error: dbError.message })
-      return
-    }
-
-    onState({ status: 'done', durationMs, storagePath: path })
   }
 
   return { start, stop }
@@ -94,9 +81,10 @@ export async function transcribeAudio(
   sessionId: string,
   storagePath: string
 ): Promise<{ transcription: TranscriptionSegment[]; duration_seconds: number } | null> {
-  const { data, error } = await supabase.functions.invoke('transcribe-audio', {
-    body: { session_id: sessionId, audio_path: storagePath },
-  })
-  if (error || data?.error) return null
-  return data?.data ?? null
+  void sessionId
+  try {
+    return await api.post(`/recordings/${storagePath}/transcribe`)
+  } catch {
+    return null
+  }
 }

@@ -1,12 +1,9 @@
-import { supabase } from './supabase'
+import { api } from './apiClient'
 
 export interface AnalysisSuggestion {
   code: string
-  category: string
-  manual_section: string
-  title: string
-  interpretation: string
-  confidence: 'high' | 'medium' | 'low'
+  confidence: 'high' | 'medium' | 'low' | null
+  evidence: string | null
 }
 
 export interface AnalysisInput {
@@ -27,13 +24,11 @@ export interface AnalysisInput {
 export async function analyzeDrawing(
   input: AnalysisInput
 ): Promise<{ suggestions: AnalysisSuggestion[] } | null> {
-  const { data, error } = await supabase.functions.invoke('analyze-drawing', {
-    body: {
-      session_id: input.sessionId,
-      metrics: input.metrics,
-      manual_indicators: input.manualIndicators ?? [],
-    },
-  })
-  if (error || data?.error) return null
-  return data?.data ?? null
+  void input.metrics
+  void input.manualIndicators
+  try {
+    return await api.post(`/sessions/${input.sessionId}/analyze`)
+  } catch {
+    return null
+  }
 }

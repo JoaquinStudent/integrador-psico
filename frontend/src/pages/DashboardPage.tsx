@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
-import { supabase, supabaseConfigured } from '../lib/supabase'
+import { api } from '../lib/apiClient'
 import { formatDate } from '../lib/patients'
+import type { DashboardSummary } from '../types/api'
 
 interface RecentSession {
   id: string
-  test_type: string
+  test: { name: string; code: string }
   status: string
   started_at: string | null
-  patient: { full_name: string } | null
+  patient?: { full_name: string } | null
 }
 
 function useDashboardData() {
@@ -18,31 +19,17 @@ function useDashboardData() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!supabaseConfigured) { setLoading(false); return }
-
-    const now = new Date()
-    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
-
     Promise.all([
-      supabase.from('sessions').select('id', { count: 'exact', head: true }).gte('created_at', weekAgo),
-      supabase.from('sessions').select('id', { count: 'exact', head: true }).eq('status', 'completed'),
-      supabase.from('patients').select('id', { count: 'exact', head: true }).eq('is_active', true),
-      supabase.from('sessions').select('id, test_type, status, started_at, patients(full_name)').order('created_at', { ascending: false }).limit(5),
-    ]).then(([weekRes, completedRes, patientsRes, recentRes]) => {
+      api.get<DashboardSummary>('/dashboard/summary'),
+    ]).then(([summary]) => {
       setKpis({
-        sessionsWeek: weekRes.count ?? 0,
-        pendingReports: (weekRes.count ?? 0) - (completedRes.count ?? 0),
-        activePatients: patientsRes.count ?? 0,
+        sessionsWeek: summary.sessions_this_week,
+        pendingReports: summary.pending_analysis,
+        activePatients: summary.active_patients,
       })
-      setRecentSessions((recentRes.data ?? []).map((s: Record<string, unknown>) => ({
-        id: s.id as string,
-        test_type: s.test_type as string,
-        status: s.status as string,
-        started_at: s.started_at as string | null,
-        patient: s.patients as { full_name: string } | null,
-      })))
+      setRecentSessions(summary.recent_sessions as RecentSession[])
       setLoading(false)
-    })
+    }).catch(() => setLoading(false))
   }, [])
 
   return { kpis, recentSessions, loading }
@@ -104,7 +91,7 @@ export function DashboardPage() {
                 {recentSessions.map(s => (
                   <tr key={s.id}>
                     <td><strong>{s.patient?.full_name ?? '—'}</strong></td>
-                    <td>{s.test_type}</td>
+                    <td>{s.test.name}</td>
                     <td className="text-secondary">{s.started_at ? formatDate(s.started_at) : '—'}</td>
                     <td>
                       <span className={`badge ${s.status === 'completed' ? 'badge-green' : 'badge-amber'}`}>

@@ -18,7 +18,9 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ....domain.model import ConsentSummary, DrawingMetrics, ReportContext
 from . import models as m
+from .repositories import PostgresSessionIndicatorRepository
 
 
 class NotFound(Exception):
@@ -66,6 +68,24 @@ class PatientStore:
         row = await self.get(patient_id)
         for k, v in data.items():
             setattr(row, k, v)
+        await self._s.flush()
+        return row
+
+    async def set_active(self, patient_id: UUID, is_active: bool) -> m.Patient:
+        row = await self.get(patient_id)
+        row.is_active = is_active
+        await self._s.flush()
+        return row
+
+    async def anonymize(self, patient_id: UUID) -> m.Patient:
+        row = await self.get(patient_id)
+        now = dt.datetime.now(dt.UTC)
+        row.full_name = "Paciente anonimizado"
+        row.document_number = f"ANON-{row.id.hex[:12].upper()}"
+        row.birth_date = dt.date(1900, 1, 1)
+        row.sex = "U"
+        row.is_active = False
+        row.anonymized_at = now
         await self._s.flush()
         return row
 
@@ -228,6 +248,26 @@ class SessionStore:
             .all()
         )
         return list(rows)
+
+    async def list_all(
+        self,
+        *,
+        status: str | None = None,
+        page: int = 1,
+        page_size: int = 25,
+    ) -> tuple[list[m.Session], int]:
+        stmt = select(m.Session)
+        if status:
+            stmt = stmt.where(m.Session.status == status)
+        total = await self._s.scalar(select(func.count()).select_from(stmt.subquery())) or 0
+        rows = (
+            await self._s.execute(
+                stmt.order_by(m.Session.created_at.desc())
+                .limit(page_size)
+                .offset((page - 1) * page_size)
+            )
+        ).scalars().all()
+        return list(rows), total
 
     async def set_status(self, session_id: UUID, nuevo: str) -> m.Session:
         row = await self.get(session_id)
@@ -434,3 +474,251 @@ class ObservationStore:
             m.SessionQuickMark(session_id=session_id, mark_code=code, marked_at_ms=at_ms)
         )
         await self._s.flush()
+
+
+class AudioStore:
+    def __init__(self, session: AsyncSession) -> None:
+        self._s = session
+
+    async def create(
+        self, session_id: UUID, path: str, duration_seconds: int | None
+    ) -> m.AudioRecording:
+        row = m.AudioRecording(
+            session_id=session_id,
+            storage_path=path,
+            duration_seconds=duration_seconds,
+        )
+        self._s.add(row)
+        await self._s.flush()
+        return row
+
+    async def get(self, recording_id: UUID) -> m.AudioRecording:
+        row = await self._s.get(m.AudioRecording, recording_id)
+        if row is None:
+            raise NotFound
+        return row
+
+    async def transcript(self, recording_id: UUID) -> list[m.TranscriptSegment]:
+        return list(
+            (
+                await self._s.execute(
+                    select(m.TranscriptSegment)
+                    .where(m.TranscriptSegment.recording_id == recording_id)
+                    .order_by(m.TranscriptSegment.segment_index)
+                )
+            ).scalars().all()
+        )
+
+
+# =============================================================================
+# Informes
+# =============================================================================
+
+
+class ReportStore:
+    def __init__(self, session: AsyncSession, user_id: UUID) -> None:
+        self._s = session
+        self._uid = user_id
+
+    async def _session_row(
+        self, session_id: UUID
+    ) -> tuple[m.Session, m.Patient, m.Test, m.Profile]:
+        row = (await self._s.execute(
+            select(m.Session, m.Patient, m.Test, m.Profile)
+            .join(m.Patient, m.Patient.id == m.Session.patient_id)
+            .join(m.Test, m.Test.id == m.Session.test_id)
+            .join(m.Profile, m.Profile.id == m.Session.created_by)
+            .where(m.Session.id == session_id)
+            .where(m.Session.created_by == self._uid)
+        )).one_or_none()
+        if row is None:
+            raise NotFound
+        return row
+
+    async def _load(self, report_id: UUID) -> tuple[m.Report, m.Patient]:
+        row = (await self._s.execute(
+            select(m.Report, m.Patient)
+            .join(m.Session, m.Session.id == m.Report.session_id)
+            .join(m.Patient, m.Patient.id == m.Session.patient_id)
+            .where(m.Report.id == report_id)
+            .where(m.Session.created_by == self._uid)
+        )).one_or_none()
+        if row is None:
+            raise NotFound
+        return row
+
+    async def sections(self, report_id: UUID) -> list[m.ReportSection]:
+        return list((await self._s.execute(
+            select(m.ReportSection)
+            .where(m.ReportSection.report_id == report_id)
+            .order_by(m.ReportSection.section_number)
+        )).scalars().all())
+
+    async def get(self, report_id: UUID) -> tuple[m.Report, m.Patient, list[m.ReportSection]]:
+        report, patient = await self._load(report_id)
+        return report, patient, await self.sections(report.id)
+
+    async def get_for_session(
+        self, session_id: UUID
+    ) -> tuple[m.Report, m.Patient, list[m.ReportSection]] | None:
+        await self._session_row(session_id)
+        report = (await self._s.execute(
+            select(m.Report).where(m.Report.session_id == session_id)
+        )).scalar_one_or_none()
+        if report is None:
+            return None
+        return await self.get(report.id)
+
+    async def context_for_session(self, session_id: UUID) -> ReportContext:
+        session, patient, test, profile = await self._session_row(session_id)
+        consent = (await self._s.execute(select(m.ConsentRecord).where(
+            m.ConsentRecord.session_id == session_id
+        ))).scalar_one_or_none()
+        obs = (await self._s.execute(select(m.SessionObservation).where(
+            m.SessionObservation.session_id == session_id
+        ))).scalar_one_or_none()
+        metrics = (await self._s.execute(select(m.StrokeMetrics).where(
+            m.StrokeMetrics.session_id == session_id
+        ))).scalar_one_or_none()
+        marks = (await self._s.execute(
+            select(m.QuickMarkCatalog.label, m.SessionQuickMark.marked_at_ms)
+            .join(m.SessionQuickMark, m.SessionQuickMark.mark_code == m.QuickMarkCatalog.code)
+            .where(m.SessionQuickMark.session_id == session_id)
+            .order_by(m.SessionQuickMark.marked_at_ms)
+        )).all()
+        attitudes = list((await self._s.execute(
+            select(m.AttitudeCatalog.label)
+            .join(m.SessionAttitude, m.SessionAttitude.attitude_code == m.AttitudeCatalog.code)
+            .where(m.SessionAttitude.session_id == session_id)
+            .order_by(m.AttitudeCatalog.display_order)
+        )).scalars().all())
+        verbalizations = list((await self._s.execute(
+            select(m.Verbalization.text).where(m.Verbalization.session_id == session_id)
+            .order_by(m.Verbalization.created_at)
+        )).scalars().all())
+        validated = tuple(
+            await PostgresSessionIndicatorRepository(self._s).list_validated(session_id)
+        )
+        drawing_metrics = None
+        if metrics:
+            drawing_metrics = DrawingMetrics(
+                total_time_ms=metrics.total_time_ms or 0,
+                latency_ms=metrics.latency_ms or 0,
+                stroke_count=metrics.stroke_count,
+                pressure_avg=metrics.pressure_avg or 0.0,
+                pause_count=metrics.pause_count,
+                erase_count=metrics.erase_count,
+                area_pct=metrics.area_pct or 0.0,
+                sequence_start=metrics.sequence_start,
+            )
+        started = session.started_at or session.created_at
+        ended = session.completed_at
+        duration = int((ended - started).total_seconds() // 60) if ended else None
+        return ReportContext(
+            patient_name=patient.full_name,
+            patient_birth_date=patient.birth_date,
+            patient_document=patient.document_number,
+            examiner_name=profile.full_name,
+            examiner_license=profile.license_number,
+            test_name=test.name,
+            test_code=test.code,
+            session_date=(session.created_at or dt.datetime.now(dt.UTC)).date(),
+            session_duration_min=duration,
+            reason=session.reason,
+            consent=ConsentSummary(
+                audio_authorized=consent.audio_authorized,
+                digital_authorized=consent.digital_authorized,
+                confidential_ack=consent.confidential_ack,
+                signed_at=consent.signed_at.date() if consent and consent.signed_at else None,
+            ) if consent else None,
+            attitudes=tuple(attitudes),
+            metrics=drawing_metrics,
+            observations=obs.additional_notes if obs else "",
+            quick_marks=tuple((label, at) for label, at in marks),
+            verbalizations=tuple(verbalizations),
+            validated=validated,
+        )
+
+    async def list(
+        self, status: str | None = None, patient_id: UUID | None = None
+    ) -> list[tuple[m.Report, m.Patient]]:
+        stmt = (select(m.Report, m.Patient)
+            .join(m.Session, m.Session.id == m.Report.session_id)
+            .join(m.Patient, m.Patient.id == m.Session.patient_id)
+            .where(m.Session.created_by == self._uid))
+        if status:
+            stmt = stmt.where(m.Report.status == status)
+        if patient_id:
+            stmt = stmt.where(m.Session.patient_id == patient_id)
+        return list((await self._s.execute(stmt.order_by(m.Report.updated_at.desc()))).all())
+
+    async def create(
+        self, session_id: UUID, sections: list[dict]
+    ) -> tuple[m.Report, list[m.ReportSection]]:
+        session, patient, test, profile = await self._session_row(session_id)
+        if session.status != "completed":
+            raise Conflict("la sesión debe estar completada para generar el informe")
+        existing = (
+            await self._s.execute(select(m.Report).where(m.Report.session_id == session_id))
+        ).scalar_one_or_none()
+        if existing is not None:
+            if existing.status == "validated":
+                raise Conflict("el informe ya está validado")
+            rows = await self.sections(existing.id)
+            edited = {r.section_number: r for r in rows if r.edited_by_examiner}
+            await self._s.execute(
+                delete(m.ReportSection).where(m.ReportSection.report_id == existing.id)
+            )
+            for item in sections:
+                old = edited.get(item["section_number"])
+                if old:
+                    item = {**item, "content": old.content, "edited_by_examiner": True}
+                self._s.add(m.ReportSection(report_id=existing.id, **item))
+            existing.updated_at = dt.datetime.now(dt.UTC)
+            await self._s.flush()
+            return existing, await self.sections(existing.id)
+        report = m.Report(session_id=session_id, status="draft")
+        self._s.add(report)
+        await self._s.flush()
+        for item in sections:
+            self._s.add(m.ReportSection(report_id=report.id, **item))
+        await self._s.flush()
+        return report, await self.sections(report.id)
+
+    async def update_section(
+        self, report_id: UUID, number: int, content: str
+    ) -> tuple[m.Report, m.ReportSection]:
+        report, _ = await self._load(report_id)
+        if report.status != "draft":
+            raise Conflict("el informe validado es de solo lectura")
+        section = (await self._s.execute(select(m.ReportSection).where(
+            m.ReportSection.report_id == report_id, m.ReportSection.section_number == number
+        ))).scalar_one_or_none()
+        if section is None:
+            raise NotFound
+        section.content = content
+        section.edited_by_examiner = True
+        report.updated_at = dt.datetime.now(dt.UTC)
+        await self._s.flush()
+        return report, section
+
+    async def validate(self, report_id: UUID) -> tuple[m.Report, list[m.ReportSection]]:
+        report, patient, sections = await self.get(report_id)
+        if report.status != "draft":
+            raise Conflict("el informe ya está validado")
+        if len(sections) != 9 or any(not s.content.strip() for s in sections):
+            raise Conflict("todas las secciones del informe deben estar completas")
+        has_indicator = await self._s.scalar(
+            select(func.count())
+            .select_from(m.SessionIndicator)
+            .join(m.Report, m.Report.session_id == m.SessionIndicator.session_id)
+            .where(m.Report.id == report_id)
+            .where(m.SessionIndicator.status == "validated")
+        )
+        if not has_indicator:
+            raise Conflict("debe existir al menos un indicador validado")
+        report.status = "validated"
+        report.validated_at = dt.datetime.now(dt.UTC)
+        report.validated_by = self._uid
+        await self._s.flush()
+        return report, sections

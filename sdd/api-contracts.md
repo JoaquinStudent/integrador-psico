@@ -91,6 +91,18 @@ Solo lectura. Reemplazan las constantes que hoy estan escritas a mano en el fron
 |---|---|
 | `GET /dashboard/summary` | `{ sessions_this_week, pending_analysis, active_patients, recent_sessions[] }` |
 
+### Informes
+
+| Metodo y ruta | Proposito |
+|---|---|
+| `GET /reports` | Lista informes del examinador; admite `?status=` y `?patient_id=` |
+| `GET /reports/{id}` | Devuelve el informe y sus nueve secciones |
+| `POST /sessions/{id}/report` | Genera o regenera un borrador desde datos estructurados e indicadores validados |
+| `GET /sessions/{id}/report` | Devuelve el informe de una sesión |
+| `PATCH /reports/{id}/sections/{number}` | Guarda el contenido editado de una sección en borrador |
+| `POST /reports/{id}/validate` | Valida y vuelve inmutable el informe |
+| `GET /reports/{id}/pdf` | Descarga el PDF; solo disponible para informes validados |
+
 ### Pacientes
 
 | Metodo y ruta | Proposito |
@@ -101,11 +113,14 @@ Solo lectura. Reemplazan las constantes que hoy estan escritas a mano en el fron
 | `PATCH /patients/{id}` | Actualiza |
 | `GET /patients/{id}/sessions` | Historial de sesiones |
 | `GET /patients/{id}/reports` | Informes del paciente |
+| `PATCH /patients/{id}/status` | Activa o desactiva lógicamente un paciente |
+| `POST /patients/{id}/anonymize` | Anonimiza datos identificables conservando historial y auditoría |
 
 ### Sesiones
 
 | Metodo y ruta | Proposito |
 |---|---|
+| `GET /sessions` | Listado paginado del examinador. `?status=` filtra por estado |
 | `POST /sessions` | Crea sesion + consentimiento + dibujo **en una transaccion**. En v1 eran 4 INSERT secuenciales desde el cliente, sin atomicidad |
 | `GET /sessions/{id}` | Sesion con paciente y test embebidos |
 | `PATCH /sessions/{id}` | Cambio de `status` y de `reason`. Transiciones validas: `setup→consent→active→completed`, y `→cancelled` desde cualquiera |
@@ -130,6 +145,9 @@ Solo lectura. Reemplazan las constantes que hoy estan escritas a mano en el fron
 | `GET /sessions/{id}/indicators` | Sugeridos, validados y rechazados. `?status=` filtra |
 | `PUT /sessions/{id}/indicators/{code}` | Valida o rechaza uno. Sella `validated_by` y `validated_at` |
 | `POST /sessions/{id}/indicators/bulk` | Checklist profesional: marca en lote los 153 indicadores `manual` |
+
+Cuando no hay proveedor LLM configurado, `POST /sessions/{id}/analyze` conserva las métricas y las
+sugerencias deterministas; `llm_available` llega como `false` y no se inventan sugerencias asistidas.
 
 **La medicion es determinista.** `POST /analyze` separa dos capas: las metricas y los indicadores
 `auto` salen de umbrales calibrables en el dominio, sin LLM; el LLM solo propone indicadores `semi`

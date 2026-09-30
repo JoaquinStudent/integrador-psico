@@ -27,9 +27,11 @@ from ..adapter.outbound.postgres.repositories import (
     PostgresSessionIndicatorRepository,
 )
 from ..adapter.outbound.postgres.store import (
+    AudioStore,
     DrawingStore,
     ObservationStore,
     PatientStore,
+    ReportStore,
     SessionStore,
 )
 from ..domain.ports import (
@@ -101,3 +103,17 @@ Patients = Annotated[PatientStore, Depends(patient_store)]
 Sessions = Annotated[SessionStore, Depends(session_store)]
 DrawingWrites = Annotated[DrawingStore, Depends(drawing_store)]
 Observations = Annotated[ObservationStore, Depends(observation_store)]
+
+
+def audio_store(session: DbSession) -> AudioStore:
+    return AudioStore(session)
+
+
+Audio = Annotated[AudioStore, Depends(audio_store)]
+
+
+def report_store(session: DbSession, user_id: CurrentUser) -> ReportStore:
+    return ReportStore(session, user_id)
+
+
+Reports = Annotated[ReportStore, Depends(report_store)]

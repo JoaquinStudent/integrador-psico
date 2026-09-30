@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { usePatient, getInitials, getAge, formatDate } from '../lib/patients'
-import { supabase, supabaseConfigured } from '../lib/supabase'
+import { api } from '../lib/apiClient'
+import type { Report } from '../types/api'
 
 type Tab = 'datos' | 'historial' | 'informes'
 
 interface PatientSession {
   id: string
-  test_type: string
+  test: { name: string; code: string }
   status: string
   started_at: string | null
   created_at: string
@@ -18,13 +19,25 @@ function usePatientSessions(patientId: string | undefined) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!supabaseConfigured || !patientId) { setLoading(false); return }
-    supabase.from('sessions').select('id, test_type, status, started_at, created_at')
-      .eq('patient_id', patientId).order('created_at', { ascending: false })
-      .then(({ data }) => { setSessions((data as PatientSession[]) ?? []); setLoading(false) })
+    if (!patientId) { setLoading(false); return }
+    api.get<PatientSession[]>(`/patients/${patientId}/sessions`)
+      .then(setSessions)
+      .catch(() => setSessions([]))
+      .finally(() => setLoading(false))
   }, [patientId])
 
   return { sessions, loading }
+}
+
+function usePatientReports(patientId: string | undefined) {
+  const [reports, setReports] = useState<Report[]>([])
+  const [loading, setLoading] = useState(true)
+  useEffect(() => {
+    if (!patientId) { setLoading(false); return }
+    api.get<Report[]>(`/patients/${patientId}/reports`)
+      .then(setReports).catch(() => setReports([])).finally(() => setLoading(false))
+  }, [patientId])
+  return { reports, loading }
 }
 
 // ponytail: localStorage for notes, add clinical_notes column to patients table when needed
@@ -49,8 +62,23 @@ export function PatientDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { patient, loading } = usePatient(id)
   const { sessions, loading: sessionsLoading } = usePatientSessions(id)
+  const { reports, loading: reportsLoading } = usePatientReports(id)
   const { notes, save: saveNotes } = usePatientNotes(id)
   const [tab, setTab] = useState<Tab>('historial')
+
+  async function toggleActive() {
+    if (!patient) return
+    const action = patient.is_active ? 'desactivar' : 'reactivar'
+    if (!window.confirm(`¿Deseas ${action} este paciente?`)) return
+    await api.patch(`/patients/${patient.id}/status`, { is_active: !patient.is_active })
+    window.location.reload()
+  }
+
+  async function anonymize() {
+    if (!patient || !window.confirm('Esta acción ocultará los datos identificables y no se puede deshacer. ¿Continuar?')) return
+    await api.post(`/patients/${patient.id}/anonymize`)
+    window.location.reload()
+  }
 
   if (loading) return <div className="page-loading">Cargando...</div>
   if (!patient) return (
@@ -69,7 +97,7 @@ export function PatientDetailPage() {
             <h1 className="profile-name">{patient.full_name}</h1>
             <p className="profile-meta">
               {getAge(patient.birth_date)} años &middot;{' '}
-              {patient.sex === 'F' ? 'Femenino' : 'Masculino'} &middot;{' '}
+              {patient.sex === 'F' ? 'Femenino' : patient.sex === 'U' ? 'No especificado' : 'Masculino'} &middot;{' '}
               DNI {patient.document_number}
             </p>
             <p className="text-secondary" style={{ fontSize: 13, marginTop: 4 }}>
@@ -77,9 +105,11 @@ export function PatientDetailPage() {
             </p>
           </div>
         </div>
-        <Link to="/sesiones/nueva" className="btn btn-primary">
-          + Iniciar nueva evaluación
-        </Link>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {patient.is_active && <Link to="/sesiones/nueva" className="btn btn-primary">+ Iniciar nueva evaluación</Link>}
+          <button className="btn btn-secondary" onClick={toggleActive}>{patient.is_active ? 'Desactivar' : 'Reactivar'}</button>
+          {patient.is_active && <button className="btn btn-secondary" onClick={anonymize}>Anonimizar</button>}
+        </div>
       </div>
 
       <div className="tabs">
@@ -113,7 +143,7 @@ export function PatientDetailPage() {
                 </div>
                 <div className="detail-field">
                   <span className="detail-label">Sexo</span>
-                  <span className="detail-value">{patient.sex === 'F' ? 'Femenino' : 'Masculino'}</span>
+                  <span className="detail-value">{patient.sex === 'F' ? 'Femenino' : patient.sex === 'U' ? 'No especificado' : 'Masculino'}</span>
                 </div>
                 <div className="detail-field">
                   <span className="detail-label">Fecha de registro</span>
@@ -144,7 +174,7 @@ export function PatientDetailPage() {
                 <tbody>
                   {sessions.map(s => (
                     <tr key={s.id}>
-                      <td>{s.test_type}</td>
+                      <td>{s.test.name}</td>
                       <td className="text-secondary">{formatDate(s.started_at ?? s.created_at)}</td>
                       <td>
                         <span className={`badge ${s.status === 'completed' ? 'badge-green' : 'badge-amber'}`}>
@@ -160,9 +190,11 @@ export function PatientDetailPage() {
           )}
 
           {tab === 'informes' && (
-            <div className="empty-state">
-              <p>No hay informes generados para este paciente.</p>
-            </div>
+            reportsLoading ? <div className="page-loading">Cargando informes...</div> : reports.length === 0 ?
+              <div className="empty-state"><p>No hay informes generados para este paciente.</p></div> :
+              <table className="data-table"><thead><tr><th>Estado</th><th>Fecha</th><th /></tr></thead><tbody>
+                {reports.map(report => <tr key={report.id}><td><span className={`badge ${report.status === 'validated' ? 'badge-green' : 'badge-amber'}`}>{report.status === 'validated' ? 'Validado' : 'Borrador'}</span></td><td>{new Date(report.updated_at ?? report.created_at ?? '').toLocaleDateString('es-PE')}</td><td><Link to={`/informes/${report.id}`} className="btn-link">Abrir</Link></td></tr>)}
+              </tbody></table>
           )}
         </div>
 

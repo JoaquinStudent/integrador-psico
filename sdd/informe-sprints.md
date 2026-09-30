@@ -87,21 +87,21 @@ navegador deje de tener credenciales de base de datos (DT-009 a DT-012).
 | S5-01 | Esquema normalizado a 2FN | DONE | 22 tablas, RLS, indices en todas las FK. **Sin aplicar aun** |
 | S5-02 | Catalogo del manual en base de datos | DONE | Generador verificable; falla si el catalogo es inconsistente |
 | S5-03 | Nucleo de dominio, puertos y servicios | DONE | 14 tests sin base de datos ni red; corrige E-002 |
-| S5-04 | Repositorios y propagacion de identidad | **EN PROCESO** | Motor configurado; requiere el esquema aplicado |
-| S5-05 | Endpoints de analisis, audio e informe | BACKLOG | |
-| S5-06 | Retirar el acceso directo a BD del navegador | BACKLOG | 34 llamadas directas restantes |
-| S5-07 | Migraciones versionadas y reversibles | BACKLOG | |
+| S5-04 | Repositorios y propagacion de identidad | **EN PROCESO** | Repositorios y stores conectados; falta validacion contra entorno real y cierre RLS |
+| S5-05 | Endpoints de analisis, audio e informe | **PARCIAL** | Análisis/indicadores/upload de audio implementados; Whisper/LLM quedan controlados sin claves |
+| S5-06 | Retirar el acceso directo a BD del navegador | **PARCIAL AVANZADO** | No quedan llamadas directas a tablas; falta Realtime privado y completar recursos binarios |
+| S5-07 | Migraciones versionadas y reversibles | **IMPLEMENTADO LOCALMENTE** | Alembic y revisión inicial no destructiva creados; falta ejecutar contra Supabase con backup |
 
-### Sprint 6 — Informe, PDF y cierre funcional · 13/10 – 26/10 · 0/6
+### Sprint 6 — Informe, PDF y cierre funcional · 13/10 – 26/10 · 6/6
 
 | ID | Tarea | Estado |
 |---|---|---|
-| S6-01 | Generar borrador de 9 secciones desde indicadores validados | BACKLOG |
-| S6-02 | Editor del informe con indice y marca de edicion profesional | BACKLOG |
-| S6-03 | Flujo borrador → validado con registro de responsable | BACKLOG |
-| S6-04 | Exportacion a PDF | BACKLOG |
-| S6-05 | Baja logica de paciente conservando historial | BACKLOG |
-| S6-06 | Panel de control contra datos consolidados | BACKLOG |
+| S6-01 | Generar borrador de 9 secciones desde indicadores validados | IMPLEMENTADO |
+| S6-02 | Editor del informe con indice y marca de edicion profesional | IMPLEMENTADO |
+| S6-03 | Flujo borrador → validado con registro de responsable | IMPLEMENTADO |
+| S6-04 | Exportacion a PDF | IMPLEMENTADO |
+| S6-05 | Baja logica de paciente conservando historial | IMPLEMENTADO |
+| S6-06 | Panel de control contra datos consolidados | IMPLEMENTADO |
 
 ---
 

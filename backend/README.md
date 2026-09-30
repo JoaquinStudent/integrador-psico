@@ -22,6 +22,19 @@ uv run pytest                    # dominio, sin BD ni red
 uv run ruff check src tests
 ```
 
+## Migraciones
+
+Alembic usa la conexion directa de Postgres (`5432`), no el transaction pooler (`6543`).
+Antes de migrar un entorno con datos, hacer un backup y revisar el estado con:
+
+```bash
+uv run alembic current
+uv run alembic upgrade head
+```
+
+La revision inicial no elimina tablas heredadas. Un downgrade o una limpieza destructiva requieren
+una revision separada y confirmacion explicita del operador.
+
 ## Estructura
 
 ```

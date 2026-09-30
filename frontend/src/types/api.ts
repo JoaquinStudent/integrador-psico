@@ -25,7 +25,7 @@ export type DetectionType = 'auto' | 'semi' | 'manual'
 export type Confidence = 'high' | 'medium' | 'low'
 export type Orientation = 'horizontal' | 'vertical'
 export type ReportStatus = 'draft' | 'validated'
-export type Sex = 'M' | 'F'
+export type Sex = 'M' | 'F' | 'U'
 
 // =============================================================================
 // Perfil y pacientes
@@ -227,13 +227,17 @@ export interface TranscriptSegment {
  * corrección de 2FN. Para validarlo se usa la ruta con el código, no un id.
  */
 export interface SessionIndicator {
-  indicator: CatalogIndicator
+  code: string
+  title?: string
+  interpretation?: string
+  category?: string
   status: IndicatorStatus
   source: IndicatorSource
   confidence: Confidence | null
   /** La medición y el umbral que dispararon la sugerencia. */
   evidence: string | null
   validated_at: string | null
+  id?: string
 }
 
 export interface AnalysisResult {
@@ -261,6 +265,9 @@ export interface Report {
   status: ReportStatus
   validated_at: string | null
   sections: ReportSection[]
+  created_at?: string | null
+  updated_at?: string | null
+  patient_name?: string | null
 }
 
 // =============================================================================

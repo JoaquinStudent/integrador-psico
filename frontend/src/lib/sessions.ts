@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
-import { supabase, supabaseConfigured } from './supabase'
+import { api, mensajeDeError } from './apiClient'
 import type { Session, Patient } from '../types/api'
 
 interface ConsentData {
   audio: boolean
   digital: boolean
   confidential: boolean
+  signatureDataUrl?: string
 }
 
 export async function createSession(
@@ -14,33 +15,22 @@ export async function createSession(
   consent: ConsentData,
   createdBy: string
 ): Promise<{ sessionId: string | null; error: Error | null }> {
-  if (!supabaseConfigured) return { sessionId: null, error: new Error('Supabase no configurado') }
-
-  const { data: session, error: sessionErr } = await supabase
-    .from('sessions')
-    .insert({
+  void createdBy
+  try {
+    const session = await api.post<Session>('/sessions', {
       patient_id: patientId,
-      test_type: testType,
-      created_by: createdBy,
-      started_at: new Date().toISOString(),
+      test_code: testType,
     })
-    .select()
-    .single()
-
-  if (sessionErr || !session) return { sessionId: null, error: sessionErr ?? new Error('No se pudo crear la sesión') }
-
-  await Promise.all([
-    supabase.from('consent_records').insert({
-      session_id: session.id,
+    await api.post(`/sessions/${session.id}/consent`, {
       audio_authorized: consent.audio,
       digital_authorized: consent.digital,
       confidential_ack: consent.confidential,
-    }),
-    supabase.from('drawing_data').insert({ session_id: session.id }),
-    supabase.from('observations').insert({ session_id: session.id }),
-  ])
-
-  return { sessionId: session.id, error: null }
+      signature_url: consent.signatureDataUrl ?? null,
+    })
+    return { sessionId: session.id, error: null }
+  } catch (error) {
+    return { sessionId: null, error: new Error(mensajeDeError(error)) }
+  }
 }
 
 export function useSession(sessionId: string | undefined) {
@@ -49,16 +39,14 @@ export function useSession(sessionId: string | undefined) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!supabaseConfigured || !sessionId) { setLoading(false); return }
-    supabase.from('sessions').select('*').eq('id', sessionId).single()
-      .then(async ({ data }) => {
+    if (!sessionId) { setLoading(false); return }
+    api.get<Session>(`/sessions/${sessionId}`)
+      .then(async data => {
         setSession(data)
-        if (data?.patient_id) {
-          const { data: p } = await supabase.from('patients').select('*').eq('id', data.patient_id).single()
-          setPatient(p)
-        }
-        setLoading(false)
+        if (data.patient_id) setPatient(await api.get<Patient>(`/patients/${data.patient_id}`))
       })
+      .catch(() => { setSession(null); setPatient(null) })
+      .finally(() => setLoading(false))
   }, [sessionId])
 
   return { session, patient, loading }
@@ -76,16 +64,6 @@ export interface FinalMetrics {
 }
 
 export async function finalizeSession(sessionId: string, metrics: FinalMetrics) {
-  if (!supabaseConfigured) return
-
-  await Promise.all([
-    supabase.from('stroke_metrics').upsert({
-      session_id: sessionId,
-      ...metrics,
-    }, { onConflict: 'session_id' }),
-    supabase.from('sessions').update({
-      status: 'completed' as const,
-      completed_at: new Date().toISOString(),
-    }).eq('id', sessionId),
-  ])
+  void metrics
+  await api.post(`/sessions/${sessionId}/finalize`)
 }
