@@ -86,3 +86,33 @@ async def test_claves_primarias_coinciden():
         if modeled != actual:
             errores.append(f"{name}: modelo {sorted(modeled)} vs base {sorted(actual)}")
     assert not errores, "PK distintas:\n  " + "\n  ".join(errores)
+
+
+@pytest.mark.asyncio
+async def test_toda_columna_con_default_lo_declara():
+    """Si la base pone un default y el modelo no lo declara, SQLAlchemy manda NULL
+    explicito y el insert falla con NotNullViolation.
+
+    Es el bug que rompio 22 tests de la API: `patients.registered_at` tenia default
+    en la base pero el modelo no lo sabia.
+    """
+    async with engine.connect() as conn:
+        rows = (
+            await conn.execute(
+                text(
+                    "select table_name, column_name from information_schema.columns "
+                    "where table_schema = 'public' and column_default is not null"
+                )
+            )
+        ).all()
+    con_default = {(t, c) for t, c in rows}
+
+    faltan = [
+        f"{name}.{col.name}"
+        for name, table in Base.metadata.tables.items()
+        for col in table.columns
+        if (name, col.name) in con_default and col.server_default is None
+    ]
+    assert not faltan, (
+        "columnas con default en la base que el modelo no declara: " + str(sorted(faltan))
+    )

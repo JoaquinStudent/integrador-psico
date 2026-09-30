@@ -29,6 +29,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.schema import FetchedValue
 
 
 class Base(DeclarativeBase):
@@ -66,8 +67,8 @@ class Test(Base):
     id: Mapped[uuid.UUID] = pk()
     code: Mapped[str] = mapped_column(Text, unique=True)
     name: Mapped[str] = mapped_column(Text)
-    is_available: Mapped[bool] = mapped_column(Boolean)
-    created_at: Mapped[dt.datetime] = mapped_column(TS)
+    is_available: Mapped[bool] = mapped_column(Boolean, server_default=FetchedValue())
+    created_at: Mapped[dt.datetime] = mapped_column(TS, server_default=FetchedValue())
 
 
 class IndicatorCategory(Base):
@@ -100,7 +101,7 @@ class IndicatorCatalogRow(Base):
     title: Mapped[str] = mapped_column(Text)
     interpretation: Mapped[str] = mapped_column(Text)
     detection_type: Mapped[str] = mapped_column(Text)
-    is_active: Mapped[bool] = mapped_column(Boolean)
+    is_active: Mapped[bool] = mapped_column(Boolean, server_default=FetchedValue())
 
 
 class QuickMarkCatalog(Base):
@@ -108,7 +109,7 @@ class QuickMarkCatalog(Base):
 
     code: Mapped[str] = mapped_column(Text, primary_key=True)
     label: Mapped[str] = mapped_column(Text)
-    display_order: Mapped[int] = mapped_column(SmallInteger)
+    display_order: Mapped[int] = mapped_column(SmallInteger, server_default=FetchedValue())
 
 
 class AttitudeCatalog(Base):
@@ -116,7 +117,7 @@ class AttitudeCatalog(Base):
 
     code: Mapped[str] = mapped_column(Text, primary_key=True)
     label: Mapped[str] = mapped_column(Text)
-    display_order: Mapped[int] = mapped_column(SmallInteger)
+    display_order: Mapped[int] = mapped_column(SmallInteger, server_default=FetchedValue())
 
 
 # =============================================================================
@@ -131,7 +132,7 @@ class Profile(Base):
     full_name: Mapped[str] = mapped_column(Text)
     license_number: Mapped[str | None] = mapped_column(Text)
     specialty: Mapped[str | None] = mapped_column(Text)
-    created_at: Mapped[dt.datetime] = mapped_column(TS)
+    created_at: Mapped[dt.datetime] = mapped_column(TS, server_default=FetchedValue())
 
 
 class Patient(Base):
@@ -142,9 +143,10 @@ class Patient(Base):
     document_number: Mapped[str] = mapped_column(Text)
     birth_date: Mapped[dt.date] = mapped_column(Date)
     sex: Mapped[str] = mapped_column(Text)
-    registered_at: Mapped[dt.datetime] = mapped_column(TS)
+    registered_at: Mapped[dt.datetime] = mapped_column(TS, server_default=FetchedValue())
     created_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("profiles.id"))
-    is_active: Mapped[bool] = mapped_column(Boolean)
+    is_active: Mapped[bool] = mapped_column(Boolean, server_default=FetchedValue())
+    anonymized_at: Mapped[dt.datetime | None] = mapped_column(TS)
 
 
 # =============================================================================
@@ -158,12 +160,12 @@ class Session(Base):
     id: Mapped[uuid.UUID] = pk()
     patient_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("patients.id"))
     test_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tests.id"))
-    status: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(Text, server_default=FetchedValue())
     reason: Mapped[str | None] = mapped_column(Text)
     created_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("profiles.id"))
     started_at: Mapped[dt.datetime | None] = mapped_column(TS)
     completed_at: Mapped[dt.datetime | None] = mapped_column(TS)
-    created_at: Mapped[dt.datetime] = mapped_column(TS)
+    created_at: Mapped[dt.datetime] = mapped_column(TS, server_default=FetchedValue())
 
 
 class ConsentRecord(Base):
@@ -171,11 +173,11 @@ class ConsentRecord(Base):
 
     id: Mapped[uuid.UUID] = pk()
     session_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("sessions.id"), unique=True)
-    audio_authorized: Mapped[bool] = mapped_column(Boolean)
-    digital_authorized: Mapped[bool] = mapped_column(Boolean)
-    confidential_ack: Mapped[bool] = mapped_column(Boolean)
+    audio_authorized: Mapped[bool] = mapped_column(Boolean, server_default=FetchedValue())
+    digital_authorized: Mapped[bool] = mapped_column(Boolean, server_default=FetchedValue())
+    confidential_ack: Mapped[bool] = mapped_column(Boolean, server_default=FetchedValue())
     signature_url: Mapped[str | None] = mapped_column(Text)
-    signed_at: Mapped[dt.datetime] = mapped_column(TS)
+    signed_at: Mapped[dt.datetime] = mapped_column(TS, server_default=FetchedValue())
 
 
 # =============================================================================
@@ -189,10 +191,10 @@ class Drawing(Base):
     id: Mapped[uuid.UUID] = pk()
     session_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("sessions.id"), unique=True)
     final_image_url: Mapped[str | None] = mapped_column(Text)
-    orientation: Mapped[str] = mapped_column(Text)
+    orientation: Mapped[str] = mapped_column(Text, server_default=FetchedValue())
     canvas_width: Mapped[int] = mapped_column(Integer)
     canvas_height: Mapped[int] = mapped_column(Integer)
-    created_at: Mapped[dt.datetime] = mapped_column(TS)
+    created_at: Mapped[dt.datetime] = mapped_column(TS, server_default=FetchedValue())
 
 
 class Stroke(Base):
@@ -204,7 +206,7 @@ class Stroke(Base):
     id: Mapped[uuid.UUID] = pk()
     drawing_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("drawings.id"))
     stroke_index: Mapped[int] = mapped_column(Integer)
-    tool: Mapped[str] = mapped_column(Text)
+    tool: Mapped[str] = mapped_column(Text, server_default=FetchedValue())
     started_at_ms: Mapped[int] = mapped_column(Integer)
     ended_at_ms: Mapped[int] = mapped_column(Integer)
     point_count: Mapped[int] = mapped_column(Integer)
@@ -223,13 +225,13 @@ class StrokeMetrics(Base):
     session_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("sessions.id"), unique=True)
     total_time_ms: Mapped[int | None] = mapped_column(Integer)
     latency_ms: Mapped[int | None] = mapped_column(Integer)
-    stroke_count: Mapped[int] = mapped_column(Integer)
+    stroke_count: Mapped[int] = mapped_column(Integer, server_default=FetchedValue())
     pressure_avg: Mapped[float | None] = mapped_column(REAL)
-    pause_count: Mapped[int] = mapped_column(Integer)
-    erase_count: Mapped[int] = mapped_column(Integer)
+    pause_count: Mapped[int] = mapped_column(Integer, server_default=FetchedValue())
+    erase_count: Mapped[int] = mapped_column(Integer, server_default=FetchedValue())
     area_pct: Mapped[float | None] = mapped_column(REAL)
     sequence_start: Mapped[str | None] = mapped_column(Text)
-    computed_at: Mapped[dt.datetime] = mapped_column(TS)
+    computed_at: Mapped[dt.datetime] = mapped_column(TS, server_default=FetchedValue())
 
 
 # =============================================================================
@@ -245,7 +247,7 @@ class AudioRecording(Base):
     storage_path: Mapped[str] = mapped_column(Text)
     duration_seconds: Mapped[int | None] = mapped_column(Integer)
     transcribed_at: Mapped[dt.datetime | None] = mapped_column(TS)
-    created_at: Mapped[dt.datetime] = mapped_column(TS)
+    created_at: Mapped[dt.datetime] = mapped_column(TS, server_default=FetchedValue())
 
 
 class TranscriptSegment(Base):
@@ -257,7 +259,7 @@ class TranscriptSegment(Base):
     start_ms: Mapped[int] = mapped_column(Integer)
     end_ms: Mapped[int] = mapped_column(Integer)
     text: Mapped[str] = mapped_column(Text)
-    segment_type: Mapped[str] = mapped_column(Text)
+    segment_type: Mapped[str] = mapped_column(Text, server_default=FetchedValue())
 
 
 # =============================================================================
@@ -273,9 +275,9 @@ class SessionObservation(Base):
     session_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("sessions.id"), primary_key=True
     )
-    additional_notes: Mapped[str] = mapped_column(Text)
-    created_at: Mapped[dt.datetime] = mapped_column(TS)
-    updated_at: Mapped[dt.datetime] = mapped_column(TS)
+    additional_notes: Mapped[str] = mapped_column(Text, server_default=FetchedValue())
+    created_at: Mapped[dt.datetime] = mapped_column(TS, server_default=FetchedValue())
+    updated_at: Mapped[dt.datetime] = mapped_column(TS, server_default=FetchedValue())
 
 
 class SessionQuickMark(Base):
@@ -285,7 +287,7 @@ class SessionQuickMark(Base):
     session_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("sessions.id"))
     mark_code: Mapped[str] = mapped_column(ForeignKey("quick_mark_catalog.code"))
     marked_at_ms: Mapped[int] = mapped_column(Integer)
-    created_at: Mapped[dt.datetime] = mapped_column(TS)
+    created_at: Mapped[dt.datetime] = mapped_column(TS, server_default=FetchedValue())
 
 
 class SessionAttitude(Base):
@@ -306,8 +308,8 @@ class Verbalization(Base):
     session_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("sessions.id"))
     offset_ms: Mapped[int | None] = mapped_column(Integer)
     text: Mapped[str] = mapped_column(Text)
-    source: Mapped[str] = mapped_column(Text)
-    created_at: Mapped[dt.datetime] = mapped_column(TS)
+    source: Mapped[str] = mapped_column(Text, server_default=FetchedValue())
+    created_at: Mapped[dt.datetime] = mapped_column(TS, server_default=FetchedValue())
 
 
 # =============================================================================
@@ -331,13 +333,13 @@ class SessionIndicator(Base):
     indicator_code: Mapped[str] = mapped_column(
         ForeignKey("indicator_catalog.code"), primary_key=True
     )
-    status: Mapped[str] = mapped_column(Text)
-    source: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(Text, server_default=FetchedValue())
+    source: Mapped[str] = mapped_column(Text, server_default=FetchedValue())
     confidence: Mapped[str | None] = mapped_column(Text)
     evidence: Mapped[str | None] = mapped_column(Text)
     validated_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("profiles.id"))
     validated_at: Mapped[dt.datetime | None] = mapped_column(TS)
-    created_at: Mapped[dt.datetime] = mapped_column(TS)
+    created_at: Mapped[dt.datetime] = mapped_column(TS, server_default=FetchedValue())
 
 
 # =============================================================================
@@ -350,12 +352,12 @@ class Report(Base):
 
     id: Mapped[uuid.UUID] = pk()
     session_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("sessions.id"), unique=True)
-    status: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(Text, server_default=FetchedValue())
     validated_at: Mapped[dt.datetime | None] = mapped_column(TS)
     validated_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("profiles.id"))
     pdf_url: Mapped[str | None] = mapped_column(Text)
-    created_at: Mapped[dt.datetime] = mapped_column(TS)
-    updated_at: Mapped[dt.datetime] = mapped_column(TS)
+    created_at: Mapped[dt.datetime] = mapped_column(TS, server_default=FetchedValue())
+    updated_at: Mapped[dt.datetime] = mapped_column(TS, server_default=FetchedValue())
 
 
 class ReportSection(Base):
@@ -365,7 +367,7 @@ class ReportSection(Base):
     report_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("reports.id"))
     section_number: Mapped[int] = mapped_column(SmallInteger)
     title: Mapped[str] = mapped_column(Text)
-    content: Mapped[str] = mapped_column(Text)
-    is_ai_generated: Mapped[bool] = mapped_column(Boolean)
-    edited_by_examiner: Mapped[bool] = mapped_column(Boolean)
-    updated_at: Mapped[dt.datetime] = mapped_column(TS)
+    content: Mapped[str] = mapped_column(Text, server_default=FetchedValue())
+    is_ai_generated: Mapped[bool] = mapped_column(Boolean, server_default=FetchedValue())
+    edited_by_examiner: Mapped[bool] = mapped_column(Boolean, server_default=FetchedValue())
+    updated_at: Mapped[dt.datetime] = mapped_column(TS, server_default=FetchedValue())

@@ -7,15 +7,21 @@ cliente no tiene que desempaquetar dos veces.
 
 from __future__ import annotations
 
+import logging
+
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy.exc import IntegrityError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from ....config.settings import get_settings
+from ...outbound.postgres.store import Conflict, NotFound
+from .routers import analysis, audio, catalogs, dashboard, patients, reports, sessions
 
 PROBLEM_JSON = "application/problem+json"
+logger = logging.getLogger("psicograma")
 
 
 def _problem(request: Request, status: int, title: str, detail: str) -> JSONResponse:
@@ -68,6 +74,46 @@ def create_app() -> FastAPI:
     @app.exception_handler(RequestValidationError)
     async def validation_error(request: Request, exc: RequestValidationError) -> JSONResponse:
         return _problem(request, 422, "Validacion fallida", str(exc.errors()))
+
+    # Los errores del store se traducen aqui, con manejadores registrados, y no
+    # con un decorador en cada handler: un decorador rompe la introspeccion de
+    # firmas de FastAPI, de la que dependen la inyeccion y el OpenAPI.
+    @app.exception_handler(NotFound)
+    async def no_encontrado(request: Request, exc: NotFound) -> JSONResponse:
+        # Cubre tanto "no existe" como "es de otro examinador". No se distinguen a
+        # proposito: decir "existe pero no es tuyo" ya filtra informacion a quien
+        # prueba identificadores ajenos.
+        return _problem(request, 404, "No encontrado", str(exc) or "El recurso no existe")
+
+    @app.exception_handler(Conflict)
+    async def conflicto(request: Request, exc: Conflict) -> JSONResponse:
+        return _problem(request, 409, "Conflicto de estado", str(exc))
+
+    @app.exception_handler(IntegrityError)
+    async def integridad(request: Request, exc: IntegrityError) -> JSONResponse:
+        """Ultima red: ninguna restriccion de la base debe salir como 500.
+
+        El detalle **no** se devuelve. Un mensaje de Postgres trae nombres de
+        constraint, de tabla y de columna, y eso le describe el esquema a quien
+        esta probando entradas. Se registra del lado del servidor y al cliente se
+        le dice lo justo.
+        """
+        logger.warning("violacion de integridad en %s: %s", request.url.path, exc.orig)
+        return _problem(
+            request,
+            409,
+            "Operacion rechazada",
+            "La operacion viola una restriccion de integridad de los datos.",
+        )
+
+    app.include_router(catalogs.router, prefix=settings.api_prefix)
+    app.include_router(patients.router, prefix=settings.api_prefix)
+    app.include_router(sessions.router, prefix=settings.api_prefix)
+    app.include_router(analysis.router, prefix=settings.api_prefix)
+    app.include_router(audio.router, prefix=settings.api_prefix)
+    app.include_router(dashboard.router, prefix=settings.api_prefix)
+    app.include_router(reports.router, prefix=settings.api_prefix)
+    app.include_router(reports.session_router, prefix=settings.api_prefix)
 
     @app.get("/health", tags=["salud"])
     async def health() -> dict[str, str]:

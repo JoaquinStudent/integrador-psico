@@ -15,6 +15,8 @@ import { ExaminerSessionPage } from './pages/ExaminerSessionPage'
 import { PlaceholderPage } from './pages/PlaceholderPage'
 import { AnalysisPage } from './pages/AnalysisPage'
 import { PostSessionPage } from './pages/PostSessionPage'
+import { SessionsPage } from './pages/SessionsPage'
+import { ReportsPage } from './pages/ReportsPage'
 
 export default function App() {
   return (
@@ -34,12 +36,13 @@ export default function App() {
             <Route path="pacientes" element={<PatientsPage />} />
             <Route path="pacientes/:id" element={<PatientDetailPage />} />
             <Route path="tests" element={<TestCatalogPage />} />
-            <Route path="sesiones" element={<PlaceholderPage />} />
+            <Route path="sesiones" element={<SessionsPage />} />
             <Route path="sesiones/nueva" element={<NewSessionPage />} />
             <Route path="sesion/:id" element={<ExaminerSessionPage />} />
             <Route path="sesion/:id/observaciones" element={<PostSessionPage />} />
             <Route path="sesion/:id/analisis" element={<AnalysisPage />} />
-            <Route path="informes" element={<PlaceholderPage />} />
+            <Route path="informes" element={<ReportsPage />} />
+            <Route path="informes/:id" element={<ReportsPage />} />
             <Route path="ajustes" element={<PlaceholderPage />} />
           </Route>
         </Routes>

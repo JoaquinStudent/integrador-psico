@@ -19,7 +19,7 @@ que nadie pidio.
 | 2 | Sprint 3 — Lienzo y sesion en vivo | 04/09 – 11/09 | 8 | 8 | Cerrado |
 | 2 | Sprint 4 — Analisis y motor de reglas | 16/09 – 22/09 | 5 | 5 | Cerrado |
 | 2 | Sprint 5 — Rearquitectura | 25/09 – 06/10 | 7 | 3 | **En proceso** |
-| 2 | Sprint 6 — Informe, PDF y cierre funcional | 13/10 – 26/10 | 6 | 0 | Backlog |
+| 2 | Sprint 6 — Informe, PDF y cierre funcional | 13/10 – 26/10 | 6 | 6 | Implementado |
 | 3 | Auditoria del sistema | 02/11 – 11/11 | 5 | 0 | Backlog |
 | **Total** | | | **47** | **30** | **64 %** |
 
@@ -106,15 +106,15 @@ a `SPEC-S6-01` a `SPEC-S6-04`; mantenerlos en ambos sitios violaba la regla R5. 
 
 | ID | Modulo | Historia | RF / RNF | Estado |
 |---|---|---|---|---|
-| `SPEC-S6-01` | Informe | Generar borrador de 9 secciones desde indicadores validados | RF-35, RNF-17, RNF-18, RNF-19 | **SPEC_READY** |
-| `SPEC-S6-02` | Editor | Editor del informe con indice y marca de edicion profesional | RF-36 | **SPEC_READY** |
-| `SPEC-S6-03` | Validacion | Flujo borrador → validado con registro de responsable | RF-37, RNF-20 | **SPEC_READY** |
-| `SPEC-S6-04` | Export | Exportacion del informe validado a PDF | RF-38 | **SPEC_READY** |
-| `SPEC-S6-05` | Pacientes | Baja logica de paciente y supresion de datos | RF-08, RNF-16 | **SPEC_READY** |
-| `SPEC-S6-06` | Panel | Panel de control con datos consolidados | RF-40 | **SPEC_READY** |
+| `SPEC-S6-01` | Informe | Generar borrador de 9 secciones desde indicadores validados | RF-35, RNF-17, RNF-18, RNF-19 | **IMPLEMENTED** |
+| `SPEC-S6-02` | Editor | Editor del informe con indice y marca de edicion profesional | RF-36 | **IMPLEMENTED** |
+| `SPEC-S6-03` | Validacion | Flujo borrador → validado con registro de responsable | RF-37, RNF-20 | **IMPLEMENTED** |
+| `SPEC-S6-04` | Export | Exportacion del informe validado a PDF | RF-38 | **IMPLEMENTED** |
+| `SPEC-S6-05` | Pacientes | Baja logica de paciente y supresion de datos | RF-08, RNF-16 | **IMPLEMENTED** |
+| `SPEC-S6-06` | Panel | Panel de control con datos consolidados | RF-40 | **IMPLEMENTED** |
 
-`SPEC-S6-05` destapo un hueco del esquema: no hay donde registrar que un paciente fue anonimizado.
-Requiere anadir `patients.anonymized_at` en una revision de Alembic.
+`SPEC-S6-05` se resolvio con la revision `0002_privacidad_pacientes`, que anade
+`patients.anonymized_at` y conserva el historial sin datos identificables.
 
 ---
 

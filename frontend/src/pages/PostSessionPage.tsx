@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+import { api } from '../lib/apiClient'
 import { transcribeAudio, type TranscriptionSegment } from '../lib/audioRecorder'
 
 export function PostSessionPage() {
@@ -9,7 +9,7 @@ export function PostSessionPage() {
   const [patient, setPatient] = useState<{ full_name: string } | null>(null)
   const [notes, setNotes] = useState('')
   const [transcription, setTranscription] = useState<TranscriptionSegment[]>([])
-  const [audioPath, setAudioPath] = useState<string | null>(null)
+  const [audioPath] = useState<string | null>(null)
   const [transcribing, setTranscribing] = useState(false)
   const [saving, setSaving] = useState(false)
 
@@ -19,21 +19,11 @@ export function PostSessionPage() {
   }, [sessionId])
 
   async function loadData() {
-    const sessionRes = await supabase.from('sessions').select('patient_id').eq('id', sessionId!).single()
-    const obsRes = await supabase.from('observations').select('additional_notes').eq('session_id', sessionId!).single()
-    const audioRes = await supabase.from('audio_recordings').select('storage_path, transcription_json').eq('session_id', sessionId!).limit(1).single()
-
-    if (sessionRes.data) {
-      const { data: patientData } = await supabase.from('patients').select('full_name').eq('id', sessionRes.data.patient_id).single()
-      if (patientData) setPatient(patientData)
-    }
-    if (obsRes.data?.additional_notes) setNotes(obsRes.data.additional_notes)
-    if (audioRes.data) {
-      setAudioPath(audioRes.data.storage_path)
-      if (audioRes.data.transcription_json && Array.isArray(audioRes.data.transcription_json)) {
-        setTranscription(audioRes.data.transcription_json as TranscriptionSegment[])
-      }
-    }
+    const session = await api.get<{ patient_id: string }>(`/sessions/${sessionId}`)
+    const patientData = await api.get<{ full_name: string }>(`/patients/${session.patient_id}`)
+    setPatient(patientData)
+    const observations = await api.get<{ additional_notes: string }>(`/sessions/${sessionId}/observations`)
+    setNotes(observations.additional_notes)
   }
 
   async function handleTranscribe() {
@@ -47,10 +37,10 @@ export function PostSessionPage() {
   async function handleSave() {
     if (!sessionId) return
     setSaving(true)
-    await supabase.from('observations').upsert({
-      session_id: sessionId,
+    await api.put(`/sessions/${sessionId}/observations`, {
       additional_notes: notes,
-    }, { onConflict: 'session_id' })
+      attitudes: [],
+    })
     setSaving(false)
   }
 

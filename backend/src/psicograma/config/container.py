@@ -26,6 +26,14 @@ from ..adapter.outbound.postgres.repositories import (
     PostgresIndicatorCatalog,
     PostgresSessionIndicatorRepository,
 )
+from ..adapter.outbound.postgres.store import (
+    AudioStore,
+    DrawingStore,
+    ObservationStore,
+    PatientStore,
+    ReportStore,
+    SessionStore,
+)
 from ..domain.ports import (
     DrawingRepository,
     IndicatorCatalog,
@@ -68,3 +76,44 @@ Catalog = Annotated[IndicatorCatalog, Depends(indicator_catalog)]
 SessionIndicators = Annotated[
     SessionIndicatorRepository, Depends(session_indicator_repository)
 ]
+
+
+# --- Acceso a datos sin puerto -------------------------------------------------
+# Estos no implementan ningun Protocol porque ningun servicio de dominio los
+# consume: es CRUD sin reglas de negocio. Ver el encabezado de `store.py`.
+
+
+def patient_store(session: DbSession, user_id: CurrentUser) -> PatientStore:
+    return PatientStore(session, user_id)
+
+
+def session_store(session: DbSession, user_id: CurrentUser) -> SessionStore:
+    return SessionStore(session, user_id)
+
+
+def drawing_store(session: DbSession) -> DrawingStore:
+    return DrawingStore(session)
+
+
+def observation_store(session: DbSession) -> ObservationStore:
+    return ObservationStore(session)
+
+
+Patients = Annotated[PatientStore, Depends(patient_store)]
+Sessions = Annotated[SessionStore, Depends(session_store)]
+DrawingWrites = Annotated[DrawingStore, Depends(drawing_store)]
+Observations = Annotated[ObservationStore, Depends(observation_store)]
+
+
+def audio_store(session: DbSession) -> AudioStore:
+    return AudioStore(session)
+
+
+Audio = Annotated[AudioStore, Depends(audio_store)]
+
+
+def report_store(session: DbSession, user_id: CurrentUser) -> ReportStore:
+    return ReportStore(session, user_id)
+
+
+Reports = Annotated[ReportStore, Depends(report_store)]

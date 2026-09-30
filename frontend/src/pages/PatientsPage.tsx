@@ -1,40 +1,13 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { usePatients, getInitials, getAge, formatDate } from '../lib/patients'
-import { useAuth } from '../lib/auth'
-import { supabase, supabaseConfigured } from '../lib/supabase'
 import type { Patient, PatientInput } from '../types/api'
 
 const FILTERS = ['Todos', 'Con evaluación pendiente', 'Menores de edad', 'Este mes'] as const
 const PAGE_SIZE = 10
 
-interface SessionCount { total: number; pending: number }
-
-function useSessionCounts() {
-  const [counts, setCounts] = useState<Map<string, SessionCount>>(new Map())
-
-  useEffect(() => {
-    if (!supabaseConfigured) return
-    supabase.from('sessions').select('patient_id, status').then(({ data }) => {
-      const map = new Map<string, SessionCount>()
-      for (const s of data ?? []) {
-        const pid = s.patient_id as string
-        const prev = map.get(pid) ?? { total: 0, pending: 0 }
-        prev.total++
-        if (s.status !== 'completed') prev.pending++
-        map.set(pid, prev)
-      }
-      setCounts(map)
-    })
-  }, [])
-
-  return counts
-}
-
 export function PatientsPage() {
   const { patients, loading, createPatient, updatePatient } = usePatients()
-  const { user } = useAuth()
-  const sessionCounts = useSessionCounts()
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<string>('Todos')
   const [page, setPage] = useState(0)
@@ -50,7 +23,7 @@ export function PatientsPage() {
       )
     }
     if (filter === 'Con evaluación pendiente') {
-      result = result.filter(p => (sessionCounts.get(p.id)?.pending ?? 0) > 0)
+      result = result.filter(p => p.has_pending_evaluation)
     } else if (filter === 'Menores de edad') {
       result = result.filter(p => getAge(p.birth_date) < 18)
     } else if (filter === 'Este mes') {
@@ -61,7 +34,7 @@ export function PatientsPage() {
       })
     }
     return result
-  }, [patients, search, filter, sessionCounts])
+  }, [patients, search, filter])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const pageData = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
@@ -114,13 +87,11 @@ export function PatientsPage() {
 
       {filtered.length === 0 ? (
         <div className="empty-state">
-          <p>{!supabaseConfigured
-            ? 'Configura Supabase para gestionar pacientes.'
-            : search || filter !== 'Todos'
+          <p>{search || filter !== 'Todos'
               ? 'No se encontraron pacientes con esos criterios.'
               : 'No hay pacientes registrados.'
           }</p>
-          {supabaseConfigured && !search && filter === 'Todos' && (
+          {!search && filter === 'Todos' && (
             <button className="btn btn-primary" onClick={() => setShowModal(true)}>
               + Registrar primer paciente
             </button>
@@ -154,9 +125,9 @@ export function PatientsPage() {
                   <td className="mono">{p.document_number}</td>
                   <td>{getAge(p.birth_date)} años</td>
                   <td className="text-secondary">{formatDate(p.registered_at)}</td>
-                  <td>{sessionCounts.get(p.id)?.total ?? 0}</td>
+                  <td>{p.evaluation_count ?? 0}</td>
                   <td>
-                    {(sessionCounts.get(p.id)?.pending ?? 0) > 0
+                    {p.has_pending_evaluation
                       ? <span className="badge badge-amber">Pendiente</span>
                       : <span className="badge badge-green">Al día</span>
                     }
@@ -184,7 +155,6 @@ export function PatientsPage() {
         <PatientModal
           onClose={() => setShowModal(false)}
           onSubmit={handleCreate}
-          userId={user?.id ?? ''}
         />
       )}
 
@@ -192,7 +162,6 @@ export function PatientsPage() {
         <PatientModal
           onClose={() => setEditPatient(null)}
           onSubmit={handleEdit}
-          userId={user?.id ?? ''}
           initial={editPatient}
         />
       )}
@@ -200,10 +169,9 @@ export function PatientsPage() {
   )
 }
 
-function PatientModal({ onClose, onSubmit, userId, initial }: {
+function PatientModal({ onClose, onSubmit, initial }: {
   onClose: () => void
   onSubmit: (data: PatientInput) => Promise<void>
-  userId: string
   initial?: Patient
 }) {
   const [form, setForm] = useState({
@@ -217,7 +185,7 @@ function PatientModal({ onClose, onSubmit, userId, initial }: {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmitting(true)
-    await onSubmit({ ...form, created_by: userId })
+    await onSubmit(form)
     setSubmitting(false)
   }
 

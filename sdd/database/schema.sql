@@ -153,10 +153,11 @@ CREATE TABLE patients (
     full_name       TEXT NOT NULL,
     document_number TEXT NOT NULL,
     birth_date      DATE NOT NULL,
-    sex             TEXT NOT NULL CHECK (sex IN ('M', 'F')),
+    sex             TEXT NOT NULL CHECK (sex IN ('M', 'F', 'U')),
     registered_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
     created_by      UUID NOT NULL REFERENCES profiles(id),
     is_active       BOOLEAN NOT NULL DEFAULT true,
+    anonymized_at   TIMESTAMPTZ,
 
     UNIQUE (created_by, document_number)
 );

@@ -13,6 +13,7 @@ from .model import (
     CatalogEntry,
     Drawing,
     DrawingMetrics,
+    IndicatorStatus,
     IndicatorSuggestion,
     ReportSection,
     ValidatedIndicator,
@@ -41,6 +42,16 @@ class SessionIndicatorRepository(Protocol):
         self, session_id: UUID, suggestions: list[IndicatorSuggestion]
     ) -> None: ...
     async def list_validated(self, session_id: UUID) -> list[ValidatedIndicator]: ...
+
+    async def list_for_session(self, session_id: UUID) -> list[dict]: ...
+
+    async def set_status(
+        self, session_id: UUID, code: str, status: IndicatorStatus, user_id: UUID
+    ) -> dict: ...
+
+    async def add_manual(
+        self, session_id: UUID, codes: list[str], user_id: UUID
+    ) -> list[dict]: ...
 
 
 @runtime_checkable

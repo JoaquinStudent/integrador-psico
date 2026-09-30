@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { supabase, supabaseConfigured } from './supabase'
+import { api, mensajeDeError } from './apiClient'
 import type { Patient, PatientInput } from '../types/api'
 
 export function usePatients() {
@@ -7,23 +7,30 @@ export function usePatients() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!supabaseConfigured) { setLoading(false); return }
-    supabase.from('patients').select('*').order('registered_at', { ascending: false })
-      .then(({ data }) => { setPatients(data ?? []); setLoading(false) })
+    api.get<{ items: Patient[]; total: number; page: number; page_size: number }>('/patients?page_size=100')
+      .then(data => setPatients(data.items))
+      .catch(() => setPatients([]))
+      .finally(() => setLoading(false))
   }, [])
 
   const createPatient = async (p: PatientInput) => {
-    if (!supabaseConfigured) return { data: null, error: new Error('Supabase no configurado') }
-    const { data, error } = await supabase.from('patients').insert(p).select().single()
-    if (data) setPatients(prev => [data, ...prev])
-    return { data, error }
+    try {
+      const data = await api.post<Patient>('/patients', p)
+      setPatients(prev => [data, ...prev])
+      return { data, error: null }
+    } catch (error) {
+      return { data: null, error: new Error(mensajeDeError(error)) }
+    }
   }
 
   const updatePatient = async (id: string, updates: Partial<PatientInput>) => {
-    if (!supabaseConfigured) return { data: null, error: new Error('Supabase no configurado') }
-    const { data, error } = await supabase.from('patients').update(updates).eq('id', id).select().single()
-    if (data) setPatients(prev => prev.map(p => p.id === id ? data : p))
-    return { data, error }
+    try {
+      const data = await api.patch<Patient>(`/patients/${id}`, updates)
+      setPatients(prev => prev.map(p => p.id === id ? data : p))
+      return { data, error: null }
+    } catch (error) {
+      return { data: null, error: new Error(mensajeDeError(error)) }
+    }
   }
 
   return { patients, loading, createPatient, updatePatient }
@@ -34,9 +41,11 @@ export function usePatient(id: string | undefined) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!supabaseConfigured || !id) { setLoading(false); return }
-    supabase.from('patients').select('*').eq('id', id).single()
-      .then(({ data }) => { setPatient(data); setLoading(false) })
+    if (!id) { setLoading(false); return }
+    api.get<Patient>(`/patients/${id}`)
+      .then(setPatient)
+      .catch(() => setPatient(null))
+      .finally(() => setLoading(false))
   }, [id])
 
   return { patient, loading }

@@ -22,7 +22,7 @@ class Settings(BaseSettings):
         description="Legacy JWT secret del proyecto, para verificar los tokens HS256"
     )
     supabase_service_key: str = Field(default="", description="Solo para Storage")
-    storage_bucket: str = "psicograma"
+    storage_bucket: str = "session-files"
 
     # --- Proveedores externos ---
     openai_api_key: str = ""       # Whisper
