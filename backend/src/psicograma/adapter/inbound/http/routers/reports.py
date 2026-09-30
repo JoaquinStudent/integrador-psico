@@ -7,6 +7,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Query, Response, status
 
+from .....adapter.outbound.llm.drafter import build_drafter, draft_all
 from .....config.container import Reports
 from .....domain.services.compose_report import compose_report
 from ..schemas import ReportOut, ReportSectionOut, ReportSectionPatch
@@ -53,8 +54,10 @@ async def list_reports(
 async def generate_report(session_id: UUID, reports: Reports) -> ReportOut:
     context = await reports.context_for_session(session_id)
     composed = compose_report(context)
-    # La IA es opcional. Las secciones deterministas se persisten siempre y las
-    # que requieren redacción quedan vacías para revisión del profesional.
+
+    # Las seis secciones deterministas se persisten siempre. Se marcan con
+    # is_ai_generated=False porque salen de plantilla, y el editor usa esa marca para
+    # decirle al profesional qué tiene que revisar con más atención.
     sections = [
         {
             "section_number": section.section_number,
@@ -65,16 +68,32 @@ async def generate_report(session_id: UUID, reports: Reports) -> ReportOut:
         }
         for section in composed.ready
     ]
+
+    # Las tres que piden redacción van al modelo, en paralelo. Si el proveedor no
+    # responde, esas secciones quedan vacías y el informe se entrega igual: el
+    # análisis objetivo y las plantillas no dependen de la IA.
+    drafter = build_drafter()
+    redactadas, fallidas = await draft_all(
+        drafter,
+        [(r.section_number, r.title, r.facts) for r in composed.to_draft],
+    )
+
     sections.extend({
         "section_number": request.section_number,
         "title": request.title,
-        "content": "",
-        "is_ai_generated": False,
+        # `fallback` es la version por plantilla: la seccion 5 sale con las
+        # mediciones listadas si el modelo no contesta, en vez de salir vacia.
+        "content": redactadas.get(request.section_number) or request.fallback,
+        "is_ai_generated": request.section_number in redactadas,
         "edited_by_examiner": False,
     } for request in composed.to_draft)
+
     report, rows = await reports.create(session_id, sections)
     _, patient, _ = await reports.get(report.id)
-    return _out(report, patient, rows)
+    out = _out(report, patient, rows)
+    out.llm_available = drafter.disponible and not fallidas
+    out.pending_sections = sorted(fallidas)
+    return out
 
 
 @session_router.get("/{session_id}/report", response_model=ReportOut)

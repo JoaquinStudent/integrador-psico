@@ -342,3 +342,117 @@ async def test_el_resumen_del_panel_filtra_sin_depender_de_rls(
     assert datos["sessions_this_week"] == 0
     assert datos["active_patients"] == 0
     assert datos["recent_sessions"] == []
+
+
+# =============================================================================
+# Generacion del informe — el cableado router -> redactor -> store
+# =============================================================================
+
+
+@pytest.mark.asyncio
+async def test_generar_informe_deja_las_nueve_secciones(
+    db_a, sesion_con_dibujo, perfiles_creados, monkeypatch
+):
+    """Recorre `generate_report` de punta a punta contra la base real, con el
+    redactor sustituido.
+
+    Sin este test el unico sitio donde se descubre un error de cableado del router
+    —un import que falta, un campo de mas en el dict de secciones— es el navegador
+    del examinador. El redactor va monkeypatcheado porque la suite no debe salir a
+    la red: que OpenRouter contesta es otro problema, y no uno que un test de
+    integracion pueda garantizar.
+    """
+    from psicograma.adapter.inbound.http.routers import reports as router_mod
+    from psicograma.adapter.outbound.postgres.store import ReportStore
+
+    a, _ = perfiles_creados
+    sid = sesion_con_dibujo["session_id"]
+
+    # Sin metricas persistidas la 5 no pide redaccion: `compose_report` la deja vacia
+    # antes que inventar un "0% de la hoja". Solo POST /analyze las escribe, asi que
+    # aqui se insertan a mano.
+    await db_a.execute(
+        text(
+            "insert into stroke_metrics (session_id, total_time_ms, latency_ms, "
+            "stroke_count, pressure_avg, pause_count, erase_count, area_pct) "
+            "values (:s, 372000, 4200, 142, 0.62, 4, 2, 0.59)"
+        ),
+        {"s": sid},
+    )
+
+    # Uno de categoria A (va a la 7) y uno de B (va a la 8): sin un validado de cada
+    # categoria la seccion correspondiente sale vacia a proposito.
+    repo = PostgresSessionIndicatorRepository(db_a)
+    await repo.upsert_suggestions(sid, [
+        IndicatorSuggestion(code="DIM-01", confidence=Confidence.HIGH, evidence="e1"),
+        IndicatorSuggestion(code="CUE-01", confidence=Confidence.HIGH, evidence="e2"),
+    ])
+    await db_a.execute(
+        text(
+            "update session_indicators set status='validated', validated_by=:by, "
+            "validated_at=now() where session_id=:s"
+        ),
+        {"by": a.id, "s": sid},
+    )
+
+    class Redactor:
+        disponible = True
+
+        async def draft_section(self, title: str, facts: str) -> str:
+            return f"prosa de prueba para {title}"
+
+    monkeypatch.setattr(router_mod, "build_drafter", Redactor)
+
+    out = await router_mod.generate_report(sid, ReportStore(db_a, a.id))
+
+    assert [s.section_number for s in out.sections] == list(range(1, 10))
+    assert out.pending_sections == []
+    assert out.llm_available is True
+
+    # La 9 vacia y la 5/7/8 con contenido: es el reparto que define el sprint.
+    por_numero = {s.section_number: s for s in out.sections}
+    assert por_numero[9].content == ""
+    for n in (5, 7, 8):
+        assert por_numero[n].content, f"la seccion {n} quedo vacia"
+        assert por_numero[n].is_ai_generated is True
+
+
+@pytest.mark.asyncio
+async def test_si_el_redactor_cae_la_cinco_sale_con_la_plantilla(
+    db_a, sesion_con_dibujo, perfiles_creados, monkeypatch
+):
+    """La garantia del sprint: el informe se entrega completo sin el modelo.
+
+    La 5 tiene version por plantilla —las mediciones listadas— y la 7 y la 8 no,
+    porque son interpretacion: sin redaccion no hay nada honesto que poner ahi.
+    """
+    from psicograma.adapter.inbound.http.routers import reports as router_mod
+    from psicograma.adapter.outbound.llm.drafter import LlmNoDisponible
+    from psicograma.adapter.outbound.postgres.store import ReportStore
+
+    a, _ = perfiles_creados
+    sid = sesion_con_dibujo["session_id"]
+    await db_a.execute(
+        text(
+            "insert into stroke_metrics (session_id, total_time_ms, latency_ms, "
+            "stroke_count, pressure_avg, pause_count, erase_count, area_pct) "
+            "values (:s, 372000, 4200, 142, 0.62, 4, 2, 0.59)"
+        ),
+        {"s": sid},
+    )
+
+    class Caido:
+        disponible = False
+
+        async def draft_section(self, title: str, facts: str) -> str:
+            raise LlmNoDisponible("sin clave")
+
+    monkeypatch.setattr(router_mod, "build_drafter", Caido)
+
+    out = await router_mod.generate_report(sid, ReportStore(db_a, a.id))
+
+    por_numero = {s.section_number: s for s in out.sections}
+    assert out.llm_available is False
+    assert out.pending_sections == [5]
+    assert "142" in por_numero[5].content
+    assert por_numero[5].is_ai_generated is False

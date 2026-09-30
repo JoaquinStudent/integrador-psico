@@ -239,8 +239,8 @@ def compose_report(ctx: ReportContext) -> ComposedReport:
     def lista(numero: int, contenido: str) -> None:
         listas.append(ReportSection(numero, _titulo(numero), contenido))
 
-    def pedir(numero: int, hechos: str) -> None:
-        pedidos.append(DraftRequest(numero, _titulo(numero), hechos))
+    def pedir(numero: int, hechos: str, respaldo: str = "") -> None:
+        pedidos.append(DraftRequest(numero, _titulo(numero), hechos, respaldo))
 
     # 1 a 4: plantillas sobre datos estructurados.
     lista(1, _s1_identificacion(ctx))
@@ -251,7 +251,7 @@ def compose_report(ctx: ReportContext) -> ComposedReport:
     # 5: se pide redaccion solo si hay mediciones. Sin metricas la seccion queda
     # vacia, no con ceros: un "0% de la hoja" seria un dato falso.
     if ctx.metrics is not None:
-        pedir(5, _hechos_metricas(ctx.metrics))
+        pedir(5, _hechos_metricas(ctx.metrics), _s5_plantilla(ctx.metrics))
     else:
         lista(5, SIN_DATO)
 

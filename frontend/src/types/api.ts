@@ -268,6 +268,10 @@ export interface Report {
   created_at?: string | null
   updated_at?: string | null
   patient_name?: string | null
+  // Solo vienen en la respuesta de generacion: si el redactor no contesto, estas son
+  // las secciones que el profesional tiene que escribir a mano.
+  llm_available?: boolean
+  pending_sections?: number[]
 }
 
 // =============================================================================

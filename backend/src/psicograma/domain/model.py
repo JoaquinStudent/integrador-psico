@@ -259,6 +259,10 @@ class DraftRequest:
     section_number: int
     title: str
     facts: str
+    fallback: str = ""
+    """Texto determinista a usar si el modelo no responde. Vacio cuando no hay
+    version por plantilla posible: la 7 y la 8 son interpretacion, y sin redaccion
+    no hay nada honesto que poner."""
 
 
 @dataclass(frozen=True, slots=True)

@@ -283,6 +283,15 @@ Lo que evita la repeticion: dos tests que corren con una conexion **que salta RL
 
 ---
 
+### DT-030: El adaptador de OpenRouter, y por que la seccion 5 tiene respaldo
+**Fecha:** 2026-09-29
+**Contexto:** Las secciones 5, 7 y 8 del informe salian vacias (`0 car`). `compose_report` emitia los tres `DraftRequest` correctamente, pero nadie los resolvia: no existia adaptador de LLM.
+**Decision:** `adapter/outbound/llm/` con `prompts.py` (el limite clinico) y `drafter.py` (httpx directo contra OpenRouter, sin SDK). `draft_all` las pide **en paralelo** y aisla fallos: una seccion que falla no tumba las otras dos ni el informe.
+**Impacto:** El router pone `llm_available` y `pending_sections` en la respuesta de generacion, y el frontend avisa cuales quedaron en blanco. Ademas se agrego `DraftRequest.fallback`: la **5 sale con las mediciones listadas** si el modelo no contesta, porque son datos objetivos y no interpretacion. La 7 y la 8 **no llevan respaldo a proposito** — sin redaccion no hay nada honesto que poner en una seccion interpretativa, y un parrafo de relleno en un informe firmado es peor que un blanco.
+**Verificado:** live contra OpenRouter (las tres secciones con prosa en espanol, citando las secciones del manual) y contra la base real con el redactor sustituido. 109 tests en verde.
+
+---
+
 ## Lecciones Aprendidas
 
 | ID | Sprint | Leccion |
@@ -303,6 +312,7 @@ Lo que evita la repeticion: dos tests que corren con una conexion **que salta RL
 | L-014 | 5 | `pytest-asyncio` con fixtures de scope `session` y loop por funcion **cuelga** asyncpg, que ata sus conexiones al loop que las creo. Se resuelve con `asyncio_default_fixture_loop_scope = "session"` |
 | L-015 | 5 | Borrar datos en el teardown de un fixture por test bloquea contra la transaccion del examinador dueno, que todavia tiene lock sobre la fila. La limpieza va al cierre de la sesion de tests. Sintoma engañoso: los tests que **no** ven la fila (por RLS) pasan, y solo cuelga el que si la lee |
 | L-016 | 5 | Postgres cancela por `statement_timeout` en vez de esperar para siempre: un deadlock se ve como lentitud, no como cuelgue. La corrida tardaba 11m35s y bajo a 1m22s al corregirlo |
+| L-017 | 6 | **Una variable exportada en `~/.zshrc` le gana al `.env`**: pydantic-settings da prioridad al entorno real. Una `OPENROUTER_API_KEY` vieja exportada en el perfil hacia que el adaptador recibiera 401 mientras `curl` con la clave del `.env` daba 200. Sintoma: la clave "esta bien" y el proveedor la rechaza. Se descarta con `env -u OPENROUTER_API_KEY` |
 
 ---
 
