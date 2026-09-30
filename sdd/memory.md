@@ -301,6 +301,16 @@ Lo que evita la repeticion: dos tests que corren con una conexion **que salta RL
 
 ---
 
+### DT-032: La cadena del audio, y los dos relojes que no coincidian
+**Fecha:** 2026-09-30
+**Contexto:** El audio se grababa y se subia, pero ahi terminaba: `POST /recordings/{id}/transcribe` era un `raise HTTPException(502)` fijo, `transcript_segments` solo se leia y `verbalizations` tambien —asi que el bloque "Verbalizaciones del paciente" de la seccion 6 nunca aparecia aunque `compose_report` ya lo tenia escrito—.
+**El hallazgo:** para cruzar la transcripcion con las marcas rapidas hacen falta ambas en el mismo reloj, y no lo estaban. Una marca es un offset desde `sessions.started_at`; un segmento de audio, desde el inicio de la **grabacion**, que arranca con el primer trazo. La diferencia es la latencia de inicio, que aqui es un indicador medido (TMP-01) y puede ser de minutos. `audio_recordings` no guardaba ese offset, y derivarlo de `created_at - duration_seconds` no sirve porque `created_at` es cuando termino de **subirse**.
+**Decision:** migracion 002 agrega `started_at_ms`, y el navegador manda tambien `duration_seconds`, que venia siempre NULL porque el endpoint pasaba `None`. Con eso `tiempo_de_sesion(segmento) = recording.started_at_ms + segmento.start_ms`.
+**Sobre interpretar:** Whisper **no separa hablantes**, asi que nada pasa al informe solo. El examinador promueve el segmento que fue del paciente, y elegirlo es atribuirlo. Volcar la transcripcion completa firmaria como dicho por el paciente lo que dijo el profesional. El puerto `Transcriber` ya existia con la forma exacta (`(start_ms, end_ms, text)`).
+**Verificado:** el adaptador contra la API real de Whisper con audio de verdad (1 segmento, contrato del puerto OK); `download()` contra una grabacion real de 4,3 MB, con su firma WebM comprobada; y contra la base, que reintentar no duplica y que el offset alinea el audio con la marca. 119 tests en verde.
+
+---
+
 ## Lecciones Aprendidas
 
 | ID | Sprint | Leccion |
@@ -327,6 +337,8 @@ Lo que evita la repeticion: dos tests que corren con una conexion **que salta RL
 | L-020 | 6 | **Un fallo de CORS se ve como "la app no hace nada", no como un error de red.** Si el 5173 esta ocupado Vite arranca en 5174 sin mas aviso que una linea en consola, ese origen no esta en `CORS_ORIGINS` y el navegador bloquea **todas** las llamadas: la interfaz carga y ningun boton funciona. Se listan 5173-5175 en el `.env`. Y `CORS_ORIGINS` se lee una sola vez al arrancar: tocar el `.env` no basta, ni con `--reload`, que solo vigila los `.py` |
 | L-021 | 6 | **Una ruta de "en vivo" necesita comprobar el estado, no solo el id.** Basta que un listado enlace por id para que una sesion cerrada abra la maquinaria en vivo: reloj corriendo, canal suscrito y grabacion arrancando. El guard va en la pantalla, no en los enlaces —hay dos sitios que enlazan y habria un tercero manana |
 | L-022 | 6 | **`formatTime` era mm:ss sin horas.** Una sesion que quedo abierta de un dia para otro mostraba "790:23" en vez de "13:10:23". Las horas solo se muestran si las hay, para que una toma de 20 min siga leyendose "20:00" |
+| L-023 | 6 | **El bucket `session-files` limita `allowed_mime_types` a image/png, audio/webm y application/pdf.** Subir cualquier otro formato da 415 `invalid_mime_type`, y el endpoint lo traducia a un generico "No se pudo guardar el audio" que no dice nada. Por eso `.webm` en la ruta no es una suposicion sino lo unico que Storage acepta — y por eso no se puede probar la cadena completa con un audio sintetico en otro formato |
+| L-024 | 6 | **Dos offsets en la misma unidad no estan en el mismo reloj.** Marcas y transcripcion son ambas "milisegundos desde el inicio", pero de inicios distintos. Un cruce asi se ve bien y esta mal, que en un informe clinico es peor que no tenerlo: nadie revisa un numero que parece correcto |
 
 ---
 

@@ -213,6 +213,13 @@ export interface Verbalization {
 export interface Recording {
   id: string
   duration_seconds: number | null
+  /**
+   * En qué momento de la sesión empezó a grabar, mismo reloj que `marked_at_ms`.
+   * Es lo que permite poner la transcripción y las marcas en un solo eje: la
+   * grabación arranca con el primer trazo, no con la sesión. `null` en las
+   * grabaciones anteriores a la migración 002 — esas no se pueden alinear.
+   */
+  started_at_ms: number | null
   transcribed_at: string | null
 }
 

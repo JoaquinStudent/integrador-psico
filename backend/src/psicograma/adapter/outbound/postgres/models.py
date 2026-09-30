@@ -246,6 +246,12 @@ class AudioRecording(Base):
     session_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("sessions.id"))
     storage_path: Mapped[str] = mapped_column(Text)
     duration_seconds: Mapped[int | None] = mapped_column(Integer)
+    started_at_ms: Mapped[int | None] = mapped_column(Integer)
+    """Offset desde `sessions.started_at`, el mismo reloj que `marked_at_ms`.
+
+    Nullable porque las grabaciones anteriores a la migracion 002 no lo tienen, y
+    un valor inventado aqui desplazaria toda la transcripcion.
+    """
     transcribed_at: Mapped[dt.datetime | None] = mapped_column(TS)
     created_at: Mapped[dt.datetime] = mapped_column(TS, server_default=FetchedValue())
 

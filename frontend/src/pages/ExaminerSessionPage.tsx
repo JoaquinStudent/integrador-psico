@@ -47,6 +47,10 @@ export function ExaminerSessionPage() {
   const [tabletViva, setTabletViva] = useState(false)
   const ultimaSenalRef = useRef(0)
   const [elapsedMs, setElapsedMs] = useState(0)
+  // Espejo de `elapsedMs` para que `arrancarGrabacion` no dependa de un valor que
+  // cambia cada segundo: si dependiera, el efecto del arranque automático se volvería
+  // a evaluar en cada tick.
+  const elapsedRef = useRef(0)
   const [marcaActiva, setMarcaActiva] = useState<string | null>(null)
   const [audio, setAudio] = useState<AudioRecorderState>({ status: 'idle', durationMs: 0 })
   const [audioPermitido, setAudioPermitido] = useState(true)
@@ -75,7 +79,11 @@ export function ExaminerSessionPage() {
   useEffect(() => {
     if (!inicio || !enVivo) return
     const desde = new Date(inicio).getTime()
-    const tick = () => setElapsedMs(Date.now() - desde)
+    const tick = () => {
+      const transcurrido = Date.now() - desde
+      elapsedRef.current = transcurrido
+      setElapsedMs(transcurrido)
+    }
     tick()
     const iv = setInterval(tick, 1000)
     return () => clearInterval(iv)
@@ -119,7 +127,10 @@ export function ExaminerSessionPage() {
 
   const arrancarGrabacion = useCallback(() => {
     if (!sessionId || !audioPermitido) return
-    const rec = createAudioRecorder(sessionId, setAudio)
+    // `elapsedMs` es el momento de la sesión en que arranca esta grabación. Se manda
+    // con el archivo porque es lo único que permite cruzar después la transcripción
+    // con las marcas rápidas: ambas quedan en el mismo reloj.
+    const rec = createAudioRecorder(sessionId, setAudio, elapsedRef.current)
     recorderRef.current = rec
     rec.start()
   }, [sessionId, audioPermitido])

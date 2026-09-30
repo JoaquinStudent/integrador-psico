@@ -535,6 +535,69 @@ class ObservationStore:
         )
         await self._s.flush()
 
+    # --- Verbalizaciones -----------------------------------------------------
+    #
+    # Una verbalizacion es una frase del paciente que va al informe. La tabla se leia
+    # desde `context_for_session` pero nadie la escribia, asi que el bloque
+    # "Verbalizaciones del paciente" de la seccion 6 nunca aparecia.
+    #
+    # `source='transcription'` cuando sale de un segmento de audio que el examinador
+    # eligio, `'examiner'` cuando la escribio a mano. La distincion importa: la primera
+    # es textual del paciente, la segunda es la reconstruccion del profesional.
+
+    async def list_verbalizations(self, session_id: UUID) -> list[m.Verbalization]:
+        """En el orden en que se dijeron, no en el que se fueron eligiendo."""
+        rows = (
+            await self._s.execute(
+                select(m.Verbalization)
+                .where(m.Verbalization.session_id == session_id)
+                .order_by(
+                    m.Verbalization.offset_ms.nulls_last(),
+                    m.Verbalization.created_at,
+                )
+            )
+        ).scalars().all()
+        return list(rows)
+
+    async def add_verbalization(
+        self, session_id: UUID, text: str, offset_ms: int | None, source: str
+    ) -> m.Verbalization:
+        limpio = text.strip()
+        if not limpio:
+            raise Conflict("la verbalizacion no puede estar vacia")
+
+        # Sin duplicados: el boton "+ al informe" se puede pulsar dos veces, y la misma
+        # frase repetida en la seccion 6 parece un dato nuevo cuando no lo es.
+        ya = await self._s.scalar(
+            select(m.Verbalization.id).where(
+                m.Verbalization.session_id == session_id,
+                m.Verbalization.text == limpio,
+                m.Verbalization.offset_ms == offset_ms,
+            )
+        )
+        if ya is not None:
+            return await self._s.get(m.Verbalization, ya)  # type: ignore[return-value]
+
+        row = m.Verbalization(
+            session_id=session_id, text=limpio, offset_ms=offset_ms, source=source
+        )
+        self._s.add(row)
+        await self._s.flush()
+        return row
+
+    async def delete_verbalization(self, session_id: UUID, verbalization_id: UUID) -> None:
+        # El `session_id` va en el WHERE aunque el id ya sea unico: es el filtro de
+        # aplicacion que evita borrar una fila de otra sesion si llega un id ajeno.
+        # RLS tapa el caso entre examinadores, pero esta es la primera capa (DT-029).
+        resultado = await self._s.execute(
+            delete(m.Verbalization).where(
+                m.Verbalization.id == verbalization_id,
+                m.Verbalization.session_id == session_id,
+            )
+        )
+        if resultado.rowcount == 0:
+            raise NotFound
+
 
 class AudioStore:
     def __init__(self, session: AsyncSession) -> None:
@@ -557,12 +620,17 @@ class AudioStore:
         return list(rows)
 
     async def create(
-        self, session_id: UUID, path: str, duration_seconds: int | None
+        self,
+        session_id: UUID,
+        path: str,
+        duration_seconds: int | None,
+        started_at_ms: int | None = None,
     ) -> m.AudioRecording:
         row = m.AudioRecording(
             session_id=session_id,
             storage_path=path,
             duration_seconds=duration_seconds,
+            started_at_ms=started_at_ms,
         )
         self._s.add(row)
         await self._s.flush()
@@ -584,6 +652,36 @@ class AudioStore:
                 )
             ).scalars().all()
         )
+
+    async def save_segments(
+        self, recording_id: UUID, segmentos: list[tuple[int, int, str]]
+    ) -> list[m.TranscriptSegment]:
+        """Reemplaza la transcripcion de una grabacion y la marca como transcrita.
+
+        **Borra los segmentos anteriores antes de insertar.** `transcript_segments`
+        tiene `UNIQUE (recording_id, segment_index)`, asi que reintentar sin borrar
+        daria un conflicto; y reintentar tiene que ser seguro, porque un fallo del
+        proveedor a mitad de camino es normal y el examinador va a volver a pulsar.
+        """
+        await self._s.execute(
+            delete(m.TranscriptSegment).where(m.TranscriptSegment.recording_id == recording_id)
+        )
+        filas = [
+            m.TranscriptSegment(
+                recording_id=recording_id,
+                segment_index=i,
+                start_ms=inicio,
+                end_ms=fin,
+                text=texto,
+            )
+            for i, (inicio, fin, texto) in enumerate(segmentos)
+        ]
+        self._s.add_all(filas)
+
+        grabacion = await self.get(recording_id)
+        grabacion.transcribed_at = dt.datetime.now(dt.UTC)
+        await self._s.flush()
+        return filas
 
 
 # =============================================================================
@@ -669,8 +767,10 @@ class ReportStore:
             .order_by(m.AttitudeCatalog.display_order)
         )).scalars().all())
         verbalizations = list((await self._s.execute(
+            # Por offset y no por `created_at`: en el informe tienen que salir en el
+            # orden en que se dijeron, no en el que el examinador las fue eligiendo.
             select(m.Verbalization.text).where(m.Verbalization.session_id == session_id)
-            .order_by(m.Verbalization.created_at)
+            .order_by(m.Verbalization.offset_ms.nulls_last(), m.Verbalization.created_at)
         )).scalars().all())
         validated = tuple(
             await PostgresSessionIndicatorRepository(self._s).list_validated(session_id)

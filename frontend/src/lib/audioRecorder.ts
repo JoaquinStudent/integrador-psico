@@ -13,7 +13,19 @@ export interface AudioRecorderState {
   recordingId?: string
 }
 
-export function createAudioRecorder(sessionId: string, onState: (s: AudioRecorderState) => void) {
+/**
+ * Grabador de una sesion.
+ *
+ * `sessionStartedAtMs` es en que momento de la sesion se pulsa grabar, en el mismo
+ * reloj que las marcas rapidas. Viaja con el archivo porque sin ese dato la
+ * transcripcion no se puede cruzar con las marcas: la grabacion arranca con el primer
+ * trazo del paciente, no con la sesion, y entre ambas cosas esta la latencia de inicio.
+ */
+export function createAudioRecorder(
+  sessionId: string,
+  onState: (s: AudioRecorderState) => void,
+  sessionStartedAtMs = 0,
+) {
   let mediaRecorder: MediaRecorder | null = null
   let chunks: Blob[] = []
   let startTime = 0
@@ -65,7 +77,11 @@ export function createAudioRecorder(sessionId: string, onState: (s: AudioRecorde
     const blob = new Blob(chunks, { type: 'audio/webm' })
     try {
       const recording = await api.upload<{ id: string; storage_path: string }>(
-        `/sessions/${sessionId}/recordings`, blob, `audio_${Date.now()}.webm`
+        `/sessions/${sessionId}/recordings`, blob, `audio_${Date.now()}.webm`,
+        {
+          duration_seconds: Math.round(durationMs / 1000),
+          started_at_ms: Math.max(0, Math.round(sessionStartedAtMs)),
+        },
       )
       onState({ status: 'done', durationMs, storagePath: recording.storage_path, recordingId: recording.id })
     } catch (error) {

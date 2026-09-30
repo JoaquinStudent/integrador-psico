@@ -34,6 +34,8 @@ from ..schemas import (
     SessionPatch,
     StrokeOut,
     TestOut,
+    VerbalizationIn,
+    VerbalizationOut,
 )
 
 router = APIRouter(prefix="/sessions", tags=["sesiones"])
@@ -201,3 +203,57 @@ async def marcar(
     despues se pueda alinear con el trazo que la motivo."""
     await sessions.get(session_id)
     await obs.add_quick_mark(session_id, data.mark_code, data.marked_at_ms)
+
+
+# =============================================================================
+# Verbalizaciones
+# =============================================================================
+#
+# Una verbalizacion es una frase del paciente que entra al informe (seccion 6,
+# "Verbalizaciones del paciente"). Se llenaba desde ningun lado: la tabla existia y
+# `compose_report` ya la leia, pero nadie escribia en ella.
+#
+# Nada llega aqui solo. Whisper no separa hablantes, asi que es el examinador quien
+# elige que segmento fue del paciente, y elegirlo es atribuirlo. Volcar la
+# transcripcion completa firmaria como dicho por el paciente lo que dijo el
+# profesional.
+
+
+@router.get("/{session_id}/verbalizations", response_model=list[VerbalizationOut])
+async def leer_verbalizaciones(
+    session_id: UUID, sessions: Sessions, obs: Observations
+) -> list[VerbalizationOut]:
+    await sessions.get(session_id)
+    return [
+        VerbalizationOut.model_validate(v)
+        for v in await obs.list_verbalizations(session_id)
+    ]
+
+
+@router.post(
+    "/{session_id}/verbalizations",
+    response_model=VerbalizationOut,
+    status_code=status.HTTP_201_CREATED,
+)
+async def agregar_verbalizacion(
+    session_id: UUID, data: VerbalizationIn, sessions: Sessions, obs: Observations
+) -> VerbalizationOut:
+    """Promueve una frase a verbalizacion del paciente.
+
+    Idempotente para la misma frase en el mismo momento: el boton se puede pulsar dos
+    veces y la seccion 6 no debe mostrar el dato repetido como si fuera nuevo.
+    """
+    await sessions.get(session_id)
+    row = await obs.add_verbalization(session_id, data.text, data.offset_ms, data.source)
+    return VerbalizationOut.model_validate(row)
+
+
+@router.delete(
+    "/{session_id}/verbalizations/{verbalization_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def quitar_verbalizacion(
+    session_id: UUID, verbalization_id: UUID, sessions: Sessions, obs: Observations
+) -> None:
+    await sessions.get(session_id)
+    await obs.delete_verbalization(session_id, verbalization_id)

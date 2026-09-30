@@ -456,3 +456,130 @@ async def test_si_el_redactor_cae_la_cinco_sale_con_la_plantilla(
     assert out.pending_sections == [5]
     assert "142" in por_numero[5].content
     assert por_numero[5].is_ai_generated is False
+
+
+# =============================================================================
+# Audio: transcripcion, reintento y verbalizaciones
+# =============================================================================
+
+
+async def _grabacion(db, session_id, started_at_ms=None):
+    """Inserta una grabacion. El archivo en Storage no hace falta: estos tests no
+    bajan nada, sustituyen al transcriptor."""
+    return await db.scalar(
+        text(
+            "insert into audio_recordings (session_id, storage_path, duration_seconds, "
+            "started_at_ms) values (:s, :p, 300, :o) returning id"
+        ),
+        {"s": session_id, "p": f"sessions/{session_id}/audio_test.webm", "o": started_at_ms},
+    )
+
+
+@pytest.mark.asyncio
+async def test_reintentar_la_transcripcion_no_duplica_segmentos(db_a, sesion_con_dibujo):
+    """`transcript_segments` tiene UNIQUE (recording_id, segment_index).
+
+    Reintentar tiene que ser seguro: un fallo del proveedor a mitad de camino es normal
+    y el examinador va a volver a pulsar. Sin el borrado previo, el segundo intento
+    reventaria con un conflicto de clave.
+    """
+    from psicograma.adapter.outbound.postgres.store import AudioStore
+
+    store = AudioStore(db_a)
+    rid = await _grabacion(db_a, sesion_con_dibujo["session_id"])
+
+    primero = [(0, 2000, "no se dibujar bien"), (5000, 6000, "ya termine")]
+    await store.save_segments(rid, primero)
+    assert [s.text for s in await store.transcript(rid)] == [t for _, _, t in primero]
+
+    # Segundo intento, con un resultado distinto: reemplaza, no acumula.
+    segundo = [(0, 1500, "no se dibujar")]
+    await store.save_segments(rid, segundo)
+    filas = await store.transcript(rid)
+    assert [s.text for s in filas] == ["no se dibujar"]
+    assert [s.segment_index for s in filas] == [0]
+
+    grabacion = await store.get(rid)
+    assert grabacion.transcribed_at is not None
+
+
+@pytest.mark.asyncio
+async def test_el_offset_de_la_grabacion_alinea_el_audio_con_las_marcas(
+    db_a, sesion_con_dibujo, perfiles_creados
+):
+    """El cruce que pedia la tarea, y la razon por la que existe la migracion 002.
+
+    La grabacion arranca con el primer trazo, no con la sesion. Si un segmento del audio
+    se leyera con su tiempo crudo, caeria en un momento distinto de la sesion que la
+    marca que lo acompaña. Con `started_at_ms` los dos quedan en el mismo reloj.
+    """
+    from psicograma.adapter.outbound.postgres.store import AudioStore, ObservationStore
+
+    sid = sesion_con_dibujo["session_id"]
+    obs = ObservationStore(db_a)
+    audio = AudioStore(db_a)
+
+    # El paciente tardo 90 s en empezar a dibujar: ahi arranco la grabacion.
+    LATENCIA = 90_000
+    rid = await _grabacion(db_a, sid, started_at_ms=LATENCIA)
+
+    # El examinador marca en el minuto 2:30 de la SESION.
+    await obs.save(sid, "", [])
+    await obs.add_quick_mark(sid, "pregunto_por_el_paraguas", 150_000)
+
+    # Whisper situa la frase en el segundo 60 del AUDIO, que es el 2:30 de la sesion.
+    await audio.save_segments(rid, [(60_000, 62_000, "le pongo paraguas?")])
+
+    grabacion = await audio.get(rid)
+    segmento = (await audio.transcript(rid))[0]
+    en_la_sesion = grabacion.started_at_ms + segmento.start_ms
+
+    marcas = (await obs.get(sid))["quick_marks"]
+    assert en_la_sesion == marcas[0]["marked_at_ms"] == 150_000
+    # Y sin el offset caeria un minuto y medio antes: el error que esto evita.
+    assert segmento.start_ms != marcas[0]["marked_at_ms"]
+
+
+@pytest.mark.asyncio
+async def test_promover_una_frase_la_deja_en_el_informe(db_a, sesion_con_dibujo):
+    """Las verbalizaciones se leian desde `compose_report` pero nadie las escribia, asi
+    que el bloque "Verbalizaciones del paciente" nunca aparecia."""
+    from psicograma.adapter.outbound.postgres.store import ObservationStore
+
+    obs = ObservationStore(db_a)
+    sid = sesion_con_dibujo["session_id"]
+
+    tarde = await obs.add_verbalization(sid, "ya termine", 200_000, "transcription")
+    await obs.add_verbalization(sid, "no se dibujar bien", 30_000, "transcription")
+
+    # Orden por momento, no por cuando se eligieron: en el informe tienen que salir en
+    # el orden en que se dijeron.
+    assert [v.text for v in await obs.list_verbalizations(sid)] == [
+        "no se dibujar bien",
+        "ya termine",
+    ]
+
+    # Pulsar dos veces el mismo boton no duplica el dato en la seccion 6.
+    otra_vez = await obs.add_verbalization(sid, "ya termine", 200_000, "transcription")
+    assert otra_vez.id == tarde.id
+    assert len(await obs.list_verbalizations(sid)) == 2
+
+    await obs.delete_verbalization(sid, tarde.id)
+    assert [v.text for v in await obs.list_verbalizations(sid)] == ["no se dibujar bien"]
+
+
+@pytest.mark.asyncio
+async def test_no_se_puede_borrar_una_verbalizacion_de_otra_sesion(
+    db_a, sesion_con_dibujo, perfiles_creados
+):
+    """El `session_id` va en el WHERE del DELETE aunque el id ya sea unico: es el filtro
+    de aplicacion de DT-029, la primera capa antes de RLS."""
+    from psicograma.adapter.outbound.postgres.store import NotFound, ObservationStore
+
+    obs = ObservationStore(db_a)
+    sid = sesion_con_dibujo["session_id"]
+    v = await obs.add_verbalization(sid, "una frase", 1000, "examiner")
+
+    with pytest.raises(NotFound):
+        await obs.delete_verbalization(uuid.uuid4(), v.id)
+    assert len(await obs.list_verbalizations(sid)) == 1

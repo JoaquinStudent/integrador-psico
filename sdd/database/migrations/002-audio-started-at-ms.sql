@@ -1,0 +1,56 @@
+-- =============================================================================
+-- Migracion 002 — audio_recordings.started_at_ms
+-- =============================================================================
+--
+-- POR QUE EXISTE
+--
+-- Para cruzar la transcripcion con las marcas rapidas hacen falta los dos en el
+-- **mismo reloj**, y hoy no lo estan:
+--
+--   * `session_quick_marks.marked_at_ms` es un offset desde `sessions.started_at`.
+--   * Un segmento de transcripcion trae su offset desde el inicio del **audio**.
+--
+-- Y la grabacion no empieza cuando empieza la sesion: arranca con el primer trazo
+-- del paciente. Entre "Comenzar" y ese primer trazo esta la latencia de inicio, que
+-- en este test es un indicador medido (TMP-01) y puede ser de minutos.
+--
+-- Sin esta columna, una marca del minuto 6 de la sesion apuntaria al minuto 6 del
+-- audio, que es otro momento. El cruce se veria bien y estaria mal, que es la peor
+-- clase de error para un informe clinico.
+--
+-- Derivarlo de `created_at - duration_seconds` no sirve: `created_at` es cuando
+-- termino de **subirse** el archivo, asi que incluye la latencia de la subida.
+--
+-- Nullable a proposito: las grabaciones que ya existen no tienen este dato y no se
+-- puede inventar. La interfaz avisa que esas no estan alineadas en vez de mostrar
+-- minutos falsos.
+--
+-- Es el riesgo R-06 otra vez: mientras `SPEC-S5-07` (Alembic) siga fuera de alcance,
+-- todo cambio de esquema se escribe aqui, numerado, para que `schema.sql` y la base
+-- no se separen.
+--
+-- Idempotente: se puede correr dos veces sin efecto.
+-- =============================================================================
+
+-- Offset desde `sessions.started_at`, en milisegundos. Mismo reloj que
+-- `session_quick_marks.marked_at_ms`, que es lo que hace posible el cruce:
+--
+--   tiempo_de_sesion(segmento) = recording.started_at_ms + segmento.start_ms
+--
+ALTER TABLE audio_recordings ADD COLUMN IF NOT EXISTS started_at_ms INTEGER;
+
+-- =============================================================================
+-- VERIFICACION
+-- =============================================================================
+--   SELECT column_name, data_type, is_nullable
+--   FROM information_schema.columns
+--   WHERE table_name = 'audio_recordings' AND column_name = 'started_at_ms';
+--
+-- La prueba que de verdad cuenta es `cd backend && uv run pytest`: el test
+-- `test_toda_columna_modelada_existe` compara los modelos contra la base y falla si
+-- vuelven a separarse.
+--
+-- Nota: `duration_seconds` ya existia pero llegaba siempre NULL, porque el endpoint
+-- de subida pasaba `None`. A partir de esta version el navegador manda la duracion y
+-- el offset. Las filas anteriores se quedan con NULL en ambos.
+-- =============================================================================
