@@ -261,6 +261,26 @@ entorno sin depender de nadie.
 **Decision:** Dejarlo para despues de la demo. Escribir el SQL del rol dedicado ahora, aplicarlo despues.
 **Impacto:** Dentro de `session_for()` RLS **si** aplica, porque `SET LOCAL ROLE authenticated` baja los privilegios y ese rol no tiene bypass — esta probado en `test_el_rol_efectivo_no_puede_saltarse_rls`. El riesgo real es un camino que se olvide de `session_for()`. Se posterga porque un GRANT faltante deja el backend sin poder leer nada, y con la entrega encima ese no es un riesgo que convenga tomar. **Queda como criterio de `SPEC-S5-04` sin cumplir.**
 
+### DT-028: La migracion 001 y por que existe el directorio
+**Fecha:** 2026-09-30
+**Contexto:** `patients.anonymized_at` y el CHECK ampliado de `sex` se agregaron a `schema.sql` y a `models.py` pero no a la base. SQLAlchemy selecciona todas las columnas mapeadas, asi que **toda** consulta que tocara `patients` fallaba y la aplicacion quedo inutilizable: 23 tests en rojo por una columna.
+**Decision:** Se crea `sdd/database/migrations/`, numerado. Mientras Alembic (`SPEC-S5-07`) siga fuera de alcance, todo cambio de esquema se escribe ahi.
+**Impacto:** Es el riesgo R-06 materializado. Quien clone el repo aplica `schema.sql` y despues las migraciones en orden. Lo que salvo el diagnostico fue `test_toda_columna_modelada_existe`, que compara los modelos contra la base viva; sin ese test el sintoma habria sido una app rota sin causa evidente.
+
+### DT-029: Filtro de aplicacion en los endpoints agregados, no solo RLS
+**Fecha:** 2026-09-30
+**Contexto:** Un review de seguridad marco dos endpoints sin filtro por examinador: `GET /sessions` (`list_all` hacia `select(Session)` sin `WHERE created_by`) y `GET /dashboard/summary` (cuatro consultas sin filtrar, y `recent_sessions` embebia nombre y documento del paciente).
+**Verificado:** **No hubo filtracion.** Con dos cuentas reales, RLS tapaba y el examinador B no veia nada de A.
+**Decision:** Agregar el filtro explicito igual, y mover el resumen del panel del router al store.
+**Impacto:** La proteccion dependia por completo de que `session_for()` hiciera `SET LOCAL ROLE authenticated`, y el rol de conexion todavia tiene BYPASSRLS (R-08). Era **una sola linea de defensa**: un camino que use `engine.connect()` directo, o un cambio a service_role por comodidad, y esos endpoints devuelven historias clinicas ajenas con nombre y documento. El diseno dice que los repositorios filtran como primera capa y RLS es la segunda; aqui faltaba la primera.
+
+Dos notas que conviene no perder:
+
+- **Los endpoints que devuelven colecciones o conteos son los que se escapan**, porque no reciben un id que validar y la respuesta "se ve bien" cuando quien prueba solo tiene datos propios.
+- **Un conteo que suma filas ajenas ya filtra informacion** aunque no muestre nombres: revela cuantos pacientes y sesiones atiende el otro profesional.
+
+Lo que evita la repeticion: dos tests que corren con una conexion **que salta RLS**, asi que lo unico que puede protegerlos es el `WHERE` de la aplicacion. Los tests de la API pasaban con filtro y sin el. Se verifico que tienen dientes quitando los filtros: fallan con `assert 6 == 0`. Uno comprueba ademas que el rol siga teniendo bypassrls y avisa si deja de tenerlo, porque en ese momento dejaria de probar lo que dice probar.
+
 ---
 
 ## Lecciones Aprendidas
