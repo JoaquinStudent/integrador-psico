@@ -1,6 +1,6 @@
 # SPEC-S6-01: Generar Borrador de Informe de 9 Secciones
 
-> Estado: SPEC_READY | Sprint: 6 | Epica: Informe | Realiza: RF-35, RNF-17, RNF-18, RNF-19
+> Estado: DONE | Sprint: 6 | Epica: Informe | Realiza: RF-35, RNF-17, RNF-18, RNF-19
 
 ---
 

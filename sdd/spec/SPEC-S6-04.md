@@ -1,6 +1,6 @@
 # SPEC-S6-04: Exportacion del Informe a PDF
 
-> Estado: SPEC_READY | Sprint: 6 | Epica: Export | Realiza: RF-38
+> Estado: DONE | Sprint: 6 | Epica: Export | Realiza: RF-38
 
 ---
 

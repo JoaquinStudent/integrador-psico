@@ -1,6 +1,6 @@
 # SPEC-S6-06: Panel de Control con Datos Consolidados
 
-> Estado: SPEC_READY | Sprint: 6 | Epica: Panel | Realiza: RF-40
+> Estado: DONE | Sprint: 6 | Epica: Panel | Realiza: RF-40
 
 ---
 

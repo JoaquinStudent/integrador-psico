@@ -1,6 +1,6 @@
 # SPEC-S6-05: Baja Logica de Paciente y Supresion de Datos
 
-> Estado: SPEC_READY | Sprint: 6 | Epica: Pacientes | Realiza: RF-08, RNF-16
+> Estado: DONE | Sprint: 6 | Epica: Pacientes | Realiza: RF-08, RNF-16
 
 ---
 
