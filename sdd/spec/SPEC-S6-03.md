@@ -1,6 +1,6 @@
 # SPEC-S6-03: Flujo Borrador a Informe Validado
 
-> Estado: SPEC_READY | Sprint: 6 | Epica: Validacion | Realiza: RF-37, RNF-20
+> Estado: DONE | Sprint: 6 | Epica: Validacion | Realiza: RF-37, RNF-20
 
 ---
 

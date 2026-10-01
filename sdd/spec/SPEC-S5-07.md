@@ -1,6 +1,6 @@
 # SPEC-S5-07: Migraciones Versionadas y Reversibles
 
-> Estado: SPEC_READY | Sprint: 5 | Epica: Base de datos | Realiza: RNF-27
+> Estado: DONE | Sprint: 5 | Epica: Base de datos | Realiza: RNF-27
 
 ---
 

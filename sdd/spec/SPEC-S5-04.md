@@ -1,6 +1,6 @@
 # SPEC-S5-04: Repositorios de Persistencia y Propagacion de Identidad
 
-> Estado: SPEC_READY | Sprint: 5 | Epica: Backend | Realiza: RNF-11, RNF-15
+> Estado: DONE | Sprint: 5 | Epica: Backend | Realiza: RNF-11, RNF-15
 
 ---
 

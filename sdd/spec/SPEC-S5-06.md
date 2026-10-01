@@ -1,6 +1,6 @@
 # SPEC-S5-06: Retirar el Acceso Directo a la Base de Datos del Navegador
 
-> Estado: SPEC_READY | Sprint: 5 | Epica: Frontend | Realiza: RNF-12, RNF-13
+> Estado: DONE | Sprint: 5 | Epica: Frontend | Realiza: RNF-12, RNF-13
 
 ---
 

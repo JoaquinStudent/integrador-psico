@@ -1,6 +1,6 @@
 # SPEC-S6-02: Editor del Informe
 
-> Estado: SPEC_READY | Sprint: 6 | Epica: Editor | Realiza: RF-36
+> Estado: DONE | Sprint: 6 | Epica: Editor | Realiza: RF-36
 
 ---
 

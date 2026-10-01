@@ -1,6 +1,6 @@
 # SPEC-S5-05: Endpoints de Analisis y Audio
 
-> Estado: SPEC_READY | Sprint: 5 | Epica: Backend | Realiza: RF-26, RF-27, RF-28, RF-29, RF-30, RF-31, RF-32, RF-33
+> Estado: DONE | Sprint: 5 | Epica: Backend | Realiza: RF-26, RF-27, RF-28, RF-29, RF-30, RF-31, RF-32, RF-33
 
 ---
 

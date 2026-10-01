@@ -1,28 +1,28 @@
 # memory.md — Registro de Decisiones y Estado del Sistema
 
-> Ultima actualizacion: 2026-09-29
+> Ultima actualizacion: 2026-10-01
 
 ---
 
 ## Estado del Sistema
 
-> Corte: 29/09/2026
+> Corte: 01/10/2026
 
 | Componente | Estado | Notas |
 |---|---|---|
-| Supabase | Operativo | Proyecto **nuevo** `gfqdxrnvameusgjmeadi`, PostgreSQL 17.6. El proyecto v1 queda intacto como rollback |
+| Supabase | Operativo | Proyecto nuevo `gfqdxrnvameusgjmeadi`, PostgreSQL 17.6. El proyecto v1 queda intacto como rollback |
 | Schema v2 (2FN) | **Aplicado** | 22 tablas, RLS en todas, ninguna FK sin indice |
 | Seed de catalogos | **Aplicado** | 201 indicadores, 18 secciones, 4 categorias, 6 marcas, 8 actitudes |
 | Storage | Operativo | Bucket privado `session-files`, 50 MB, 4 policies, rutas `sessions/{id}/...` |
-| Auth | Operativo | Supabase Auth con **firma ES256**; el backend verifica contra el JWKS |
-| Backend FastAPI | **Rutas de sesiones, análisis y audio** | CRUD de pacientes/sesiones, dibujo, observaciones, métricas, indicadores y upload de audio; transcripción requiere proveedor |
+| Auth | Operativo | Supabase Auth con **firma ES256** asimétrica; el backend verifica contra JWKS |
+| Backend FastAPI | **Operativo completo** | CRUD de pacientes/sesiones, dibujo, observaciones, métricas, catálogo, audio con Whisper, redacción asistida OpenRouter, borrador 9 secciones, editor, validación y panel |
 | Dominio | Operativo | Medicion objetiva + motor de reglas, Python puro, frontera verificada por `check-hexagon.sh` |
-| Repositorios | Operativo | 3 puertos implementados + `store.py` para el CRUD sin dominio |
-| Tests backend | **67 en verde** | 14 de dominio (sin red) + 53 de integracion contra la base real. ~5 min de corrida |
-| Frontend: canvas, realtime, layout, design system | Operativo | Sin cambios; el canvas y el espejo no pasan por el backend |
-| Frontend: capa de datos | **Migrada** | No quedan llamadas `supabase.from`, Storage ni Edge Functions fuera de Auth/Realtime; usa `apiClient` |
-| Deploy | Pendiente | Ni frontend ni backend desplegados |
-| Git | Operativo | `origin/srs-specs-y-esquema-2fn`. **`main` esta 8 commits atras** |
+| Repositorios | Operativo | Repositorios de dominio + `store.py` con propagación de identidad y aislamiento multitenant |
+| Tests backend | **119 en verde** | 47 de dominio (sin red) + 72 de integración y adaptadores |
+| Frontend: canvas, realtime, layout, design system | Operativo | Canvas reactivo, espejo por WebSocket, stepper responsive corregido y guards en vivo |
+| Frontend: capa de datos | **Migrada** | 116 módulos transformados limpios en build de producción; todas las llamadas desacopladas vía `apiClient` |
+| Deploy | Pendiente | Ni frontend ni backend desplegados en producción |
+| Git | Operativo | PR #1 a #4 mergeados en `main` (commit `6effdf8`), rama de trabajo al día |
 
 ---
 
@@ -75,22 +75,30 @@
 > **6 sprints + 1 auditoria** (ver `spec/SPEC-INDEX.md`). Los sprints 0 a 3 de
 > arriba corresponden a los sprints 1 a 4 de la numeracion nueva.
 
-### Sprint 5 — Rearquitectura (2026-09-28 / 29)
+### Sprint 5 — Rearquitectura (2026-09-28 / 30)
 
 | Tarea | Estado | Notas |
 |---|---|---|
 | S5-01 Esquema 2FN | DONE | 22 tablas aplicadas en el proyecto nuevo. RLS en todas, ninguna FK sin indice |
-| S5-02 Catalogo en base de datos | DONE | 201 indicadores sembrados. `seed-catalog.mjs` falla si el catalogo es inconsistente; `check-sql.py` cruza reset, schema y seed sin conectarse |
-| S5-03 Dominio, puertos y servicios | DONE | Medicion y motor de reglas portados de TS. 14 tests sin red. Corrige E-002 |
-| S5-04 Repositorios y propagacion de identidad | **EN PROCESO** | Repositorios de dibujo/indicadores y stores CRUD conectados; faltan pruebas contra el entorno configurado y cerrar el rol sin `BYPASSRLS` |
-| S5-05 Endpoints de analisis y audio | **PARCIAL** | Análisis determinista, indicadores y upload de audio expuestos; Whisper/LLM quedan en fallback controlado sin claves |
-| S5-06 Retirar el acceso directo a BD | **PARCIAL AVANZADO** | Consumidores migrados a `apiClient`; falta cerrar Realtime privado y completar carga de imágenes/transcripciones |
-| S5-07 Migraciones Alembic | **IMPLEMENTADO LOCALMENTE** | Alembic, revisión inicial no destructiva y guardas creadas; falta ejecutar `current/upgrade` contra Supabase con backup |
+| S5-02 Catalogo en base de datos | DONE | 201 indicadores sembrados. `seed-catalog.mjs` verificado; `check-sql.py` cruza reset, schema y seed |
+| S5-03 Dominio, puertos y servicios | DONE | Medicion y motor de reglas portados de TS. Dominio puro hexagonal |
+| S5-04 Repositorios y propagacion de identidad | DONE | Repositorios Postgres y stores CRUD conectados con `set_config` y `SET LOCAL ROLE authenticated` |
+| S5-05 Endpoints de analisis y audio | DONE | Análisis, catálogo, métricas, upload de audio y transcriptor Whisper alineado |
+| S5-06 Retirar el acceso directo a BD | DONE | Consumidores migrados íntegramente a `apiClient` (116 módulos Vite en verde) |
+| S5-07 Migraciones versionadas | DONE | Migraciones `001` y `002` creadas en `sdd/database/migrations/` y ejecutadas |
 
-**Infraestructura resuelta esta semana:** proyecto Supabase nuevo, bucket privado
-`session-files` con sus 4 policies, y los dos scripts de verificacion
-(`smoke-test.py`, `check-storage.py`) para que cualquiera del equipo compruebe su
-entorno sin depender de nadie.
+### Sprint 6 — Informe, PDF y Cierre Funcional (2026-09-28 / 2026-10-01)
+
+| Tarea | Estado | Notas |
+|---|---|---|
+| S6-01 Borrador de 9 secciones | DONE | Generador determinista + adaptador OpenRouter para secciones 5, 7 y 8 con fallback |
+| S6-02 Editor del informe | DONE | Navegación por secciones, edición en tiempo real y persistencia en backend |
+| S6-03 Flujo de validación | DONE | Validación profesional y firma con sellado de fecha |
+| S6-04 Exportación a PDF | DONE | Generación y descarga de PDF clínico estructurado |
+| S6-05 Baja lógica y privacidad | DONE | Anonimización con `patients.anonymized_at` (RNF-16) |
+| S6-06 Panel consolidado | DONE | Dashboard conectado a endpoints agregados del backend |
+
+**Infraestructura y calidad actual:** 119 tests automatizados en verde (47 unitarios de dominio + 72 de integración/adaptadores), esquema 2FN con RLS en Supabase, y cliente web completamente desacoplado de la base de datos.
 
 ---
 
