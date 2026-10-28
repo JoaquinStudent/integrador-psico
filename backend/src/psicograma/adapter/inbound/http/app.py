@@ -24,6 +24,18 @@ PROBLEM_JSON = "application/problem+json"
 logger = logging.getLogger("psicograma")
 
 
+def _restriccion(exc: IntegrityError) -> tuple[str, str]:
+    """(constraint, sqlstate) sin el mensaje: el DETAIL de Postgres trae los valores
+    de la fila ("Key (created_by, document_number)=(..., 12345678) already exists"),
+    y eso es el documento de un paciente. Con asyncpg el error util cuelga de `__cause__`."""
+    for e in (exc.orig, getattr(exc.orig, "__cause__", None)):
+        nombre = getattr(e, "constraint_name", None)
+        estado = getattr(e, "sqlstate", None)
+        if nombre or estado:
+            return nombre or "?", estado or "?"
+    return "?", "?"
+
+
 def _problem(request: Request, status: int, title: str, detail: str) -> JSONResponse:
     return JSONResponse(
         status_code=status,
@@ -98,7 +110,11 @@ def create_app() -> FastAPI:
         esta probando entradas. Se registra del lado del servidor y al cliente se
         le dice lo justo.
         """
-        logger.warning("violacion de integridad en %s: %s", request.url.path, exc.orig)
+        constraint, sqlstate = _restriccion(exc)
+        logger.warning(
+            "violacion de integridad en %s: constraint=%s sqlstate=%s",
+            request.url.path, constraint, sqlstate,
+        )
         return _problem(
             request,
             409,
