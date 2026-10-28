@@ -152,9 +152,10 @@ async def test_catalogo_devuelve_la_seccion_y_la_categoria(db_a):
 @pytest.mark.asyncio
 async def test_catalogo_completo_del_pbll(db_a):
     entradas = await PostgresIndicatorCatalog(db_a).list_for_test("PBLL")
-    assert len(entradas) == 201
-    assert len({e.section_code for e in entradas}) == 18
-    assert {e.category_code for e in entradas} == {"A", "B", "C", "D"}
+    # C y D no se modelan (DT-033, Lin et al. 2022): 183 indicadores, 16 secciones, 2 categorias.
+    assert len(entradas) == 183
+    assert len({e.section_code for e in entradas}) == 16
+    assert {e.category_code for e in entradas} == {"A", "B"}
 
 
 @pytest.mark.asyncio

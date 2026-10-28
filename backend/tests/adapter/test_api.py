@@ -116,7 +116,7 @@ def test_catalogo_de_indicadores(cliente_a):
 def test_checklist_de_verificacion_profesional(cliente_a):
     """Los `manual` son los que exigen juicio del examinador."""
     r = cliente_a.get("/api/v1/tests/PBLL/indicators?detection=manual")
-    assert len(r.json()) == 153
+    assert len(r.json()) == 140  # 183 activos = 23 auto + 20 semi + 140 manual (DT-033)
 
 
 def test_indicadores_por_seccion(cliente_a):
