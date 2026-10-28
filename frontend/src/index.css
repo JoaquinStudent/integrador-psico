@@ -2132,3 +2132,20 @@ body {
   background: var(--color-amber-bg); color: var(--color-text);
   font-size: 12px; line-height: 1.45;
 }
+
+/* Grabación de la sesión: reproductor y transcripción */
+.recording-card { border: 1px solid var(--border, #e2e0ee); border-radius: 12px; padding: 14px 16px; margin: 12px 0; background: #fff; }
+.recording-head, .recording-transcript-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px; }
+.recording-duration { color: #6B6885; font-variant-numeric: tabular-nums; }
+.recording-transcript { margin-top: 12px; }
+.recording-segments { margin: 8px 0 0; padding-left: 0; list-style: none; display: grid; gap: 6px; }
+
+.report-suggestion { background: #FFF6E5; border: 1px solid #F0D49A; border-radius: 8px; padding: 10px 12px; margin: 0 0 10px; color: #6B4E00; font-size: 0.9rem; }
+
+/* Listas (sesiones, informes): búsqueda + filtros con conteo */
+.list-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-md); margin-bottom: var(--space-md); }
+.list-toolbar .search-bar { flex: 1 1 240px; max-width: 360px; margin: 0; }
+.list-toolbar .filter-group { margin: 0; }
+.filter-count { display: inline-block; min-width: 20px; margin-left: 4px; padding: 0 6px; border-radius: 10px; background: rgba(107, 95, 168, 0.12); font-size: 0.75rem; font-variant-numeric: tabular-nums; text-align: center; }
+.filter-chip.active .filter-count { background: rgba(255, 255, 255, 0.25); }
+.data-table .cell-action { text-align: right; white-space: nowrap; }

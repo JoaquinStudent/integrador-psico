@@ -4,6 +4,7 @@ import { useAuth } from '../lib/auth'
 import { api } from '../lib/apiClient'
 import { formatDate } from '../lib/patients'
 import type { DashboardSummary } from '../types/api'
+import { SESSION_STATUS, etiquetaDe } from '../lib/status'
 
 interface RecentSession {
   id: string
@@ -94,8 +95,8 @@ export function DashboardPage() {
                     <td>{s.test.name}</td>
                     <td className="text-secondary">{s.started_at ? formatDate(s.started_at) : '—'}</td>
                     <td>
-                      <span className={`badge ${s.status === 'completed' ? 'badge-green' : 'badge-amber'}`}>
-                        {s.status === 'completed' ? 'Completada' : s.status === 'active' ? 'Activa' : s.status}
+                      <span className={`badge ${etiquetaDe(SESSION_STATUS, s.status).badge}`}>
+                        {etiquetaDe(SESSION_STATUS, s.status).label}
                       </span>
                     </td>
                     <td><Link to={`/sesion/${s.id}`} className="btn-link">Ver</Link></td>

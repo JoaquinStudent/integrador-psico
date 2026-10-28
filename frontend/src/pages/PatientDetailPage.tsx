@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { usePatient, getInitials, getAge, formatDate } from '../lib/patients'
 import { api } from '../lib/apiClient'
 import type { Report } from '../types/api'
+import { REPORT_STATUS, SESSION_STATUS, etiquetaDe } from '../lib/status'
 
 type Tab = 'datos' | 'historial' | 'informes'
 
@@ -177,8 +178,8 @@ export function PatientDetailPage() {
                       <td>{s.test.name}</td>
                       <td className="text-secondary">{formatDate(s.started_at ?? s.created_at)}</td>
                       <td>
-                        <span className={`badge ${s.status === 'completed' ? 'badge-green' : 'badge-amber'}`}>
-                          {s.status === 'completed' ? 'Completada' : s.status === 'active' ? 'Activa' : s.status}
+                        <span className={`badge ${etiquetaDe(SESSION_STATUS, s.status).badge}`}>
+                          {etiquetaDe(SESSION_STATUS, s.status).label}
                         </span>
                       </td>
                       <td><Link to={`/sesion/${s.id}`} className="btn-link">Ver</Link></td>
@@ -193,7 +194,7 @@ export function PatientDetailPage() {
             reportsLoading ? <div className="page-loading">Cargando informes...</div> : reports.length === 0 ?
               <div className="empty-state"><p>No hay informes generados para este paciente.</p></div> :
               <table className="data-table"><thead><tr><th>Estado</th><th>Fecha</th><th /></tr></thead><tbody>
-                {reports.map(report => <tr key={report.id}><td><span className={`badge ${report.status === 'validated' ? 'badge-green' : 'badge-amber'}`}>{report.status === 'validated' ? 'Validado' : 'Borrador'}</span></td><td>{new Date(report.updated_at ?? report.created_at ?? '').toLocaleDateString('es-PE')}</td><td><Link to={`/informes/${report.id}`} className="btn-link">Abrir</Link></td></tr>)}
+                {reports.map(report => <tr key={report.id}><td><span className={`badge ${etiquetaDe(REPORT_STATUS, report.status).badge}`}>{etiquetaDe(REPORT_STATUS, report.status).label}</span></td><td>{new Date(report.updated_at ?? report.created_at ?? '').toLocaleDateString('es-PE')}</td><td><Link to={`/informes/${report.id}`} className="btn-link">Abrir</Link></td></tr>)}
               </tbody></table>
           )}
         </div>
