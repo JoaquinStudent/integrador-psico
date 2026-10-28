@@ -596,6 +596,8 @@ El docente autorizó un **stack libre**; no se usa Java. La rúbrica pide MVC, T
 
 #### Principios que exige la rúbrica
 
+> Los diagramas de **arquitectura por capas con MVC** y de **puertos y adaptadores (DAO) con SOLID** están en el Anexo 18 y el Anexo 19 (`diagramas/arquitectura-y-estados.md`, diagramas A y B).
+
 | Exige la rúbrica | Cómo se aplica en Psicograma | Evidencia en el repositorio |
 |---|---|---|
 | **MVC** | **Modelo:** entidades del dominio (`domain/model.py`) y modelos de persistencia (`adapter/outbound/postgres/models.py`). **Vista:** el frontend React (`frontend/src/pages`, `components`). **Controlador:** los routers de FastAPI y los esquemas Pydantic (`adapter/inbound/http/`). | Carpetas citadas; contrato de la API en `sdd/api-contracts.md` |

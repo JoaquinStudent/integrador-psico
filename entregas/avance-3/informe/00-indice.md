@@ -58,5 +58,6 @@
 | El catálogo pasa de «149» a **183 indicadores activos** (201 modelados; las categorías C y D se retiran por decisión ética) y se corrige la cifra en todo el documento | Cap. 1, 2, 3 |
 | El Capítulo 2 se reduce a una sola sección, como pide el índice nuevo | Cap. 2 |
 | Se escribe el Capítulo 3 completo (estaba vacío en el Avance 2) | Cap. 3 |
+| Se agregan los diagramas de arquitectura (MVC, DAO y SOLID), despliegue, estados y el modelo físico de 24 tablas, y los diagramas de casos de uso por módulo | Anexos 6, 7 y 18 a 21 |
 | Se agrega la equivalencia con MVC, TDD, DAO y SOLID y con las librerías de la rúbrica (stack libre autorizado por el docente) | §3.10.1 |
 | Capítulo 4 en dos bloques: resultados de construcción (hay evidencia) y variable dependiente (pendiente de medición) | Cap. 4 |

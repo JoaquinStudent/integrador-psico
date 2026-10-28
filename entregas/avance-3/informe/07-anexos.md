@@ -9,8 +9,8 @@
 | 3 | Project Charter | `project-charter.xlsx` | ⚠️ **Corregir** los 7 defectos (ver `anexos-charter-gantt-actualizado.md`) |
 | 4 | Cronograma de actividades (Gantt) | `cronograma-gantt.xlsx` | ⚠️ **Actualizar** con el estado al 28/10/2026 |
 | 5 | Prototipos y pantallas reales | `entregas/avance-1/05-prototipo/` + capturas del sistema | ⚠️ Tomar capturas de las pantallas reales (tabla en §3.4) |
-| 6 | Modelo físico de la base de datos | Imagen del Avance 2 | ⚠️ Regenerar: ahora son **24 tablas** (se agregaron `appointments` y `google_connections`) |
-| 7 | Diagrama de casos de uso | §3.5 (Mermaid) | ✅ Escrito; exportar a PNG |
+| 6 | Modelo físico de la base de datos (24 tablas) | `diagramas/arquitectura-y-estados.md`, diagrama F (generado desde `schema.sql`) | ✅ Generado; ⚠️ exportar a imagen para el Word (reemplaza el de 22 tablas del Avance 2) |
+| 7 | Diagramas de casos de uso (general + 10 por módulo) | §3.5 (Mermaid) y `diagramas/casos-de-uso.html` (referencia para rehacerlos en la herramienta UML) | ✅ Escritos; rehacer en la herramienta UML o exportar |
 | 8 | Diagrama de procesos (BPM), AS-IS y TO-BE | §3.6 (Mermaid) | ✅ Escrito; exportar a PNG |
 | 9 | Diagrama de secuencia: sesión en vivo | §3.7 (Mermaid) | ✅ Escrito; exportar a PNG |
 | 10 | Diagrama de secuencia: generación del informe | §3.7 (Mermaid) | ✅ Escrito; exportar a PNG |
@@ -21,6 +21,10 @@
 | 15 | Evidencia de control de versiones (GitHub) | Capturas del repositorio | ⚠️ Capturar commits, ramas y el PR a `main` |
 | 16 | Ficha y protocolo de medición | `entregas/avance-3/medicion/` | ✅ |
 | 17 | Documentación técnica del código | `sdd/` (especificaciones y decisiones) y `/docs` de la API (OpenAPI) | ✅ El equivalente a Javadoc en este stack es la documentación OpenAPI que FastAPI genera sola en `/docs` y los `docstring` de los módulos |
+| 18 | Diagrama de arquitectura por capas (hexagonal) con correspondencia MVC | `diagramas/arquitectura-y-estados.md`, diagrama A | ✅ **Exigido por la rúbrica** |
+| 19 | Diagrama de puertos y adaptadores (capa DAO) y principios SOLID | `diagramas/arquitectura-y-estados.md`, diagrama B | ✅ **Exigido por la rúbrica** |
+| 20 | Diagrama de despliegue | `diagramas/arquitectura-y-estados.md`, diagrama C | ✅ Hoy local; el despliegue en la nube sigue planificado |
+| 21 | Diagramas de estados (sesión, informe, indicador y cita) | `diagramas/arquitectura-y-estados.md`, diagramas D y E | ✅ |
 
 ### Cómo exportar los diagramas Mermaid a imagen
 
