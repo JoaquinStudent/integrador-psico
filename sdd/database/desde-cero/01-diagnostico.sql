@@ -60,12 +60,12 @@ SELECT '5. catalogo', 'indicadores activos (debe ser 183)',
             ELSE (xpath('/row/c/text()', query_to_xml(
                   'SELECT count(*) AS c FROM public.indicator_catalog WHERE is_active', false, true, '')))[1]::text END
 UNION ALL
-SELECT '5. catalogo', 'indicadores totales (debe ser 201)',
+SELECT '5. catalogo', 'indicadores totales (debe ser 183)',
        CASE WHEN to_regclass('public.indicator_catalog') IS NULL THEN 'n/a'
             ELSE (xpath('/row/c/text()', query_to_xml(
                   'SELECT count(*) AS c FROM public.indicator_catalog', false, true, '')))[1]::text END
 UNION ALL
-SELECT '5. catalogo', 'secciones (debe ser 18)',
+SELECT '5. catalogo', 'secciones (debe ser 16)',
        CASE WHEN to_regclass('public.manual_sections') IS NULL THEN 'n/a'
             ELSE (xpath('/row/c/text()', query_to_xml(
                   'SELECT count(*) AS c FROM public.manual_sections', false, true, '')))[1]::text END

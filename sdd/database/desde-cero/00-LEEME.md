@@ -32,7 +32,7 @@
 | 05 | `05-indicadores-e-informes.sql` | Indicadores de sesión, informes y los disparadores de fecha | ídem |
 | 06 | `06-agenda-y-google.sql` | Agenda de citas (sin cruces) y conexión con Google. Instala `btree_gist` | ídem |
 | 07 | `07-perfiles.sql` | Crea el perfil de las cuentas que **ya existían** en Auth | Una fila por cada cuenta |
-| 08 | `08-catalogo/parte-1-de-7.sql` … `parte-7-de-7.sql` | Carga los 201 indicadores del manual y desactiva los de las categorías C y D (quedan **183 activos**). **Siete archivos, en orden** | `Success` en cada uno |
+| 08 | `08-catalogo/parte-1-de-7.sql` … `parte-7-de-7.sql` | Carga los **183 indicadores** del catálogo (categorías A y B, 16 secciones); la última parte desactiva C y D si una siembra anterior las había dejado. **Siete archivos, en orden** | `Success` en cada uno |
 | 09 | `09-politicas-de-storage.sql` | Políticas del bucket privado `session-files` (cada examinador solo ve lo suyo) | `Success` |
 | 10 | `10-verificacion-final.sql` | **Solo lectura.** Comprueba todo lo anterior | Última fila: **`TODO OK ✔`** |
 | 11 | `11-datos-demo.sql` | *Opcional.* Pacientes y sesiones de demostración | `Success` |

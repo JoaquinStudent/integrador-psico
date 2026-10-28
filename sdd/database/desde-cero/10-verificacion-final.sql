@@ -18,8 +18,8 @@ WITH esperadas(t) AS (
 cuenta(consulta, esperado, descripcion) AS (
   VALUES
     ('SELECT count(*) AS c FROM public.indicator_catalog WHERE is_active', '183', 'catalogo: 183 indicadores activos'),
-    ('SELECT count(*) AS c FROM public.indicator_catalog',                 '201', 'catalogo: 201 indicadores modelados'),
-    ('SELECT count(*) AS c FROM public.manual_sections',                   '18',  'catalogo: 18 secciones'),
+    ('SELECT count(*) AS c FROM public.indicator_catalog',                 '183', 'catalogo: 183 indicadores en total (C y D no se siembran)'),
+    ('SELECT count(*) AS c FROM public.manual_sections',                   '16',  'catalogo: 16 secciones'),
     ('SELECT count(*) AS c FROM public.tests WHERE code = ''PBLL''',       '1',   'catalogo: test PBLL'),
     ('SELECT count(*) AS c FROM auth.users u LEFT JOIN public.profiles p ON p.id = u.id WHERE p.id IS NULL',
                                                                            '0',   'perfil creado para cada cuenta')
