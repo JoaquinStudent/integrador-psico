@@ -7,8 +7,14 @@ export interface PbllIndicator {
   detection: 'auto' | 'semi' | 'manual'
 }
 
-// ponytail: 201 indicators extracted from manual-pbll/manual-persona-bajo-la-lluvia.md
+// ponytail: 183 indicators (A and B) extracted from manual-pbll/manual-persona-bajo-la-lluvia.md
 // detection: auto = measurable from stroke data, semi = stroke data assists, manual = visual/clinical judgment
+// Las categorias C (Expresiones de conflicto, EXP-*) y D (Mecanismos de defensa, DEF-*)
+// del manual NO se modelan: el sistema apoya al psicologo y no diagnostica. La decision
+// se sustenta en Lin et al. (2022), que no halla asociaciones confiables entre los
+// indicadores de los tests proyectivos de dibujo y los problemas de salud mental
+// (Capitulo 1, limitaciones funcionales). No reponerlas sin reabrir esa decision.
+// Las filas ya sembradas en la base se desactivan con `seed-catalog.mjs` (is_active).
 export const PBLL_INDICATORS: PbllIndicator[] = [
   // =========================================================================
   // A-1) Dimensiones (DIM-*)
@@ -267,32 +273,6 @@ export const PBLL_INDICATORS: PbllIndicator[] = [
   { code: 'IDX-01', category: 'Identidad sexual', section: 'B-10', title: 'Figura del sexo contrario', interpretation: 'Dificultades o conflictos en relaciones objetales primarias. En varones: conflicto homosexual. En mujeres: masculinizacion de la figura femenina.', detection: 'manual' },
   { code: 'IDX-02', category: 'Identidad sexual', section: 'B-10', title: 'Figura desnuda', interpretation: 'Exhibicionismo, psicopatia.', detection: 'manual' },
   { code: 'IDX-03', category: 'Identidad sexual', section: 'B-10', title: 'Persona bajo la ducha', interpretation: 'Narcisismo, exhibicionismo. Histeria.', detection: 'manual' },
-
-  // =========================================================================
-  // C) Expresiones de conflicto (EXP-*)
-  // =========================================================================
-  { code: 'EXP-01', category: 'Expresiones de conflicto', section: 'C', title: 'Neurosis fobica', interpretation: 'Encierra el dibujo con otras lineas, persona acompanada de otras figuras, figuras en cuevas.', detection: 'manual' },
-  { code: 'EXP-02', category: 'Expresiones de conflicto', section: 'C', title: 'Neurosis histerica', interpretation: 'Figuras de abundante cabello, sexualizadas, elementos para llamar la atencion.', detection: 'manual' },
-  { code: 'EXP-03', category: 'Expresiones de conflicto', section: 'C', title: 'Neurosis obsesiva', interpretation: 'Figuras rigidas, perfeccionismo, detallismo. Dibujos ordenados y aburridos. Borrado desmesurado.', detection: 'manual' },
-  { code: 'EXP-04', category: 'Expresiones de conflicto', section: 'C', title: 'Depresion', interpretation: 'Figuras inclinadas, incompletas, falta de pies o piernas, figuras sentadas. Poca presion y autoimagen desvalorizada.', detection: 'semi' },
-  { code: 'EXP-05', category: 'Expresiones de conflicto', section: 'C', title: 'Melancolia', interpretation: 'Trazos lentos, muy debiles, casi invisibles. Figuras muy pobres. Abatimiento y vacio por perdida del mundo interior.', detection: 'semi' },
-  { code: 'EXP-06', category: 'Expresiones de conflicto', section: 'C', title: 'Psicotico', interpretation: 'Desorganizacion de la gestalt, alteraciones de limites, figuras vacias o infladas. Paraguas incorporado a la figura humana.', detection: 'manual' },
-  { code: 'EXP-07', category: 'Expresiones de conflicto', section: 'C', title: 'Psicosis maniaco-depresiva', interpretation: 'Depresivo: inhibicion. Maniaco: exaltacion, despliegue de energia, dibujo complicado y florido, generalmente grande.', detection: 'manual' },
-  { code: 'EXP-08', category: 'Expresiones de conflicto', section: 'C', title: 'Paranoia', interpretation: 'Dibujos extravagantes, con excesos de adornos y dan idea de grandeza.', detection: 'manual' },
-  { code: 'EXP-09', category: 'Expresiones de conflicto', section: 'C', title: 'Enfermedades psicosomaticas', interpretation: 'Brazos cortos, piernas juntas, omision de nariz, cuerpo hinchado. Generalmente aparecen nubes.', detection: 'manual' },
-  { code: 'EXP-10', category: 'Expresiones de conflicto', section: 'C', title: 'Epilepsia', interpretation: 'Dibujos con borrones, manchas, desordenados. Sensacion de abandono y cansancio.', detection: 'manual' },
-  { code: 'EXP-11', category: 'Expresiones de conflicto', section: 'C', title: 'Alcoholismo', interpretation: 'Dibujos sucios, con trazos recortados, remarcacion de lineas y temblor.', detection: 'semi' },
-
-  // =========================================================================
-  // D) Mecanismos de defensa (DEF-*)
-  // =========================================================================
-  { code: 'DEF-01', category: 'Mecanismos de defensa', section: 'D', title: 'Desplazamiento', interpretation: 'Necesidad de adicionar nuevos objetos u otras figuras. Fondo muy decorado y preocupacion por determinadas zonas.', detection: 'manual' },
-  { code: 'DEF-02', category: 'Mecanismos de defensa', section: 'D', title: 'Regresion', interpretation: 'Figuras perdiendo el equilibrio, como en ruinas. Expresion de panico. Figuras sentadas, sin fuerzas. Confusion de trazos.', detection: 'manual' },
-  { code: 'DEF-03', category: 'Mecanismos de defensa', section: 'D', title: 'Anulacion', interpretation: 'Personas que necesitan borrar permanentemente o tachar una figura y hacer otra. A veces sombrean los dibujos.', detection: 'semi' },
-  { code: 'DEF-04', category: 'Mecanismos de defensa', section: 'D', title: 'Aislamiento', interpretation: 'Dibujos pobres, aislados, desarticulados, frios. A veces recuadrados entre lineas. Figuras paralizadas, tipo munecas.', detection: 'manual' },
-  { code: 'DEF-05', category: 'Mecanismos de defensa', section: 'D', title: 'Represion', interpretation: 'Figuras completas, armonicas, no sexualizadas, muy vestidas. Faltan rasgos sexuales secundarios. Dureza en movimientos.', detection: 'manual' },
-  { code: 'DEF-06', category: 'Mecanismos de defensa', section: 'D', title: 'Inhibicion', interpretation: 'Figuras pequenas, trazos debiles, falta de partes o zonas corporales. Verbalizan "No se", "No puedo".', detection: 'semi' },
-  { code: 'DEF-07', category: 'Mecanismos de defensa', section: 'D', title: 'Defensas maniacas', interpretation: 'Llena el dibujo con detalles innecesarios.', detection: 'manual' },
 ]
 
 export const INDICATOR_SECTIONS = [
@@ -312,13 +292,9 @@ export const INDICATOR_SECTIONS = [
   { code: 'B-7', name: 'Paraguas', prefix: 'PAR' },
   { code: 'B-9', name: 'Partes del cuerpo', prefix: 'CUE' },
   { code: 'B-10', name: 'Identidad sexual', prefix: 'IDX' },
-  { code: 'C', name: 'Expresiones de conflicto', prefix: 'EXP' },
-  { code: 'D', name: 'Mecanismos de defensa', prefix: 'DEF' },
 ] as const
 
 export const INDICATOR_CATEGORIES = [
   { code: 'A', name: 'Recursos expresivos', sections: ['A-1', 'A-2', 'A-3', 'A-4', 'A-5', 'A-6', 'A-7', 'A-8'] },
   { code: 'B', name: 'Analisis de contenido', sections: ['B-1', 'B-2', 'B-3', 'B-5', 'B-6', 'B-7', 'B-9', 'B-10'] },
-  { code: 'C', name: 'Expresiones de conflicto', sections: ['C'] },
-  { code: 'D', name: 'Mecanismos de defensa', sections: ['D'] },
 ] as const

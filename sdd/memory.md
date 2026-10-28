@@ -311,6 +311,14 @@ Lo que evita la repeticion: dos tests que corren con una conexion **que salta RL
 
 ---
 
+### DT-033: C y D salen del motor; el catalogo queda en 183 indicadores
+**Fecha:** 2026-10-28
+**Contexto:** El Capitulo 1 entregado excluye las categorias C (expresiones de conflicto) y D (mecanismos de defensa) citando a Lin et al. (2022): los indicadores de los tests proyectivos de dibujo no predicen de forma confiable problemas de salud mental, y por eso el sistema no diagnostica. El motor cargaba las cuatro categorias (201 indicadores). Un evaluador que leyera ambos lo veia. Era R-01.
+**Decision:** Se alinea el codigo con el Capitulo 1, no al reves: cambiar el Capitulo 1 obligaba a rehacer la cita que sostiene el argumento etico del proyecto. Se retiran los 18 indicadores `EXP-*` y `DEF-*` y sus secciones de `pbll-indicators.ts`, que es la unica fuente (el generador del seed y el frontend la leen). Quedan **183 indicadores: 23 auto, 20 semi, 140 manual, en 16 secciones y 2 categorias**.
+**Impacto:** Un seed hace upsert y nunca borra, asi que una base sembrada antes sigue teniendo las filas de C y D. `seed-catalog.mjs` emite ahora un `UPDATE ... SET is_active = false` (con `WHERE`) que las desactiva sin borrarlas, porque `session_indicators` puede citarlas; `repositories.py` ya filtraba `is_active`. **Hay que volver a correr `seed-catalog.sql` en Supabase**: hasta entonces `test_catalogo_de_indicadores` falla con 201 != 183, y eso es correcto. Las cifras de antes (25 semi, 153 manual) incluian C y D.
+
+---
+
 ## Lecciones Aprendidas
 
 | ID | Sprint | Leccion |
@@ -361,7 +369,7 @@ Ver `informe-sprints.md` para el detalle y el estado. Los que bloquean:
 
 | ID | Riesgo |
 |---|---|
-| R-01 | El Capitulo 1 declara 149 indicadores y excluye las categorias C y D; el motor carga 201 en 4 categorias. **Decision pendiente del equipo** |
+| R-01 | CERRADO por DT-033: C y D se retiraron del motor (183 activos). Queda corregir las cifras del Capitulo 1 |
 | R-05 | La linea base de tiempos es irrecuperable si el centro adopta el sistema antes de medirla. Sin ella no hay Capitulo 4 |
 | R-07 | RNF-13 (canales privados de realtime) no se cumple, ver DT-026 |
 | R-08 | El rol de conexion tiene `BYPASSRLS`, ver DT-027 |

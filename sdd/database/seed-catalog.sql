@@ -3,8 +3,8 @@
 -- GENERADO por sdd/database/seed-catalog.mjs — no editar a mano.
 -- Fuente: frontend/src/data/pbll-indicators.ts
 --
--- 201 indicadores · 18 secciones · 4 categorias
--- detection: auto=23 semi=25 manual=153
+-- 183 indicadores · 16 secciones · 2 categorias
+-- detection: auto=23 semi=20 manual=140
 -- =============================================================================
 
 BEGIN;
@@ -25,12 +25,6 @@ INSERT INTO indicator_categories (test_id, code, name)
   ON CONFLICT (test_id, code) DO UPDATE SET name = EXCLUDED.name;
 INSERT INTO indicator_categories (test_id, code, name)
   SELECT id, 'B', 'Analisis de contenido' FROM tests WHERE code = 'PBLL'
-  ON CONFLICT (test_id, code) DO UPDATE SET name = EXCLUDED.name;
-INSERT INTO indicator_categories (test_id, code, name)
-  SELECT id, 'C', 'Expresiones de conflicto' FROM tests WHERE code = 'PBLL'
-  ON CONFLICT (test_id, code) DO UPDATE SET name = EXCLUDED.name;
-INSERT INTO indicator_categories (test_id, code, name)
-  SELECT id, 'D', 'Mecanismos de defensa' FROM tests WHERE code = 'PBLL'
   ON CONFLICT (test_id, code) DO UPDATE SET name = EXCLUDED.name;
 
 -- Secciones del manual --------------------------------------------------------
@@ -113,16 +107,6 @@ INSERT INTO manual_sections (category_id, code, name, code_prefix)
   SELECT c.id, 'B-9', 'Partes del cuerpo', 'CUE'
   FROM indicator_categories c JOIN tests t ON t.id = c.test_id
   WHERE t.code = 'PBLL' AND c.code = 'B'
-  ON CONFLICT (category_id, code) DO UPDATE SET name = EXCLUDED.name, code_prefix = EXCLUDED.code_prefix;
-INSERT INTO manual_sections (category_id, code, name, code_prefix)
-  SELECT c.id, 'C', 'Expresiones de conflicto', 'EXP'
-  FROM indicator_categories c JOIN tests t ON t.id = c.test_id
-  WHERE t.code = 'PBLL' AND c.code = 'C'
-  ON CONFLICT (category_id, code) DO UPDATE SET name = EXCLUDED.name, code_prefix = EXCLUDED.code_prefix;
-INSERT INTO manual_sections (category_id, code, name, code_prefix)
-  SELECT c.id, 'D', 'Mecanismos de defensa', 'DEF'
-  FROM indicator_categories c JOIN tests t ON t.id = c.test_id
-  WHERE t.code = 'PBLL' AND c.code = 'D'
   ON CONFLICT (category_id, code) DO UPDATE SET name = EXCLUDED.name, code_prefix = EXCLUDED.code_prefix;
 
 -- Indicadores ----------------------------------------------------------------
@@ -1407,132 +1391,6 @@ INSERT INTO indicator_catalog (code, section_id, title, interpretation, detectio
   ON CONFLICT (code) DO UPDATE SET section_id = EXCLUDED.section_id,
     title = EXCLUDED.title, interpretation = EXCLUDED.interpretation,
     detection_type = EXCLUDED.detection_type;
-INSERT INTO indicator_catalog (code, section_id, title, interpretation, detection_type)
-  SELECT 'EXP-01', s.id, 'Neurosis fobica', 'Encierra el dibujo con otras lineas, persona acompanada de otras figuras, figuras en cuevas.', 'manual'
-  FROM manual_sections s JOIN indicator_categories c ON c.id = s.category_id
-  JOIN tests t ON t.id = c.test_id WHERE t.code = 'PBLL' AND s.code = 'C'
-  ON CONFLICT (code) DO UPDATE SET section_id = EXCLUDED.section_id,
-    title = EXCLUDED.title, interpretation = EXCLUDED.interpretation,
-    detection_type = EXCLUDED.detection_type;
-INSERT INTO indicator_catalog (code, section_id, title, interpretation, detection_type)
-  SELECT 'EXP-02', s.id, 'Neurosis histerica', 'Figuras de abundante cabello, sexualizadas, elementos para llamar la atencion.', 'manual'
-  FROM manual_sections s JOIN indicator_categories c ON c.id = s.category_id
-  JOIN tests t ON t.id = c.test_id WHERE t.code = 'PBLL' AND s.code = 'C'
-  ON CONFLICT (code) DO UPDATE SET section_id = EXCLUDED.section_id,
-    title = EXCLUDED.title, interpretation = EXCLUDED.interpretation,
-    detection_type = EXCLUDED.detection_type;
-INSERT INTO indicator_catalog (code, section_id, title, interpretation, detection_type)
-  SELECT 'EXP-03', s.id, 'Neurosis obsesiva', 'Figuras rigidas, perfeccionismo, detallismo. Dibujos ordenados y aburridos. Borrado desmesurado.', 'manual'
-  FROM manual_sections s JOIN indicator_categories c ON c.id = s.category_id
-  JOIN tests t ON t.id = c.test_id WHERE t.code = 'PBLL' AND s.code = 'C'
-  ON CONFLICT (code) DO UPDATE SET section_id = EXCLUDED.section_id,
-    title = EXCLUDED.title, interpretation = EXCLUDED.interpretation,
-    detection_type = EXCLUDED.detection_type;
-INSERT INTO indicator_catalog (code, section_id, title, interpretation, detection_type)
-  SELECT 'EXP-04', s.id, 'Depresion', 'Figuras inclinadas, incompletas, falta de pies o piernas, figuras sentadas. Poca presion y autoimagen desvalorizada.', 'semi'
-  FROM manual_sections s JOIN indicator_categories c ON c.id = s.category_id
-  JOIN tests t ON t.id = c.test_id WHERE t.code = 'PBLL' AND s.code = 'C'
-  ON CONFLICT (code) DO UPDATE SET section_id = EXCLUDED.section_id,
-    title = EXCLUDED.title, interpretation = EXCLUDED.interpretation,
-    detection_type = EXCLUDED.detection_type;
-INSERT INTO indicator_catalog (code, section_id, title, interpretation, detection_type)
-  SELECT 'EXP-05', s.id, 'Melancolia', 'Trazos lentos, muy debiles, casi invisibles. Figuras muy pobres. Abatimiento y vacio por perdida del mundo interior.', 'semi'
-  FROM manual_sections s JOIN indicator_categories c ON c.id = s.category_id
-  JOIN tests t ON t.id = c.test_id WHERE t.code = 'PBLL' AND s.code = 'C'
-  ON CONFLICT (code) DO UPDATE SET section_id = EXCLUDED.section_id,
-    title = EXCLUDED.title, interpretation = EXCLUDED.interpretation,
-    detection_type = EXCLUDED.detection_type;
-INSERT INTO indicator_catalog (code, section_id, title, interpretation, detection_type)
-  SELECT 'EXP-06', s.id, 'Psicotico', 'Desorganizacion de la gestalt, alteraciones de limites, figuras vacias o infladas. Paraguas incorporado a la figura humana.', 'manual'
-  FROM manual_sections s JOIN indicator_categories c ON c.id = s.category_id
-  JOIN tests t ON t.id = c.test_id WHERE t.code = 'PBLL' AND s.code = 'C'
-  ON CONFLICT (code) DO UPDATE SET section_id = EXCLUDED.section_id,
-    title = EXCLUDED.title, interpretation = EXCLUDED.interpretation,
-    detection_type = EXCLUDED.detection_type;
-INSERT INTO indicator_catalog (code, section_id, title, interpretation, detection_type)
-  SELECT 'EXP-07', s.id, 'Psicosis maniaco-depresiva', 'Depresivo: inhibicion. Maniaco: exaltacion, despliegue de energia, dibujo complicado y florido, generalmente grande.', 'manual'
-  FROM manual_sections s JOIN indicator_categories c ON c.id = s.category_id
-  JOIN tests t ON t.id = c.test_id WHERE t.code = 'PBLL' AND s.code = 'C'
-  ON CONFLICT (code) DO UPDATE SET section_id = EXCLUDED.section_id,
-    title = EXCLUDED.title, interpretation = EXCLUDED.interpretation,
-    detection_type = EXCLUDED.detection_type;
-INSERT INTO indicator_catalog (code, section_id, title, interpretation, detection_type)
-  SELECT 'EXP-08', s.id, 'Paranoia', 'Dibujos extravagantes, con excesos de adornos y dan idea de grandeza.', 'manual'
-  FROM manual_sections s JOIN indicator_categories c ON c.id = s.category_id
-  JOIN tests t ON t.id = c.test_id WHERE t.code = 'PBLL' AND s.code = 'C'
-  ON CONFLICT (code) DO UPDATE SET section_id = EXCLUDED.section_id,
-    title = EXCLUDED.title, interpretation = EXCLUDED.interpretation,
-    detection_type = EXCLUDED.detection_type;
-INSERT INTO indicator_catalog (code, section_id, title, interpretation, detection_type)
-  SELECT 'EXP-09', s.id, 'Enfermedades psicosomaticas', 'Brazos cortos, piernas juntas, omision de nariz, cuerpo hinchado. Generalmente aparecen nubes.', 'manual'
-  FROM manual_sections s JOIN indicator_categories c ON c.id = s.category_id
-  JOIN tests t ON t.id = c.test_id WHERE t.code = 'PBLL' AND s.code = 'C'
-  ON CONFLICT (code) DO UPDATE SET section_id = EXCLUDED.section_id,
-    title = EXCLUDED.title, interpretation = EXCLUDED.interpretation,
-    detection_type = EXCLUDED.detection_type;
-INSERT INTO indicator_catalog (code, section_id, title, interpretation, detection_type)
-  SELECT 'EXP-10', s.id, 'Epilepsia', 'Dibujos con borrones, manchas, desordenados. Sensacion de abandono y cansancio.', 'manual'
-  FROM manual_sections s JOIN indicator_categories c ON c.id = s.category_id
-  JOIN tests t ON t.id = c.test_id WHERE t.code = 'PBLL' AND s.code = 'C'
-  ON CONFLICT (code) DO UPDATE SET section_id = EXCLUDED.section_id,
-    title = EXCLUDED.title, interpretation = EXCLUDED.interpretation,
-    detection_type = EXCLUDED.detection_type;
-INSERT INTO indicator_catalog (code, section_id, title, interpretation, detection_type)
-  SELECT 'EXP-11', s.id, 'Alcoholismo', 'Dibujos sucios, con trazos recortados, remarcacion de lineas y temblor.', 'semi'
-  FROM manual_sections s JOIN indicator_categories c ON c.id = s.category_id
-  JOIN tests t ON t.id = c.test_id WHERE t.code = 'PBLL' AND s.code = 'C'
-  ON CONFLICT (code) DO UPDATE SET section_id = EXCLUDED.section_id,
-    title = EXCLUDED.title, interpretation = EXCLUDED.interpretation,
-    detection_type = EXCLUDED.detection_type;
-INSERT INTO indicator_catalog (code, section_id, title, interpretation, detection_type)
-  SELECT 'DEF-01', s.id, 'Desplazamiento', 'Necesidad de adicionar nuevos objetos u otras figuras. Fondo muy decorado y preocupacion por determinadas zonas.', 'manual'
-  FROM manual_sections s JOIN indicator_categories c ON c.id = s.category_id
-  JOIN tests t ON t.id = c.test_id WHERE t.code = 'PBLL' AND s.code = 'D'
-  ON CONFLICT (code) DO UPDATE SET section_id = EXCLUDED.section_id,
-    title = EXCLUDED.title, interpretation = EXCLUDED.interpretation,
-    detection_type = EXCLUDED.detection_type;
-INSERT INTO indicator_catalog (code, section_id, title, interpretation, detection_type)
-  SELECT 'DEF-02', s.id, 'Regresion', 'Figuras perdiendo el equilibrio, como en ruinas. Expresion de panico. Figuras sentadas, sin fuerzas. Confusion de trazos.', 'manual'
-  FROM manual_sections s JOIN indicator_categories c ON c.id = s.category_id
-  JOIN tests t ON t.id = c.test_id WHERE t.code = 'PBLL' AND s.code = 'D'
-  ON CONFLICT (code) DO UPDATE SET section_id = EXCLUDED.section_id,
-    title = EXCLUDED.title, interpretation = EXCLUDED.interpretation,
-    detection_type = EXCLUDED.detection_type;
-INSERT INTO indicator_catalog (code, section_id, title, interpretation, detection_type)
-  SELECT 'DEF-03', s.id, 'Anulacion', 'Personas que necesitan borrar permanentemente o tachar una figura y hacer otra. A veces sombrean los dibujos.', 'semi'
-  FROM manual_sections s JOIN indicator_categories c ON c.id = s.category_id
-  JOIN tests t ON t.id = c.test_id WHERE t.code = 'PBLL' AND s.code = 'D'
-  ON CONFLICT (code) DO UPDATE SET section_id = EXCLUDED.section_id,
-    title = EXCLUDED.title, interpretation = EXCLUDED.interpretation,
-    detection_type = EXCLUDED.detection_type;
-INSERT INTO indicator_catalog (code, section_id, title, interpretation, detection_type)
-  SELECT 'DEF-04', s.id, 'Aislamiento', 'Dibujos pobres, aislados, desarticulados, frios. A veces recuadrados entre lineas. Figuras paralizadas, tipo munecas.', 'manual'
-  FROM manual_sections s JOIN indicator_categories c ON c.id = s.category_id
-  JOIN tests t ON t.id = c.test_id WHERE t.code = 'PBLL' AND s.code = 'D'
-  ON CONFLICT (code) DO UPDATE SET section_id = EXCLUDED.section_id,
-    title = EXCLUDED.title, interpretation = EXCLUDED.interpretation,
-    detection_type = EXCLUDED.detection_type;
-INSERT INTO indicator_catalog (code, section_id, title, interpretation, detection_type)
-  SELECT 'DEF-05', s.id, 'Represion', 'Figuras completas, armonicas, no sexualizadas, muy vestidas. Faltan rasgos sexuales secundarios. Dureza en movimientos.', 'manual'
-  FROM manual_sections s JOIN indicator_categories c ON c.id = s.category_id
-  JOIN tests t ON t.id = c.test_id WHERE t.code = 'PBLL' AND s.code = 'D'
-  ON CONFLICT (code) DO UPDATE SET section_id = EXCLUDED.section_id,
-    title = EXCLUDED.title, interpretation = EXCLUDED.interpretation,
-    detection_type = EXCLUDED.detection_type;
-INSERT INTO indicator_catalog (code, section_id, title, interpretation, detection_type)
-  SELECT 'DEF-06', s.id, 'Inhibicion', 'Figuras pequenas, trazos debiles, falta de partes o zonas corporales. Verbalizan "No se", "No puedo".', 'semi'
-  FROM manual_sections s JOIN indicator_categories c ON c.id = s.category_id
-  JOIN tests t ON t.id = c.test_id WHERE t.code = 'PBLL' AND s.code = 'D'
-  ON CONFLICT (code) DO UPDATE SET section_id = EXCLUDED.section_id,
-    title = EXCLUDED.title, interpretation = EXCLUDED.interpretation,
-    detection_type = EXCLUDED.detection_type;
-INSERT INTO indicator_catalog (code, section_id, title, interpretation, detection_type)
-  SELECT 'DEF-07', s.id, 'Defensas maniacas', 'Llena el dibujo con detalles innecesarios.', 'manual'
-  FROM manual_sections s JOIN indicator_categories c ON c.id = s.category_id
-  JOIN tests t ON t.id = c.test_id WHERE t.code = 'PBLL' AND s.code = 'D'
-  ON CONFLICT (code) DO UPDATE SET section_id = EXCLUDED.section_id,
-    title = EXCLUDED.title, interpretation = EXCLUDED.interpretation,
-    detection_type = EXCLUDED.detection_type;
 
 -- Marcas rapidas -------------------------------------------------------------
 INSERT INTO quick_mark_catalog (code, label, display_order) VALUES ('pausa_prolongada', 'Pausa prolongada', 1)
@@ -1566,10 +1424,9 @@ INSERT INTO attitude_catalog (code, label, display_order) VALUES ('retraido', 'R
 INSERT INTO attitude_catalog (code, label, display_order) VALUES ('distraido', 'Distraido', 8)
   ON CONFLICT (code) DO UPDATE SET label = EXCLUDED.label, display_order = EXCLUDED.display_order;
 
--- Opcion A del plan: desactivar C y D para alinear con el Capitulo 1.
--- Descomentar si el equipo confirma esa decision.
--- UPDATE indicator_catalog SET is_active = false WHERE section_id IN (
---   SELECT s.id FROM manual_sections s
---   JOIN indicator_categories c ON c.id = s.category_id WHERE c.code IN ('C','D'));
+-- C y D fuera del motor: desactiva las filas que una siembra anterior haya dejado.
+UPDATE indicator_catalog SET is_active = false WHERE is_active AND section_id IN (
+  SELECT s.id FROM manual_sections s
+  JOIN indicator_categories c ON c.id = s.category_id WHERE c.code IN ('C','D'));
 
 COMMIT;

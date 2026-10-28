@@ -12,7 +12,7 @@
 | **Sesion** | Instancia de administracion de un test a un paciente | Entidad central del sistema |
 | **Consentimiento** | Autorizacion firmada del paciente/apoderado para la sesion | Paso obligatorio antes de iniciar sesion |
 | **Trazo (Stroke)** | Secuencia de puntos entre pen-down y pen-up con timestamps y presion | Unidad atomica de captura del dibujo |
-| **Indicador** | Criterio del manual PBLL evaluable en el dibujo | ~149 indicadores, categorias A-D |
+| **Indicador** | Criterio del manual PBLL evaluable en el dibujo | 183 indicadores activos, categorias A y B (C y D no se modelan, DT-033) |
 | **Sugerencia IA** | Indicador detectado automaticamente, pendiente de validacion profesional | Estado ambar hasta que el examinador acepta/rechaza |
 | **Indicador Validado** | Indicador confirmado por el examinador | Estado verde |
 | **Borrador** | Informe generado por IA, sin validacion profesional | Estado inicial del informe |

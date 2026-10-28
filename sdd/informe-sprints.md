@@ -72,7 +72,7 @@
 | ID | Tarea | Estado | Notas |
 |---|---|---|---|
 | S4-01 | Transcripcion del audio y verbalizaciones | DONE | |
-| S4-02 | Catalogo de 201 indicadores PBLL | DONE | 18 secciones, 4 categorias, 23 auto + 25 semi + 153 manual (DT-013) |
+| S4-02 | Catalogo de 183 indicadores PBLL activos | DONE | 16 secciones, 2 categorias, 23 auto + 20 semi + 140 manual (DT-013, DT-033) |
 | S4-03 | Medicion objetiva automatica | DONE | Umbrales calibrables |
 | S4-04 | Sugerencia asistida de indicadores | DONE | Siempre como sugerencia, nunca validada |
 | S4-05 | Checklist profesional por secciones | DONE | 3 pestanas, aceptar/rechazar |
@@ -134,7 +134,8 @@ procedimiento manual.
 | DT-010 | FastAPI en vez de Django | El ORM de Django pelea con hexagonal; Supabase Auth ya resuelve identidad |
 | DT-011 | El backend es el unico que accede a la base de datos | El navegador pierde credenciales; RLS se conserva como segunda capa |
 | DT-012 | Esquema v2 normalizado a 2FN | El catalogo del manual sale del codigo y entra a la base |
-| DT-013 | Son 201 indicadores, no 202 | El Capitulo 1 aun declara 149 y excluye C y D: **incoherencia abierta** |
+| DT-013 | Son 201 indicadores modelados, no 202 | Superada por DT-033: C y D se retiran y quedan 183 |
+| DT-033 | C y D fuera del motor | 183 indicadores activos; alinea el codigo con el Capitulo 1 (Lin et al., 2022) |
 | DT-014 | Nomenclatura del repositorio | 305 renombrados con historia conservada |
 
 ---
@@ -143,7 +144,7 @@ procedimiento manual.
 
 | ID | Riesgo | Estado |
 |---|---|---|
-| R-01 | El Capitulo 1 declara 149 indicadores y excluye C y D; el motor carga 201 en 4 categorias | **ABIERTO** — decidir antes de APF2 |
+| R-01 | El Capitulo 1 declaraba 149 indicadores y excluia C y D; el motor cargaba 201 en 4 categorias | **CERRADO** — DT-033. Falta corregir las cifras del Capitulo 1 (183: 23 auto + 20 semi + 140 manual) |
 | R-02 | Sin linea base de tiempos, el Capitulo 4 no puede presentar resultados | **ABIERTO** — depende de AUD-05 |
 | R-03 | Los diagramas BPM, de clases y de entidad-relacion son la brecha principal de la rubrica | **ABIERTO** — F1-05 al 20 % |
 | R-04 | El esquema v2 esta escrito pero no aplicado; bloquea S5-04 en adelante | **ABIERTO** — requiere decision sobre migracion de datos |

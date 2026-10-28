@@ -81,7 +81,7 @@ Solo lectura. Reemplazan las constantes que hoy estan escritas a mano en el fron
 | Metodo y ruta | Proposito |
 |---|---|
 | `GET /tests` | Tests disponibles y bloqueados |
-| `GET /tests/{code}/indicators` | Los 201 indicadores PBLL con su seccion y categoria. Soporta `?detection=auto\|semi\|manual` y `?section=A-1` |
+| `GET /tests/{code}/indicators` | Los 183 indicadores PBLL activos con su seccion y categoria. Soporta `?detection=auto\|semi\|manual` y `?section=A-1` |
 | `GET /catalogs/quick-marks` | Las 6 marcas rapidas |
 | `GET /catalogs/attitudes` | Actitudes observables |
 

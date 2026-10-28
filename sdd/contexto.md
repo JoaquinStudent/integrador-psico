@@ -44,7 +44,7 @@ Al cerrar la sesión, el sistema entrega en el panel privado del examinador un
 1. **Medición objetiva** — métricas estructurales extraídas automáticamente
    del dibujo (tamaño, emplazamiento, presión promedio, tiempo total,
    latencia, secuencia de inicio, conteo de trazos/pausas/borrados).
-2. **Sugerencias del manual** — cruce de las métricas con los 201 indicadores
+2. **Sugerencias del manual** — cruce de las métricas con los 183 indicadores
    del manual PBLL, cada sugerencia referenciada a su sección del manual y
    verificable por el profesional (aceptar / editar / descartar).
 
@@ -73,7 +73,7 @@ durante la sesión.
 |---|---|---|
 | Escaneo/foto | Imagen estática final | Solo contenido visual (B) |
 | Formulario digital | Lo que el psicólogo transcribe | Depende del evaluador |
-| **Psicograma** | Proceso completo del trazo + audio + observaciones | Expresivos (A) + Contenido (B) + Conflicto (C) + Defensa (D) |
+| **Psicograma** | Proceso completo del trazo + audio + observaciones | Expresivos (A) + Contenido (B) |
 
 ---
 

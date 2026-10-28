@@ -166,13 +166,14 @@ ATTITUDES.forEach((label, n) => {
 })
 say('')
 
-// Si el equipo elige la Opcion A (alinear el motor con el Capitulo 1, que excluye
-// C y D citando Lin et al. 2022), esto lo aplica sin borrar nada del catalogo.
-say('-- Opcion A del plan: desactivar C y D para alinear con el Capitulo 1.')
-say('-- Descomentar si el equipo confirma esa decision.')
-say('-- UPDATE indicator_catalog SET is_active = false WHERE section_id IN (')
-say('--   SELECT s.id FROM manual_sections s')
-say("--   JOIN indicator_categories c ON c.id = s.category_id WHERE c.code IN ('C','D'));")
+// C y D no se modelan (Capitulo 1, Lin et al. 2022; ver pbll-indicators.ts). Un seed
+// hace upsert y nunca borra, asi que una base sembrada antes de la decision todavia
+// las tiene: se desactivan sin borrarlas, porque session_indicators puede citarlas.
+// En una base nueva no hay filas que afectar.
+say('-- C y D fuera del motor: desactiva las filas que una siembra anterior haya dejado.')
+say('UPDATE indicator_catalog SET is_active = false WHERE is_active AND section_id IN (')
+say('  SELECT s.id FROM manual_sections s')
+say("  JOIN indicator_categories c ON c.id = s.category_id WHERE c.code IN ('C','D'));")
 say('')
 say('COMMIT;')
 
