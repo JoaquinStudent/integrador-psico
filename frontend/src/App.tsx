@@ -1,9 +1,10 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Link, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './lib/auth'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { AppLayout } from './components/layout/AppLayout'
 import { LoginPage } from './pages/LoginPage'
 import { DashboardPage } from './pages/DashboardPage'
+import { AppointmentsPage } from './pages/AppointmentsPage'
 import { PatientsPage } from './pages/PatientsPage'
 import { PatientDetailPage } from './pages/PatientDetailPage'
 import { TestCatalogPage } from './pages/TestCatalogPage'
@@ -18,6 +19,16 @@ import { AnalysisPage } from './pages/AnalysisPage'
 import { PostSessionPage } from './pages/PostSessionPage'
 import { SessionsPage } from './pages/SessionsPage'
 import { ReportsPage } from './pages/ReportsPage'
+
+function NotFound() {
+  return (
+    <div className="empty-state" style={{ padding: 48, textAlign: 'center' }}>
+      <h1 className="page-title">Página no encontrada</h1>
+      <p className="page-subtitle">La dirección no existe o fue movida.</p>
+      <Link to="/" className="btn btn-primary">Volver al inicio</Link>
+    </div>
+  )
+}
 
 export default function App() {
   return (
@@ -41,6 +52,7 @@ export default function App() {
             <Route path="pacientes" element={<PatientsPage />} />
             <Route path="pacientes/:id" element={<PatientDetailPage />} />
             <Route path="tests" element={<TestCatalogPage />} />
+            <Route path="citas" element={<AppointmentsPage />} />
             <Route path="sesiones" element={<SessionsPage />} />
             <Route path="sesiones/nueva" element={<NewSessionPage />} />
             <Route path="sesion/:id" element={<ExaminerSessionPage />} />
@@ -49,6 +61,7 @@ export default function App() {
             <Route path="informes" element={<ReportsPage />} />
             <Route path="informes/:id" element={<ReportsPage />} />
             <Route path="ajustes" element={<SettingsPage />} />
+            <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
       </AuthProvider>

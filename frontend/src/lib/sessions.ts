@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { api, mensajeDeError } from './apiClient'
+import { startAppointment } from './appointments'
 import type { Session, Patient } from '../types/api'
 
 interface ConsentData {
@@ -13,14 +14,15 @@ export async function createSession(
   patientId: string,
   testType: string,
   consent: ConsentData,
-  createdBy: string
+  createdBy: string,
+  citaId?: string | null,
 ): Promise<{ sessionId: string | null; error: Error | null }> {
   void createdBy
   try {
-    const session = await api.post<Session>('/sessions', {
-      patient_id: patientId,
-      test_code: testType,
-    })
+    // Desde una cita, la sesión nace de ella para que queden enlazadas.
+    const session = citaId
+      ? { id: (await startAppointment(citaId)).session_id as string }
+      : await api.post<Session>('/sessions', { patient_id: patientId, test_code: testType })
     await api.post(`/sessions/${session.id}/consent`, {
       audio_authorized: consent.audio,
       digital_authorized: consent.digital,

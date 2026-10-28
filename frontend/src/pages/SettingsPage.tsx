@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { api, mensajeDeError } from '../lib/apiClient'
 import type { Profile } from '../types/api'
+import { googleComplete, googleConnectUrl, googleDisconnect, googleStatus, type GoogleStatus } from '../lib/appointments'
+import { fechaHora } from '../lib/status'
 
 /** RF-02: nombre, matrícula y especialidad. La matrícula firma el informe. */
 export function SettingsPage() {
@@ -43,6 +45,35 @@ export function SettingsPage() {
     }
   }
 
+  const [google, setGoogle] = useState<GoogleStatus | null>(null)
+  const [googleMsg, setGoogleMsg] = useState<string | null>(null)
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search)
+    const code = q.get('google_code')
+    const state = q.get('google_state')
+    const resultado = q.get('google')
+    // El código de Google no se deja en la barra de direcciones.
+    if (code || state || resultado) window.history.replaceState(null, '', window.location.pathname)
+
+    if (code && state) {
+      // Se completa con la sesión del usuario: el servidor comprueba que el estado sea suyo.
+      googleComplete(code, state)
+        .then(g => { setGoogle(g); setGoogleMsg('Google Calendar conectado.') })
+        .catch(() => { setGoogleMsg('No se pudo conectar con Google. Intenta de nuevo.'); googleStatus().then(setGoogle).catch(() => setGoogle(null)) })
+      return
+    }
+    googleStatus().then(setGoogle).catch(() => setGoogle(null))
+    if (resultado === 'cancelado') setGoogleMsg('No diste el permiso; nada cambió.')
+  }, [])
+
+  async function conectarGoogle() {
+    try { window.location.href = (await googleConnectUrl()).url } catch (e) { setError(mensajeDeError(e)) }
+  }
+  async function desconectarGoogle() {
+    try { await googleDisconnect(); setGoogle(await googleStatus()); setGoogleMsg('Google Calendar desconectado. Tus citas siguen en la app.') }
+    catch (e) { setError(mensajeDeError(e)) }
+  }
+
   if (loading) return <div style={{ padding: 40, color: '#6B6885' }}>Cargando perfil...</div>
 
   return (
@@ -66,6 +97,21 @@ export function SettingsPage() {
         {message && <p style={{ color: '#2F7D5B' }}>{message}</p>}
         <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Guardando…' : 'Guardar'}</button>
       </form>
+
+      <div className="card" style={{ maxWidth: 480, marginTop: 32 }}>
+        <h2 className="card-title">Google Calendar</h2>
+        <p style={{ color: '#6B6885', fontSize: 14 }}>
+          Refleja tus citas en tu calendario. El evento lleva solo las iniciales del paciente, nunca su nombre ni documento.
+        </p>
+        {googleMsg && <p style={{ color: '#2F7D5B' }}>{googleMsg}</p>}
+        {google === null ? <p style={{ color: '#6B6885' }}>No se pudo consultar el estado.</p>
+          : !google.configured ? <p style={{ color: '#C97A1F' }}>El servidor no tiene credenciales de Google configuradas.</p>
+          : google.connected ? <>
+              <p>Conectado desde {fechaHora(google.connected_at)}.</p>
+              <button type="button" className="btn" onClick={desconectarGoogle}>Desconectar</button>
+            </>
+          : <button type="button" className="btn btn-primary" onClick={conectarGoogle}>Conectar Google Calendar</button>}
+      </div>
     </div>
   )
 }

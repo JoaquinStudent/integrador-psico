@@ -6,6 +6,7 @@ const NAV_ITEMS = [
   { to: '/', label: 'Dashboard', icon: 'dashboard' },
   { to: '/pacientes', label: 'Pacientes', icon: 'pacientes' },
   { to: '/tests', label: 'Tests', icon: 'tests' },
+  { to: '/citas', label: 'Citas', icon: 'citas' },
   { to: '/sesiones', label: 'Sesiones', icon: 'sesiones' },
   { to: '/informes', label: 'Informes', icon: 'informes' },
   { to: '/ajustes', label: 'Ajustes', icon: 'ajustes' },
@@ -29,12 +30,17 @@ const ICONS: Record<string, ReactSVG> = {
   ),
   sesiones: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+      <circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/>
     </svg>
   ),
   informes: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+    </svg>
+  ),
+  citas: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
     </svg>
   ),
   ajustes: (

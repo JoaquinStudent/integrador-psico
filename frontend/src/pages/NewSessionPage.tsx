@@ -1,14 +1,18 @@
-import { useRef, useState, type PointerEvent } from 'react'
+import { useEffect, useRef, useState, type PointerEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { usePatients, getInitials } from '../lib/patients'
 import { useAuth } from '../lib/auth'
 import { createSession } from '../lib/sessions'
+import { esUuid, listAppointments } from '../lib/appointments'
 import type { Patient } from '../types/api'
 
 const STEPS = ['Paciente', 'Test', 'Consentimiento'] as const
 
 export function NewSessionPage() {
   const navigate = useNavigate()
+  // El id viene de la URL: solo se acepta si es un UUID.
+  const citaParam = new URLSearchParams(window.location.search).get('cita')
+  const citaId = esUuid(citaParam) ? citaParam : null
   const { user } = useAuth()
   const { patients } = usePatients()
   const [step, setStep] = useState(0)
@@ -17,6 +21,15 @@ export function NewSessionPage() {
   const [consent, setConsent] = useState({ audio: false, digital: false, confidential: false })
   const [signatureDataUrl, setSignatureDataUrl] = useState<string | undefined>()
   const [creating, setCreating] = useState(false)
+  const [createError, setCreateError] = useState<string | null>(null)
+  // Desde una cita el paciente ya está elegido: se salta al paso del test.
+  useEffect(() => {
+    if (!citaId || patients.length === 0) return
+    listAppointments().then(citas => {
+      const p = patients.find(x => x.id === citas.find(c => c.id === citaId)?.patient_id)
+      if (p) { setSelectedPatient(p); setStep(1) }
+    }).catch(() => { /* sin la cita se elige el paciente a mano */ })
+  }, [citaId, patients])
   const signatureRef = useRef<HTMLCanvasElement>(null)
   const drawingSignature = useRef(false)
 
@@ -28,11 +41,12 @@ export function NewSessionPage() {
     if (step < 2) { setStep(s => s + 1); return }
     if (!selectedPatient || !user || creating) return
     setCreating(true)
+    setCreateError(null)
     const { sessionId, error } = await createSession(selectedPatient.id, 'PBLL', {
       ...consent,
       signatureDataUrl,
-    }, user.id)
-    if (error || !sessionId) { setCreating(false); alert(error?.message ?? 'Error al crear sesión'); return }
+    }, user.id, citaId)
+    if (error || !sessionId) { setCreating(false); setCreateError(error?.message ?? 'No se pudo crear la sesión.'); return }
     // Al monitoreo, no a la pantalla del paciente: el examinador se queda conduciendo
     // la toma desde su computadora y la tablet se abre con el enlace que le da esa
     // pantalla. Antes navegaba a `/paciente/bienvenida` y el examinador terminaba
@@ -272,6 +286,7 @@ export function NewSessionPage() {
         </aside>
       </div>
 
+      {createError && <p role="alert" style={{ color: '#C0523F', margin: '12px 0 0' }}>{createError}</p>}
       <div className="wizard-actions">
         {step > 0 && (
           <button className="btn btn-secondary" onClick={() => setStep(s => s - 1)}>
