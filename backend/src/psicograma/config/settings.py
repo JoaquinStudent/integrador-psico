@@ -29,6 +29,16 @@ class Settings(BaseSettings):
     openrouter_api_key: str = ""   # LLM
     llm_model: str = "anthropic/claude-sonnet-5"
 
+    # --- Google Calendar (SPEC-CAL-01). Vacio = la agenda funciona sin sincronizar ---
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    google_redirect_uri: str = "http://localhost:8000/api/v1/integrations/google/callback"
+    # Clave Fernet (urlsafe base64 de 32 bytes) para cifrar el refresh token en reposo y
+    # firmar el `state` de OAuth. Obligatoria para habilitar Google; sin ella se desactiva.
+    google_token_key: str = ""
+    calendar_timezone: str = "America/Lima"
+    frontend_url: str = "http://localhost:5173"
+
     # --- App ---
     cors_origins: list[str] = ["http://localhost:5173"]
     api_prefix: str = "/api/v1"
