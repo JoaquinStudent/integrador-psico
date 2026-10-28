@@ -50,16 +50,24 @@ async def listar(
     page_size: int = Query(25, ge=1, le=100),
 ) -> SessionPage:
     rows, total = await store.list_all(status=status_filter, page=page, page_size=page_size)
+    # Una consulta por test y por paciente distintos, no por sesion: con la base
+    # remota cada consulta cuesta ~300 ms y 11 sesiones tardaban 7 s (N+1).
+    cache: dict = {}
     return SessionPage(
-        items=[await _to_out(store, row, patients) for row in rows],
+        items=[await _to_out(store, row, patients, cache) for row in rows],
         total=total,
         page=page,
         page_size=page_size,
     )
 
 
-async def _to_out(store: Sessions, row, patients: Patients | None = None) -> SessionOut:
-    test = await store.test_of(row)
+async def _to_out(
+    store: Sessions, row, patients: Patients | None = None, cache: dict | None = None
+) -> SessionOut:
+    cache = {} if cache is None else cache
+    test = cache.get(("test", row.test_id))
+    if test is None:
+        test = cache[("test", row.test_id)] = await store.test_of(row)
     out = SessionOut(
         id=row.id,
         patient_id=row.patient_id,
@@ -71,7 +79,9 @@ async def _to_out(store: Sessions, row, patients: Patients | None = None) -> Ses
         created_at=row.created_at,
     )
     if patients is not None:
-        paciente = await patients.get(row.patient_id)
+        paciente = cache.get(("patient", row.patient_id))
+        if paciente is None:
+            paciente = cache[("patient", row.patient_id)] = await patients.get(row.patient_id)
         out.patient = PatientOut.model_validate(paciente)
     return out
 

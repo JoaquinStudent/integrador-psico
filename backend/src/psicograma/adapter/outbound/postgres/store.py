@@ -156,8 +156,13 @@ class PatientStore:
         )
         return list(rows), total
 
-    async def counts_for(self, patient_ids: list[UUID]) -> dict[UUID, tuple[int, bool]]:
-        """Evaluaciones y estado pendiente por paciente, en una sola consulta.
+    async def counts_for(
+        self, patient_ids: list[UUID]
+    ) -> dict[UUID, tuple[int, bool, dt.datetime | None]]:
+        """Evaluaciones, estado pendiente y ultima evaluacion por paciente, en una consulta.
+
+        Una evaluacion es una sesion `completed`: las canceladas o a medio armar no
+        cuentan, y la fecha de la ultima es la de su cierre.
 
         Se resuelve aca y no en el cliente para que la definicion de "evaluacion
         pendiente" viva en un solo lugar: sesion `completed` sin informe
@@ -175,19 +180,20 @@ class PatientStore:
             await self._s.execute(
                 select(
                     m.Session.patient_id,
-                    func.count().label("total"),
+                    func.count().filter(m.Session.status == "completed").label("total"),
                     func.count()
                     .filter(
                         (m.Session.status == "completed")
                         & m.Session.id.not_in(pend)
                     )
                     .label("pendientes"),
+                    func.max(m.Session.completed_at).label("ultima"),
                 )
                 .where(m.Session.patient_id.in_(patient_ids))
                 .group_by(m.Session.patient_id)
             )
         ).all()
-        return {r.patient_id: (r.total, r.pendientes > 0) for r in rows}
+        return {r.patient_id: (r.total, r.pendientes > 0, r.ultima) for r in rows}
 
 
 def _pendientes_subq():

@@ -63,6 +63,7 @@ class PatientOut(Model):
     age: int | None = None
     evaluation_count: int | None = None
     has_pending_evaluation: bool | None = None
+    last_evaluation_at: dt.datetime | None = None
     anonymized_at: dt.datetime | None = None
 
 

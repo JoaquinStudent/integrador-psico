@@ -57,9 +57,10 @@ async def listar(
     for r in rows:
         out = PatientOut.model_validate(r)
         out.age = _edad(r.birth_date)
-        total_eval, pendiente = conteos.get(r.id, (0, False))
+        total_eval, pendiente, ultima = conteos.get(r.id, (0, False, None))
         out.evaluation_count = total_eval
         out.has_pending_evaluation = pendiente
+        out.last_evaluation_at = ultima
         items.append(out)
 
     return Page(items=items, total=total, page=page, page_size=page_size)
@@ -83,9 +84,10 @@ async def leer(patient_id: UUID, store: Patients) -> PatientOut:
     row = await store.get(patient_id)
     out = PatientOut.model_validate(row)
     out.age = _edad(row.birth_date)
-    total_eval, pendiente = (await store.counts_for([row.id])).get(row.id, (0, False))
+    total_eval, pendiente, ultima = (await store.counts_for([row.id])).get(row.id, (0, False, None))
     out.evaluation_count = total_eval
     out.has_pending_evaluation = pendiente
+    out.last_evaluation_at = ultima
     return out
 
 

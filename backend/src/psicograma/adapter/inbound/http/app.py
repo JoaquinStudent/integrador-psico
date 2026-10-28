@@ -133,6 +133,22 @@ def create_app() -> FastAPI:
             "La operacion viola una restriccion de integridad de los datos.",
         )
 
+    @app.exception_handler(Exception)
+    async def inesperado(request: Request, exc: Exception) -> JSONResponse:
+        """Un 500 tambien debe llegar al navegador como 500.
+
+        Este handler corre fuera del middleware de CORS: sin la cabecera a mano, el
+        navegador descarta la respuesta y el frontend ve "no se pudo conectar", que
+        manda a buscar un problema de red donde hay un error del servidor.
+        """
+        logger.exception("error no controlado en %s", request.url.path)
+        resp = _problem(request, 500, "Error interno", "El servidor tuvo un problema.")
+        origen = request.headers.get("origin")
+        if origen in settings.cors_origins:
+            resp.headers["Access-Control-Allow-Origin"] = origen
+            resp.headers["Vary"] = "Origin"
+        return resp
+
     app.include_router(catalogs.router, prefix=settings.api_prefix)
     app.include_router(patients.router, prefix=settings.api_prefix)
     app.include_router(profile.router, prefix=settings.api_prefix)
