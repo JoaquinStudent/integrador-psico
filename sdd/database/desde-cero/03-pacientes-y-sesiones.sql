@@ -23,6 +23,9 @@ ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "own profile readable"  ON profiles FOR SELECT USING (auth.uid() = id);
 CREATE POLICY "own profile updatable" ON profiles FOR UPDATE USING (auth.uid() = id);
 -- El trigger inserta con SECURITY DEFINER pero la policy tiene que permitirlo (L-006).
+-- Se mantiene permisiva a proposito (L-006): durante el registro auth.uid() es NULL y el
+-- disparador necesita insertar. No es explotable: `id` es clave primaria y FK a auth.users, y
+-- cada cuenta ya tiene su perfil, asi que no se puede crear uno nuevo ni pisar uno existente.
 CREATE POLICY "trigger can insert"    ON profiles FOR INSERT WITH CHECK (true);
 
 -- SET search_path = public es obligatorio o el trigger no encuentra profiles (DT-004).
@@ -87,7 +90,14 @@ CREATE INDEX idx_sessions_status     ON sessions(status) WHERE status <> 'comple
 
 ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "own sessions" ON sessions FOR ALL USING (auth.uid() = created_by);
+-- WITH CHECK: la sesion no solo debe ser tuya, tambien el paciente al que apunta. Sin esto,
+-- una escritura directa podria colgar una sesion de un paciente ajeno si se conoce su UUID.
+CREATE POLICY "own sessions" ON sessions FOR ALL
+    USING (auth.uid() = created_by)
+    WITH CHECK (
+        auth.uid() = created_by
+        AND EXISTS (SELECT 1 FROM patients p WHERE p.id = patient_id AND p.created_by = auth.uid())
+    );
 
 -- Helper: toda tabla hija de sessions usa esto en su policy.
 CREATE OR REPLACE FUNCTION owns_session(sid UUID)

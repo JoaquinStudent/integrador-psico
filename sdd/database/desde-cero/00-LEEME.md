@@ -56,7 +56,7 @@
 cd backend
 
 # 1. Registra en Alembic en qué revisión quedó la base (solo anota la versión; no cambia tablas).
-uv run alembic stamp 0003_citas_y_google
+uv run alembic stamp 0004_politicas_con_with_check
 #    NO ejecutes `alembic upgrade head` sobre una base armada con estos scripts.
 
 # 2. Verifica el bucket (solo lectura).

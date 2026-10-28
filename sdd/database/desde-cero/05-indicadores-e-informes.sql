@@ -35,7 +35,10 @@ CREATE INDEX idx_session_indicators_code   ON session_indicators(indicator_code)
 CREATE INDEX idx_session_indicators_status ON session_indicators(session_id, status);
 
 ALTER TABLE session_indicators ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "via session" ON session_indicators FOR ALL USING (owns_session(session_id));
+-- WITH CHECK: quien valida es quien firma; no se puede atribuir una validacion a otro profesional.
+CREATE POLICY "via session" ON session_indicators FOR ALL
+    USING (owns_session(session_id))
+    WITH CHECK (owns_session(session_id) AND (validated_by IS NULL OR validated_by = auth.uid()));
 
 -- =============================================================================
 -- PARTE 8 — INFORME
@@ -56,7 +59,9 @@ CREATE TABLE reports (
 );
 
 ALTER TABLE reports ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "via session" ON reports FOR ALL USING (owns_session(session_id));
+CREATE POLICY "via session" ON reports FOR ALL
+    USING (owns_session(session_id))
+    WITH CHECK (owns_session(session_id) AND (validated_by IS NULL OR validated_by = auth.uid()));
 
 -- v1: reports.sections_json JSONB[]
 -- Las 9 secciones estandar del informe psicologico.
