@@ -118,7 +118,14 @@ export function ExaminerSessionPage() {
     )
     subscribeToMetrics(ch, (m) => setMetrics(m as MetricsType))
     subscribeToStatus(ch, (s) => {
-      setTablet(s)
+      // Se fusiona con lo anterior: el último aviso de la tablet es «me desconecto» y
+      // reemplazar el estado borraba que el paciente ya había terminado.
+      setTablet(prev => ({
+        ...(prev ?? {}),
+        ...s,
+        patientFinished: Boolean(prev?.patientFinished || s.patientFinished),
+        drawingStarted: Boolean(prev?.drawingStarted || s.drawingStarted),
+      }) as TabletStatus)
       ultimaSenalRef.current = Date.now()
       setTabletViva(true)
     })
