@@ -154,7 +154,7 @@ criterio que la declara cerrada.
 | `frontend/src/lib/supabase.ts` | Modificar (solo Auth y Realtime) |
 | `frontend/src/pages/*.tsx` | Modificar los que consultaban Supabase |
 | `frontend/.env.example` | Modificar (anadir la URL de la API) |
-| `frontend/CLAUDE.md` | Modificar (el stack ya no incluye acceso directo a datos) |
+| Guia del frontend (`frontend/README.md`) | Modificar (el stack ya no incluye acceso directo a datos) |
 
 ---
 
