@@ -1,22 +1,10 @@
--- =============================================================================
--- PARTE 9 — updated_at automatico
--- =============================================================================
+-- ============================================================================
+-- PSICOGRAMA · desde cero · PASO 06: Agenda de citas y conexion con Google
+-- GENERADO por desde-cero/generar.py a partir de schema.sql. No editar a mano.
+-- Ejecutar los pasos EN ORDEN. Debe terminar en COMMIT; si el editor corto el texto, copia de nuevo.
+-- ============================================================================
 
-CREATE OR REPLACE FUNCTION touch_updated_at()
-RETURNS TRIGGER LANGUAGE plpgsql AS $$
-BEGIN
-    NEW.updated_at = now();
-    RETURN NEW;
-END;
-$$;
-
-CREATE TRIGGER touch_session_observations BEFORE UPDATE ON session_observations
-    FOR EACH ROW EXECUTE FUNCTION touch_updated_at();
-CREATE TRIGGER touch_reports BEFORE UPDATE ON reports
-    FOR EACH ROW EXECUTE FUNCTION touch_updated_at();
-CREATE TRIGGER touch_report_sections BEFORE UPDATE ON report_sections
-    FOR EACH ROW EXECUTE FUNCTION touch_updated_at();
-
+BEGIN;
 
 -- =============================================================================
 -- PARTE 9 — AGENDA Y GOOGLE CALENDAR (migracion 0003, SPEC-CAL-01)
@@ -60,3 +48,5 @@ CREATE TABLE google_connections (
 );
 ALTER TABLE google_connections ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "own google connection" ON google_connections FOR ALL USING (auth.uid() = user_id);
+
+COMMIT;

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Pre-flight estatico de los scripts SQL, antes de aplicarlos a una base real.
 
-No conecta a nada: cruza reset.sql, schema.sql y seed-catalog.sql entre si. Sirve
+No conecta a nada: cruza peligro/reset-DESTRUCTIVO.sql, schema.sql y seed-catalog.sql entre si. Sirve
 para cazar un error de columna o una tabla olvidada sin dejar la base a medio
 aplicar.
 
@@ -13,11 +13,11 @@ import re
 import sys
 
 HERE = pathlib.Path(__file__).parent
-EXPECTED_TABLES = 22
+EXPECTED_TABLES = 24
 
 schema = (HERE / "schema.sql").read_text()
 seed = (HERE / "seed-catalog.sql").read_text()
-reset = (HERE / "reset.sql").read_text()
+reset = (HERE / "peligro" / "reset-DESTRUCTIVO.sql").read_text()
 
 problems: list[str] = []
 

@@ -1,4 +1,15 @@
 -- =============================================================================
+-- !!!  PELIGRO — NO EJECUTAR SALVO QUE QUIERAS BORRAR TODA LA BASE  !!!
+--
+-- Este archivo vive en `peligro/` a proposito. Quita TODAS las tablas del sistema.
+-- Su efecto (tablas borradas; cuentas de Auth y archivos de Storage intactos) coincide
+-- con lo que se vio el 28/10/2026 cuando una base con datos quedo vacia. No se pudo
+-- confirmar que haya sido este archivo, pero hace lo mismo.
+--
+-- NO es un paso para reconstruir la base. Para eso, usa `../desde-cero/00-LEEME.md`.
+-- Antes de ejecutarlo: haz una copia de seguridad y comprueba que estas en el
+-- proyecto correcto.
+-- =============================================================================
 -- PSICOGRAMA — Reset del esquema
 -- =============================================================================
 --
@@ -29,6 +40,8 @@ DROP FUNCTION IF EXISTS touch_updated_at() CASCADE;
 
 -- --- Tablas de la v2 ----------------------------------------------------------
 -- En orden inverso de dependencia. CASCADE cubre lo que quede.
+DROP TABLE IF EXISTS google_connections    CASCADE;
+DROP TABLE IF EXISTS appointments          CASCADE;
 DROP TABLE IF EXISTS report_sections       CASCADE;
 DROP TABLE IF EXISTS reports               CASCADE;
 DROP TABLE IF EXISTS session_indicators    CASCADE;
