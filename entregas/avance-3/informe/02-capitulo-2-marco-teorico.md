@@ -60,10 +60,10 @@ Prueba proyectiva gráfica sistematizada y adaptada al contexto hispanohablante 
 |---|---|---|---|
 | **A** | Recursos expresivos | A-1 Dimensiones · A-2 Emplazamiento · A-3 Trazos · A-4 Presión · A-5 Tiempo · A-6 Secuencia · A-7 Movimiento · A-8 Sombreados | **Activa** |
 | **B** | Análisis de contenido | B-1 Orientación · B-2 Posturas · B-3 Borrados · B-5 Detalles accesorios · B-6 Vestimenta · B-7 Paraguas · B-9 Partes del cuerpo · B-10 Identidad sexual | **Activa** (8 secciones modeladas) |
-| **C** | Expresiones de conflicto | Una sección en el catálogo (11 indicadores) | Modelada pero **desactivada** por decisión ética |
-| **D** | Mecanismos de defensa | Una sección en el catálogo (7 indicadores) | Modelada pero **desactivada** por decisión ética |
+| **C** | Expresiones de conflicto | Una sección (11 indicadores en el manual) | **Excluida del catálogo** por decisión ética |
+| **D** | Mecanismos de defensa | Una sección (7 indicadores en el manual) | **Excluida del catálogo** por decisión ética |
 
-El catálogo modela **201 indicadores** en 18 secciones; con C y D desactivadas quedan **183 indicadores activos en 16 secciones** (8 de la categoría A y 8 de la B), que se procesan así:
+De los 201 indicadores que describe el manual (18 secciones), el catálogo del sistema implementa **183 indicadores en 16 secciones**; los 18 de las categorías C y D se excluyen (8 de la categoría A y 8 de la B), que se procesan así:
 
 | Tipo | Cantidad | Cómo se obtiene |
 |---|---|---|

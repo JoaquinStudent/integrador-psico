@@ -24,7 +24,7 @@ Corte: **28/10/2026**, rama `test`. Todas las cifras proceden de una corrida rea
 |---|---|
 | Pruebas de backend recogidas | **156** |
 | Pruebas de backend sin red ni base de datos | **70 de 70 pasan** |
-| Pruebas contra la base real (corrida completa del 28/10, antes de agregar las últimas pruebas sin red) | 83 pasan · 1 omitida · **9 fallan por dos pendientes de despliegue** (ver abajo), ninguna por regresión |
+| Pruebas contra la base real (corrida completa del 28/10, con la base reconstruida desde cero) | **156 pasan** · 1 omitida. En la primera corrida fallaron 2 por números viejos escritos en las pruebas (esperaban el catálogo de 201); se corrigieron |
 | Pruebas del frontend | 11 de 11 pasan |
 | Frontera hexagonal (`check-hexagon.sh`) | **OK**: el dominio no importa infraestructura |
 | Linter del backend (Ruff) | Sin errores en `src` y `tests` |
@@ -32,13 +32,13 @@ Corte: **28/10/2026**, rama `test`. Todas las cifras proceden de una corrida rea
 | Linter del frontend | 14 avisos de estilo, ningún error |
 | Vulnerabilidades de dependencias del frontend (`npm audit`, producción) | 0 |
 
-**Los 9 fallos son esperados y tienen dos causas** que dependen de aplicar scripts en la base de datos, no de defectos del código: (1) el *seed* que deja el catálogo en 183 indicadores todavía no se aplicó (1 prueba: la base tiene 201 activos); (2) la migración `0003` de la agenda y Google no se aplicó (8 pruebas: 6 de citas y 2 que comparan los modelos con la base).
+**La base se reconstruyó desde cero el 28/10** con los pasos de `sdd/database/desde-cero/` (esquema de 24 tablas, catálogo de 183 indicadores y migración de la agenda) y la verificación final dio `TODO OK`. Una corrida previa, con la base sin esos scripts aplicados, había dejado 9 pruebas en rojo por esa causa y ninguna por regresión del código.
 
 #### Resultados funcionales
 
 | Resultado | Valor |
 |---|---|
-| Indicadores del manual modelados / activos | 201 / **183** (23 automáticos, 20 semiautomáticos, 140 de verificación profesional) |
+| Indicadores del manual / implementados en el catálogo | 201 / **183** (23 automáticos, 20 semiautomáticos, 140 de verificación profesional) |
 | Métricas objetivas del trazo calculadas de forma determinista | 7 (área, emplazamiento, presión, tiempo total, latencia, pausas, borrados) |
 | Secciones del borrador de informe | 9; la 9 (*Conclusiones del profesional*) se entrega vacía |
 | Tablas del esquema, todas con RLS | 24 |
