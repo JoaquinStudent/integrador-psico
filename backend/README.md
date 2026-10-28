@@ -201,8 +201,8 @@ uv run alembic upgrade head      # aplica las pendientes
 - Si `alembic current` no devuelve ninguna revisión, la base no está registrada en Alembic: antes de
   `upgrade head`, registra la revisión en la que ya está (`alembic stamp <revisión>`), o aplicará desde la
   `0001` sobre tablas que ya existen.
-- Los scripts SQL equivalentes están en `sdd/database/` (`schema.sql`, `seed-catalog.sql` y
-  `migracion-0003-citas-google.sql`) para ejecutarlos desde el SQL Editor de Supabase.
+- Para armar o reparar la base **desde cero** con el SQL Editor de Supabase, sigue la guía numerada
+  `sdd/database/desde-cero/00-LEEME.md` (pasos 01 a 11). No ejecutes nada de `sdd/database/peligro/`: borra todas las tablas.
 - Un *downgrade* o una limpieza destructiva requieren una revisión aparte y confirmación explícita.
 
 ## Seguridad

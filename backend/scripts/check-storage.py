@@ -49,7 +49,7 @@ async def main() -> int:
     elif exists:
         print("   OK    existe")
     else:
-        print("   FALLO no existe — storage-policies.sql no se aplico")
+        print("   FALLO no existe — sdd/database/desde-cero/09-politicas-de-storage.sql no se aplico")
         failures.append("owns_storage_session no existe")
 
     # --- 2. Policies ---------------------------------------------------------
