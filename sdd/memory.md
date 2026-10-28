@@ -390,3 +390,23 @@ Ver `informe-sprints.md` para el detalle y el estado. Los que bloquean:
 | R-05 | La linea base de tiempos es irrecuperable si el centro adopta el sistema antes de medirla. Sin ella no hay Capitulo 4 |
 | R-07 | RNF-13 (canales privados de realtime) no se cumple, ver DT-026 |
 | R-08 | El rol de conexion tiene `BYPASSRLS`, ver DT-027 |
+
+### DT-036 — Agenda de citas y Google Calendar (SPEC-CAL-01)
+- **Decision:** citas propias (`appointments`) con sincronizacion **App → Google**, un solo sentido, permiso `calendar.events`. La cita existe aunque Google falle (`google_sync = error`).
+- **Privacidad:** el evento lleva solo las iniciales del paciente y un enlace a la app (regla pura en `domain/services/appointments.py`, con test). El nombre de un paciente de salud mental no debe vivir en servidores de Google.
+- **Sin cruces:** validacion en la app (mensaje claro) + `EXCLUDE USING gist` en la base (cubre la carrera). Las canceladas liberan el horario.
+- **Token:** refresh token cifrado con Fernet con una clave **propia y obligatoria** (`GOOGLE_TOKEN_KEY`); sin ella Google queda deshabilitado. Nada se deriva del secreto JWT de Supabase, y el `state` se firma con una clave derivada de la de cifrado (revision de seguridad del 28/10/2026). **OAuth en dos pasos:** el callback que abre Google solo redirige a la app con el codigo; `POST /integrations/google/complete` lo canjea **con la sesion del usuario** y exige que el `state` lo haya emitido ese mismo usuario (un `state` filtrado no sirve para vincular un calendario ajeno). Los ids que llegan por la URL (`?cita=`) se validan como UUID antes de usarse en una ruta. El callback OAuth no trae Bearer: la identidad sale de un `state` JWT firmado de 10 min con `uso=google-oauth`.
+- **Pendiente:** aplicar migracion `0003_citas_y_google` (exige extension `btree_gist`), probar OAuth real, publicar la app en Google Cloud (en modo "Prueba" el refresh token caduca a los 7 dias).
+
+### DT-037 — Auditoria de UX/UI en navegador (28/10/2026)
+- **Causa raiz de varios fallos visuales:** el CSS usaba 5 variables nunca definidas (`--color-action`, `--color-background`, `--radius-md`, `--text-secondary`, `--border`): fondos y botones invisibles (p. ej. "Generar informe" y "Guardar verificacion" en el analisis). Se definen como alias en `:root`.
+- **Datos:** "Ultima evaluacion" mostraba la fecha de registro del paciente; "Evaluaciones" contaba canceladas. Ahora son sesiones `completed` y `completed_at`.
+- **Flujo:** una sesion en `setup` (sin consentimiento) ya no abre la toma; el panel y la ficha mandaban toda sesion a la pantalla en vivo (ahora `accionDeSesion`); `alert()` reemplazados por `Toast`; ruta 404; un 500 del backend ya no se ve como "sin conexion" (handler con CORS).
+- **Rendimiento:** `GET /sessions` hacia 2 consultas por sesion (N+1): 6,7 s -> ~2,5 s con 11 sesiones. Queda ~1,2 s de latencia base por peticion contra la base remota (AUD-04).
+- **Pendiente declarado:** las notas del paciente viven en `localStorage` (no estan en la base).
+
+### DT-038 — Informe del Avance 3 en Markdown (28/10/2026)
+- **Ubicacion:** `entregas/avance-3/informe/` (00 a 07 + `anexos-charter-gantt-actualizado.md`); medicion en `entregas/avance-3/medicion/`.
+- **Criterio de redaccion:** no se afirma lo que no se midio. Se retiraron del Capitulo 2 la «mediana empirica de 60 min» y el rango esperado «15 a 25 min» (no tenian medicion); el Capitulo 4 deja la variable dependiente **sin cifras** y marca con ⚠️ lo pendiente.
+- **Hallazgo de coherencia:** RF-31 (sugerencia asistida) y RF-34 (motor configurable) quedan **parciales**: el modelo de lenguaje no propone los 20 semiautomaticos y las reglas de los 23 automaticos estan en codigo. RF-03 y RF-09 tambien parciales (Anexo 14: 28 verificados, 9 sin verificar, 4 parciales).
+- **Pendientes del equipo:** datos de la empresa y su vision/mision; referencias MINSA 2025a, Frank, Machover, Cockburn; regenerar el modelo fisico (24 tablas); capturas; corregir los `.xlsx` de Charter y Gantt; README y tags en GitHub; SUS; firma del centro; medicion real.
