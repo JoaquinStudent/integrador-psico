@@ -13,11 +13,13 @@ from __future__ import annotations
 
 import datetime as dt
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import delete, func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ....config.settings import get_settings
 from ....domain.model import (
     CONCLUSIONS_SECTION,
     ConsentSummary,
@@ -944,3 +946,140 @@ class ReportStore:
         report.validated_by = self._uid
         await self._s.flush()
         return report, sections
+
+
+# =============================================================================
+# Agenda y conexion con Google (SPEC-CAL-01)
+# =============================================================================
+
+
+class AppointmentStore:
+    def __init__(self, session: AsyncSession, user_id: UUID) -> None:
+        self._s = session
+        self._uid = user_id
+
+    def _consulta(self):
+        return (
+            select(m.Appointment, m.Patient.full_name, m.Test.code)
+            .join(m.Patient, m.Patient.id == m.Appointment.patient_id)
+            .join(m.Test, m.Test.id == m.Appointment.test_id)
+        )
+
+    async def listar(self, desde: dt.datetime | None, hasta: dt.datetime | None) -> list:
+        q = self._consulta().order_by(m.Appointment.starts_at)
+        if desde:
+            q = q.where(m.Appointment.ends_at > desde)
+        if hasta:
+            q = q.where(m.Appointment.starts_at < hasta)
+        return list((await self._s.execute(q)).all())
+
+    async def get(self, appointment_id: UUID):
+        fila = (
+            await self._s.execute(self._consulta().where(m.Appointment.id == appointment_id))
+        ).first()
+        if fila is None:
+            raise NotFound("cita")
+        return fila
+
+    async def _verificar_libre(self, ini: dt.datetime, fin: dt.datetime, excepto: UUID | None):
+        q = select(m.Appointment).where(
+            m.Appointment.status != "cancelled",
+            m.Appointment.starts_at < fin,
+            m.Appointment.ends_at > ini,
+        )
+        if excepto:
+            q = q.where(m.Appointment.id != excepto)
+        choque = (await self._s.execute(q.limit(1))).scalar_one_or_none()
+        if choque:
+            # Hora del centro, no UTC: el examinador no piensa en UTC.
+            zona = ZoneInfo(get_settings().calendar_timezone)
+            ini_l, fin_l = choque.starts_at.astimezone(zona), choque.ends_at.astimezone(zona)
+            raise Conflict(
+                f"ese horario se cruza con otra cita ({ini_l:%d/%m %H:%M}–{fin_l:%H:%M})"
+            )
+
+    async def crear(
+        self,
+        patient_id: UUID,
+        test_code: str,
+        ini: dt.datetime,
+        fin: dt.datetime,
+        notes: str | None,
+    ):
+        test = (
+            await self._s.execute(select(m.Test).where(m.Test.code == test_code))
+        ).scalar_one_or_none()
+        if test is None or not test.is_available:
+            raise Conflict(f"el test {test_code} no esta disponible")
+        paciente = await PatientStore(self._s, self._uid).get(patient_id)
+        if not paciente.is_active:
+            raise Conflict("el paciente esta inactivo; hay que reactivarlo primero")
+        await self._verificar_libre(ini, fin, None)
+        row = m.Appointment(
+            patient_id=patient_id, test_id=test.id, created_by=self._uid,
+            starts_at=ini, ends_at=fin, notes=notes,
+        )
+        self._s.add(row)
+        await self._s.flush()
+        return await self.get(row.id)
+
+    async def reprogramar(self, appointment_id: UUID, data: dict):
+        fila = await self.get(appointment_id)
+        cita = fila[0]
+        if cita.status != "scheduled":
+            raise Conflict("solo se puede modificar una cita pendiente")
+        ini = data.get("starts_at", cita.starts_at)
+        fin = data.get("ends_at", cita.ends_at)
+        if fin <= ini:
+            raise Conflict("la hora de fin debe ser posterior al inicio")
+        if ini != cita.starts_at or fin != cita.ends_at:
+            await self._verificar_libre(ini, fin, cita.id)
+        for campo, valor in data.items():
+            setattr(cita, campo, valor)
+        await self._s.flush()
+        return await self.get(appointment_id)
+
+    async def cancelar(self, appointment_id: UUID):
+        fila = await self.get(appointment_id)
+        if fila[0].status != "scheduled":
+            raise Conflict("solo se puede cancelar una cita pendiente")
+        fila[0].status = "cancelled"
+        await self._s.flush()
+        return fila
+
+    async def iniciar(self, appointment_id: UUID):
+        """Convierte la cita en sesion (setup) en la misma transaccion."""
+        fila = await self.get(appointment_id)
+        cita, _, test_code = fila
+        if cita.status != "scheduled":
+            raise Conflict("la cita ya no esta pendiente")
+        sesion = await SessionStore(self._s, self._uid).create(
+            cita.patient_id, test_code, cita.notes
+        )
+        cita.status = "started"
+        cita.session_id = sesion.id
+        await self._s.flush()
+        return fila
+
+
+class GoogleConnectionStore:
+    def __init__(self, session: AsyncSession, user_id: UUID) -> None:
+        self._s = session
+        self._uid = user_id
+
+    async def get(self) -> m.GoogleConnection | None:
+        return await self._s.get(m.GoogleConnection, self._uid)
+
+    async def save(self, refresh_cifrado: str) -> None:
+        fila = await self.get()
+        if fila:
+            fila.refresh_token = refresh_cifrado
+            fila.connected_at = dt.datetime.now(dt.UTC)
+        else:
+            self._s.add(m.GoogleConnection(user_id=self._uid, refresh_token=refresh_cifrado))
+        await self._s.flush()
+
+    async def remove(self) -> None:
+        await self._s.execute(
+            delete(m.GoogleConnection).where(m.GoogleConnection.user_id == self._uid)
+        )

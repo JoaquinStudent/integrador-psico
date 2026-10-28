@@ -383,3 +383,69 @@ class ProfilePatch(Model):
         if v is not None and not v.strip():
             raise ValueError("el nombre no puede quedar vacio")
         return v.strip() if v else v
+
+
+# =============================================================================
+# Agenda y Google Calendar (SPEC-CAL-01)
+# =============================================================================
+
+
+class AppointmentIn(Model):
+    patient_id: UUID
+    test_code: str = "PBLL"
+    starts_at: dt.datetime
+    ends_at: dt.datetime
+    notes: str | None = Field(default=None, max_length=500)
+
+    @field_validator("starts_at", "ends_at")
+    @classmethod
+    def _con_zona(cls, v: dt.datetime) -> dt.datetime:
+        if v.tzinfo is None:
+            raise ValueError("la fecha debe incluir zona horaria")
+        return v
+
+    @field_validator("ends_at")
+    @classmethod
+    def _fin_posterior(cls, v: dt.datetime, info) -> dt.datetime:
+        ini = info.data.get("starts_at")
+        if ini and not ini < v <= ini + dt.timedelta(hours=8):
+            raise ValueError("la cita debe terminar despues de empezar y durar maximo 8 horas")
+        return v
+
+
+class AppointmentPatch(Model):
+    starts_at: dt.datetime | None = None
+    ends_at: dt.datetime | None = None
+    notes: str | None = Field(default=None, max_length=500)
+
+    @field_validator("starts_at", "ends_at")
+    @classmethod
+    def _con_zona(cls, v: dt.datetime | None) -> dt.datetime | None:
+        if v is not None and v.tzinfo is None:
+            raise ValueError("la fecha debe incluir zona horaria")
+        return v
+
+
+class AppointmentOut(Model):
+    id: UUID
+    patient_id: UUID
+    patient_name: str
+    test_code: str
+    starts_at: dt.datetime
+    ends_at: dt.datetime
+    status: Literal["scheduled", "started", "cancelled"]
+    notes: str | None
+    session_id: UUID | None
+    en_google: bool
+    # Solo en las respuestas que escriben: off = sin Google conectado.
+    google_sync: Literal["off", "ok", "error"] | None = None
+
+
+class GoogleStatusOut(Model):
+    configured: bool
+    connected: bool
+    connected_at: dt.datetime | None = None
+
+
+class GoogleConnectOut(Model):
+    url: str

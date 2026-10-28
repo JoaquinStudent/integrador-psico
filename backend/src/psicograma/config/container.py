@@ -125,3 +125,26 @@ def profile_store(session: DbSession, user_id: CurrentUser) -> ProfileStore:
 
 
 Profiles = Annotated[ProfileStore, Depends(profile_store)]
+
+
+# --- Agenda y Google Calendar --------------------------------------------------
+from ..adapter.outbound.google_calendar import GoogleCalendar  # noqa: E402
+from ..adapter.outbound.postgres.store import AppointmentStore, GoogleConnectionStore  # noqa: E402
+from .settings import get_settings  # noqa: E402
+
+
+def appointment_store(session: DbSession, user_id: CurrentUser) -> AppointmentStore:
+    return AppointmentStore(session, user_id)
+
+
+def google_connection_store(session: DbSession, user_id: CurrentUser) -> GoogleConnectionStore:
+    return GoogleConnectionStore(session, user_id)
+
+
+def google_calendar() -> GoogleCalendar:
+    return GoogleCalendar(get_settings())
+
+
+Appointments = Annotated[AppointmentStore, Depends(appointment_store)]
+GoogleConnections = Annotated[GoogleConnectionStore, Depends(google_connection_store)]
+Calendar = Annotated[GoogleCalendar, Depends(google_calendar)]

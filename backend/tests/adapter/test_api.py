@@ -524,3 +524,78 @@ def test_audio_sin_token_es_401():
         "/api/v1/recordings/00000000-0000-0000-0000-000000000000/audio"
     )
     assert r.status_code == 401
+
+
+# --- Agenda de citas (SPEC-CAL-01). Requiere aplicada la migracion 0003 ----------
+
+
+def _cita(cliente, pid, hora=10, dur=60, dia=None):
+    """Cada test usa un dia propio: el examinador A es compartido por toda la corrida."""
+    import datetime as dt
+    import random
+
+    dia = dia or dt.date(2040, 1, 1) + dt.timedelta(days=random.randrange(3000))
+    ini = dt.datetime(dia.year, dia.month, dia.day, hora, tzinfo=dt.UTC)
+    return cliente.post(
+        "/api/v1/appointments",
+        json={
+            "patient_id": pid,
+            "starts_at": ini.isoformat(),
+            "ends_at": (ini + dt.timedelta(minutes=dur)).isoformat(),
+        },
+    ), dia
+
+
+def _pid(cliente):
+    return cliente.post("/api/v1/patients", json=_paciente()).json()["id"]
+
+
+def test_agendar_una_cita(cliente_a):
+    r, _ = _cita(cliente_a, _pid(cliente_a))
+    assert r.status_code == 201, r.text
+    assert r.json()["status"] == "scheduled"
+    assert r.json()["google_sync"] == "off"
+
+
+def test_los_cruces_dan_409_y_el_limite_se_acepta(cliente_a):
+    pid = _pid(cliente_a)
+    r, dia = _cita(cliente_a, pid, hora=10)
+    assert r.status_code == 201
+    assert _cita(cliente_a, pid, hora=10, dia=dia)[0].status_code == 409
+    assert _cita(cliente_a, pid, hora=11, dia=dia)[0].status_code == 201  # contigua
+
+
+def test_cancelar_libera_el_horario(cliente_a):
+    pid = _pid(cliente_a)
+    r, dia = _cita(cliente_a, pid)
+    cid = r.json()["id"]
+    assert cliente_a.post(f"/api/v1/appointments/{cid}/cancel").json()["status"] == "cancelled"
+    assert _cita(cliente_a, pid, dia=dia)[0].status_code == 201
+
+
+def test_fin_antes_del_inicio_es_422(cliente_a):
+    r, _ = _cita(cliente_a, _pid(cliente_a), dur=-30)
+    assert r.status_code == 422
+
+
+def test_iniciar_crea_la_sesion_una_sola_vez(cliente_a):
+    r, _ = _cita(cliente_a, _pid(cliente_a))
+    cid = r.json()["id"]
+    ini = cliente_a.post(f"/api/v1/appointments/{cid}/start")
+    assert ini.status_code == 200 and ini.json()["status"] == "started"
+    sid = ini.json()["session_id"]
+    assert cliente_a.get(f"/api/v1/sessions/{sid}").json()["status"] == "setup"
+    assert cliente_a.post(f"/api/v1/appointments/{cid}/start").status_code == 409
+
+
+def test_cita_de_otro_examinador_es_404(cliente_a, cliente_b):
+    r, _ = _cita(cliente_a, _pid(cliente_a))
+    cid = r.json()["id"]
+    assert cliente_b.post(f"/api/v1/appointments/{cid}/cancel").status_code == 404
+    assert cliente_b.post(f"/api/v1/appointments/{cid}/start").status_code == 404
+    assert cliente_b.patch(f"/api/v1/appointments/{cid}", json={"notes": "x"}).status_code == 404
+
+
+def test_google_sin_conectar(cliente_a):
+    r = cliente_a.get("/api/v1/integrations/google")
+    assert r.status_code == 200 and r.json()["connected"] is False

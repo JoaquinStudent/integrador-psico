@@ -36,6 +36,20 @@ uv run pytest                    # dominio, sin BD ni red
 uv run ruff check src tests
 ```
 
+## Conectar Google Calendar (SPEC-CAL-01)
+
+Opcional: sin estas variables la agenda de citas funciona igual, solo no se refleja en Google.
+
+1. Google Cloud Console: proyecto propio, habilitar **Google Calendar API**, configurar la pantalla
+   de consentimiento con el permiso `.../auth/calendar.events` y crear un **ID de cliente OAuth
+   (aplicacion web)** con el URI de redireccion `http://localhost:8000/api/v1/integrations/google/callback`.
+2. En `.env`: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` (identico al
+   registrado) y `GOOGLE_TOKEN_KEY` (**obligatoria**: clave Fernet propia, ver `.env.example`; sin ella Google queda deshabilitado).
+3. Aplicar la migracion `0003_citas_y_google` y reiniciar el backend.
+4. En la app: **Ajustes → Conectar Google Calendar**.
+
+El evento lleva solo las iniciales del paciente, nunca nombre ni documento.
+
 ## Migraciones
 
 Alembic usa la conexion directa de Postgres (`5432`), no el transaction pooler (`6543`).
