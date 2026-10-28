@@ -7,8 +7,5 @@ dist-ssr
 *.log
 .vite
 
-# Entregables en Word/PowerPoint: se entregan por la plataforma del curso, no se versionan
-*.docx
-*.pptx
-entregas/avance-2/Entrega-avance-2/
-entregas/avance-2/correccion-avance-2/
+# Material de referencia de terceros: no se sube
+referencia-ink-playground/
