@@ -1,6 +1,6 @@
 # Informe de Avance — Psicograma
 
-> Centro Psicologico Ser Integral · **Corte: 30/09/2026**
+> Centro Psicologico Ser Integral · **Corte: 28/10/2026**
 > Estructura: 6 sprints + 1 auditoria, en 3 fases · Ventana del proyecto: 10/08/2026 – 11/12/2026
 
 ---
@@ -9,11 +9,11 @@
 
 | Metrica | Valor |
 |---|---|
-| Tareas completadas | 30 / 47 |
-| Avance global | 64 % |
+| Tareas completas o implementadas | 37 / 47 (31 completas + 6 del Sprint 6 implementadas, aun sin recorrido completo en navegador) |
+| Avance global | 79 % (por tareas; el Gantt, por actividades, marca 77,4 %: ver `entregas/avance-3/informe/anexos-charter-gantt-actualizado.md`) |
 | Sprints cerrados | Sprint 1 (4/5) · Sprint 2 · Sprint 3 · Sprint 4 |
-| Sprint en curso | **Sprint 5 — Rearquitectura** (3/7) |
-| Pendientes | Sprint 6 (informe y PDF) · Auditoria del sistema |
+| Sprint en curso | **Sprint 5 — Rearquitectura** (3/7 completas + 4 parciales) · extension de **Agenda y Google Calendar** (SPEC-CAL-01) |
+| Pendientes | Auditoria del sistema (en curso) · medicion del tiempo (sin datos) · despliegue |
 | Diferidas | 1 (despliegue) |
 | Requerimientos especificados | 41 RF · 30 RNF (IEEE 830) |
 
@@ -27,7 +27,7 @@
 | F1-02 | Reunion inicial y relevamiento del proceso manual | DONE | |
 | F1-03 | Requerimientos funcionales y no funcionales (SRS IEEE 830) | DONE | 41 RF + 30 RNF, trazados a los 5 objetivos especificos |
 | F1-04 | Arquitectura hexagonal y esquema normalizado a 2FN | DONE | 22 tablas, frontera de dominio verificable |
-| F1-05 | Diagramas: BPM, casos de uso, clases, secuencia, modelo de datos | **EN PROCESO** | 20 %. Es la brecha principal de APF2 |
+| F1-05 | Diagramas: BPM, casos de uso, clases, secuencia, modelo de datos | **DONE** | Escritos en Mermaid en `entregas/avance-3/informe/` (casos de uso, BPM, secuencia, clases, modelo de datos, arquitectura, despliegue y estados). Falta exportarlos a imagen |
 
 ---
 
@@ -84,7 +84,7 @@ navegador deje de tener credenciales de base de datos (DT-009 a DT-012).
 
 | ID | Tarea | Estado | Notas |
 |---|---|---|---|
-| S5-01 | Esquema normalizado a 2FN | DONE | 22 tablas, RLS, indices en todas las FK. **Sin aplicar aun** |
+| S5-01 | Esquema normalizado a 2FN | DONE | 22 tablas, RLS, indices en todas las FK. Aplicado en la base; la migracion 0003 agrega 2 tablas (agenda), **pendiente de aplicar** |
 | S5-02 | Catalogo del manual en base de datos | DONE | Generador verificable; falla si el catalogo es inconsistente |
 | S5-03 | Nucleo de dominio, puertos y servicios | DONE | 14 tests sin base de datos ni red; corrige E-002 |
 | S5-04 | Repositorios y propagacion de identidad | **EN PROCESO** | Repositorios y stores conectados; falta validacion contra entorno real y cierre RLS |
@@ -111,10 +111,10 @@ Verificacion de que lo construido cumple lo especificado. No construye funcional
 
 | ID | Ambito | Verifica | Estado |
 |---|---|---|---|
-| AUD-01 | Funcional | Los 41 RF, con evidencia por requerimiento | BACKLOG |
-| AUD-02 | Seguridad | RLS efectiva, sin credenciales en el cliente, canales privados, cifrado | BACKLOG |
+| AUD-01 | Funcional | Los 41 RF, con evidencia por requerimiento | EN PROCESO — tabla de cobertura en el Anexo 14 del informe |
+| AUD-02 | Seguridad | RLS efectiva, sin credenciales en el cliente, canales privados, cifrado | EN PROCESO — revision del 28/10 (R-07 y R-08 siguen abiertos) |
 | AUD-03 | Etica y trazabilidad | Ninguna sugerencia sin validar llega al informe; seccion 9 solo como sugerencia revisada | BACKLOG |
-| AUD-04 | Rendimiento | Latencia del espejo, fluidez del lienzo, tiempos de respuesta | BACKLOG |
+| AUD-04 | Rendimiento | Latencia del espejo, fluidez del lienzo, tiempos de respuesta | EN PROCESO — latencia de la API medida; falta la del espejo |
 | AUD-05 | Investigacion | **Medicion pre/post del tiempo de elaboracion del informe** | BACKLOG |
 
 AUD-05 es el unico que produce el dato del Capitulo 4. Sin el no hay resultados que sostengan la
@@ -146,13 +146,13 @@ procedimiento manual.
 |---|---|---|
 | R-01 | El Capitulo 1 declaraba 149 indicadores y excluia C y D; el motor cargaba 201 en 4 categorias | **CERRADO** — DT-033. Falta corregir las cifras del Capitulo 1 (183: 23 auto + 20 semi + 140 manual) |
 | R-02 | Sin linea base de tiempos, el Capitulo 4 no puede presentar resultados | **ABIERTO** — depende de AUD-05 |
-| R-03 | Los diagramas BPM, de clases y de entidad-relacion son la brecha principal de la rubrica | **ABIERTO** — F1-05 al 20 % |
-| R-04 | El esquema v2 esta escrito pero no aplicado; bloquea S5-04 en adelante | **ABIERTO** — requiere decision sobre migracion de datos |
+| R-03 | Los diagramas BPM, de clases y de entidad-relacion son la brecha principal de la rubrica | **CERRADO** — diagramas escritos (falta exportarlos a imagen para el Word) |
+| R-04 | El esquema v2 esta escrito pero no aplicado; bloquea S5-04 en adelante | **CERRADO** — v2 aplicado; queda la migracion 0003 (agenda) |
 | R-05 | **La linea base de tiempos es irrecuperable si el centro adopta el sistema antes de medirla.** Sin ella no hay Capitulo 4 | **ABIERTO** — la recoleccion arranca ya, no en noviembre (DT-017) |
 | R-06 | Falta `patients.anonymized_at` en el esquema: sin ese campo, la supresion a solicitud (RNF-16) no se puede verificar | **ABIERTO** — revision de Alembic en SPEC-S6-05 |
 | R-07 | **RNF-13 no se cumple**: el canal de realtime no es privado. El paciente no tiene cuenta, asi que no hay token que emitirle sin habilitar login anonimo | **ABIERTO** — DT-026. El canal no transporta datos persistidos, pero hay que reportarlo asi en `SPEC-AUD-02` |
 | R-08 | El rol de conexion del backend tiene `BYPASSRLS`. Dentro de `session_for()` RLS si aplica y esta probado; el riesgo es un camino que se olvide de usarlo | **ABIERTO** — DT-027. Criterio 3 de `SPEC-S5-04` sin cumplir; se aplica el rol dedicado despues de la demo |
-| R-09 | La app esta rota: 22 llamadas a tablas de la v1 en 8 archivos del frontend, y el build **no** lo detecta | **ABIERTO** — E-003. Es el trabajo inmediato |
+| R-09 | La app esta rota: 22 llamadas a tablas de la v1 en 8 archivos del frontend, y el build **no** lo detecta | **CERRADO** — E-003 resuelto: el frontend ya no consulta tablas; revisado en navegador el 28/10 |
 | R-10 | La suite de tests tarda 6m20s contra la base remota y aparece contencion: `test_finalizar_es_idempotente` fallo en la corrida completa y pasa aislado | **ABIERTO** — flake, no regresion. Si molesta, la salida es un fixture de datos compartido, que a cambio introduce contaminacion entre tests |
 
 ---
