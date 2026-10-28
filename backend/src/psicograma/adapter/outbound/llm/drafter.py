@@ -15,7 +15,7 @@ import logging
 import httpx
 
 from ....config.settings import get_settings
-from .prompts import SISTEMA, usuario
+from .prompts import SISTEMA, SISTEMA_RECOMENDACIONES, usuario
 
 logger = logging.getLogger("psicograma.llm")
 
@@ -50,14 +50,22 @@ class OpenRouterDrafter:
         return bool(self._key)
 
     async def draft_section(self, title: str, facts: str) -> str:
+        return await self._pedir(SISTEMA, title, usuario(title, facts))
+
+    async def draft_recommendations(self, facts: str) -> str:
+        """Sugerencia para la seccion 9. Prompt propio: puede orientar, no concluir."""
+        titulo = "Recomendaciones sugeridas"
+        return await self._pedir(SISTEMA_RECOMENDACIONES, titulo, usuario(titulo, facts))
+
+    async def _pedir(self, sistema: str, title: str, mensaje: str) -> str:
         if not self._key:
             raise LlmNoDisponible("OPENROUTER_API_KEY no esta configurada")
 
         cuerpo = {
             "model": self._model,
             "messages": [
-                {"role": "system", "content": SISTEMA},
-                {"role": "user", "content": usuario(title, facts)},
+                {"role": "system", "content": sistema},
+                {"role": "user", "content": mensaje},
             ],
             # Temperatura baja: en un informe clinico interesa que dos generaciones
             # sobre los mismos datos digan lo mismo, no que suenen creativas.

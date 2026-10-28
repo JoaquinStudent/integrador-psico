@@ -204,7 +204,7 @@ def _hechos_metricas(m: DrawingMetrics) -> str:
     )
 
 
-def _hechos_indicadores(validados: list[ValidatedIndicator]) -> str:
+def _lista_validados(validados: list[ValidatedIndicator]) -> str:
     """Solo indicadores validados, cada uno con su cita al manual.
 
     Esta es la regla dura: el modelo nunca recibe sugerencias pendientes ni el
@@ -218,13 +218,38 @@ def _hechos_indicadores(validados: list[ValidatedIndicator]) -> str:
         if v.evidence:
             linea += f" (medición: {v.evidence})"
         lineas.append(linea)
+    return "Indicadores validados por el profesional:\n" + "\n".join(lineas)
 
+
+def _hechos_indicadores(validados: list[ValidatedIndicator]) -> str:
     return (
-        "Indicadores validados por el profesional:\n"
-        + "\n".join(lineas)
+        _lista_validados(validados)
         + "\n\nRedacte estos indicadores en prosa clínica. Cada afirmación debe citar la "
         "sección del manual que la origina. No agregue indicadores que no estén en la "
         "lista, no formule diagnósticos y no extraiga conclusiones."
+    )
+
+
+def hechos_recomendaciones(ctx: ReportContext) -> str | None:
+    """Material para que el modelo SUGIERA recomendaciones en la seccion 9.
+
+    `None` si no hay indicadores validados: sin ellos no hay nada sobre lo que
+    sugerir, y la 9 sale vacia como siempre. Es el mismo candado de las secciones 7
+    y 8, y se prueba sin mockear nada.
+
+    El resultado nunca se escribe como conclusion: `compose_report` sigue entregando
+    la 9 vacia, y es el caso de aplicacion el que la rellena con una sugerencia
+    marcada como generada, que el profesional debe revisar antes de validar.
+    """
+    if not ctx.validated:
+        return None
+    return (
+        _lista_validados(list(ctx.validated))
+        + "\n\nPropón recomendaciones generales de orientación para el profesional "
+        "(por ejemplo, seguimiento, reevaluación o aspectos a explorar en entrevista), "
+        "formuladas como sugerencia y apoyadas en los indicadores de la lista. No "
+        "formule diagnósticos, no indique tratamientos ni medicación y no agregue "
+        "indicadores que no estén en la lista."
     )
 
 

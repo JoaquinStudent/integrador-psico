@@ -192,18 +192,20 @@ y siempre como `status='suggestion'`. Ninguna sugerencia entra al informe sin va
 | 6 | Observaciones conductuales | Observaciones + marcas + transcripcion | Si |
 | 7 | Indicadores de recursos expresivos (A) | Solo `session_indicators` con `status='validated'` | Si |
 | 8 | Indicadores de contenido (B) | Solo `session_indicators` con `status='validated'` | Si |
-| 9 | Conclusiones del profesional | **Se entrega vacia** | No |
+| 9 | Conclusiones del profesional | **Sugerencia de recomendaciones**, marcada y sin validar (DT-034). Vacia si no hay indicadores validados | Si |
 
-**Solo 4 de 9 secciones usan LLM.** Las otras 5 son plantillas deterministas.
+**Solo 4 de 9 secciones usan LLM** (5, 7, 8 y la sugerencia de la 9). Las otras 5 son plantillas deterministas.
 
 **Reglas duras del generador**, no negociables:
 
 1. El prompt recibe **unicamente** indicadores con `status='validated'`. Nunca sugerencias
    pendientes, nunca el catalogo completo.
 2. Cada parrafo de las secciones 7 y 8 cita la seccion del manual que lo origina.
-3. La seccion 9 se entrega vacia. La conclusion diagnostica la escribe el psicologo: es la linea que
-   el Capitulo 1 del proyecto declara y defiende ("no emite diagnosticos ni sustituye el juicio
-   clinico").
+3. La seccion 9 solo lleva una **sugerencia** de orientacion (seguimiento, reevaluacion, derivacion si el
+   profesional lo considera), con prompt propio que prohibe diagnosticar, tratar y medicar. Llega con
+   `is_ai_generated=true` y `edited_by_examiner=false`, y la validacion del informe responde 409 hasta
+   que el profesional la guarde. La conclusion y cualquier diagnostico siguen siendo suyos: es la linea
+   que el Capitulo 1 declara y defiende ("no emite diagnosticos ni sustituye el juicio clinico").
 4. Con cero indicadores validados, las secciones 7 y 8 salen vacias. No se rellenan.
 
 ### Salud

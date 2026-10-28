@@ -3,15 +3,18 @@
 from __future__ import annotations
 
 import html
+import logging
 from uuid import UUID
 
 from fastapi import APIRouter, Query, Response, status
 
-from .....adapter.outbound.llm.drafter import build_drafter, draft_all
+from .....adapter.outbound.llm.drafter import LlmNoDisponible, build_drafter, draft_all
 from .....config.container import Reports
-from .....domain.services.compose_report import compose_report
+from .....domain.model import CONCLUSIONS_SECTION
+from .....domain.services.compose_report import compose_report, hechos_recomendaciones
 from ..schemas import ReportOut, ReportSectionOut, ReportSectionPatch
 
+logger = logging.getLogger("psicograma")
 router = APIRouter(prefix="/reports", tags=["informes"])
 session_router = APIRouter(prefix="/sessions", tags=["informes"])
 
@@ -87,6 +90,22 @@ async def generate_report(session_id: UUID, reports: Reports) -> ReportOut:
         "is_ai_generated": request.section_number in redactadas,
         "edited_by_examiner": False,
     } for request in composed.to_draft)
+
+    # Seccion 9: la IA solo SUGIERE. Llega marcada como generada y sin editar, y
+    # `ReportStore.validate` no deja firmar el informe hasta que el profesional la
+    # revise. Sin indicadores validados no hay material y la 9 sale vacia.
+    hechos9 = hechos_recomendaciones(context)
+    if hechos9:
+        try:
+            sugerencia = await drafter.draft_recommendations(hechos9)
+        except LlmNoDisponible as exc:
+            logger.info("recomendaciones sin redactar: %s", exc)
+            fallidas.append(CONCLUSIONS_SECTION)
+        else:
+            for item in sections:
+                if item["section_number"] == CONCLUSIONS_SECTION:
+                    item["content"] = sugerencia
+                    item["is_ai_generated"] = True
 
     report, rows = await reports.create(session_id, sections)
     _, patient, _ = await reports.get(report.id)

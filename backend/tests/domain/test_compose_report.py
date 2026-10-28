@@ -24,6 +24,7 @@ from psicograma.domain.model import (
 from psicograma.domain.services.compose_report import (
     compose_report,
     edad_en_anios_y_meses,
+    hechos_recomendaciones,
 )
 
 HOY = dt.date(2024, 5, 24)
@@ -176,6 +177,23 @@ def test_el_prompt_prohibe_diagnosticar():
     facts = pedido(informe, 7).facts.lower()
     assert "no formule diagnósticos" in facts
     assert "no agregue indicadores" in facts
+
+
+def test_sin_indicadores_validados_no_hay_material_para_recomendar():
+    assert hechos_recomendaciones(contexto()) is None
+    assert hechos_recomendaciones(contexto(validated=())) is None
+
+
+def test_el_material_de_recomendaciones_parte_solo_de_lo_validado_y_cita_el_manual():
+    hechos = hechos_recomendaciones(contexto(validated=(indicador("DIM-01", "A"),)))
+    assert "DIM-01" in hechos and "sección A-1" in hechos
+
+
+def test_el_material_de_recomendaciones_prohibe_diagnosticar_y_tratar():
+    hechos = hechos_recomendaciones(contexto(validated=(indicador("DIM-01", "A"),))).lower()
+    assert "no formule diagnósticos" in hechos
+    assert "medicación" in hechos
+    assert "sugerencia" in hechos
 
 
 # =============================================================================

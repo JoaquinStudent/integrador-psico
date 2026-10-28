@@ -32,12 +32,14 @@ AND no contienen texto interpretativo de ningun tipo
 AND ninguna de las 12 sugerencias aparece en el documento
 ```
 
-### Escenario 2: La seccion 9 nunca se genera
+### Escenario 2: La seccion 9 es una sugerencia, nunca una conclusion (DT-034)
 ```
 GIVEN diez informes generados de sesiones distintas
 WHEN se revisa la seccion 9 de cada uno
-THEN en los diez llega vacia
-AND en ninguno el sistema escribio conclusiones
+THEN llega vacia si no hay indicadores validados
+AND si los hay, llega como sugerencia marcada is_ai_generated, sin edited_by_examiner
+AND ninguna contiene diagnosticos, tratamientos ni medicacion
+AND el informe no se puede validar hasta que el profesional la guarde
 ```
 
 ### Escenario 3: Ninguna sugerencia entra sin validacion

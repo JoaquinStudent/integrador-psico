@@ -401,6 +401,9 @@ async def test_generar_informe_deja_las_nueve_secciones(
         async def draft_section(self, title: str, facts: str) -> str:
             return f"prosa de prueba para {title}"
 
+        async def draft_recommendations(self, facts: str) -> str:
+            return "Se sugiere seguimiento. (sección A-1)"
+
     monkeypatch.setattr(router_mod, "build_drafter", Redactor)
 
     out = await router_mod.generate_report(sid, ReportStore(db_a, a.id))
@@ -409,9 +412,12 @@ async def test_generar_informe_deja_las_nueve_secciones(
     assert out.pending_sections == []
     assert out.llm_available is True
 
-    # La 9 vacia y la 5/7/8 con contenido: es el reparto que define el sprint.
+    # La 5/7/8 con prosa y la 9 con una SUGERENCIA marcada como generada: el
+    # profesional la revisa, la edita o la borra. Sin validados no habria nada.
     por_numero = {s.section_number: s for s in out.sections}
-    assert por_numero[9].content == ""
+    assert por_numero[9].content.startswith("Se sugiere")
+    assert por_numero[9].is_ai_generated is True
+    assert por_numero[9].edited_by_examiner is False
     for n in (5, 7, 8):
         assert por_numero[n].content, f"la seccion {n} quedo vacia"
         assert por_numero[n].is_ai_generated is True
@@ -447,6 +453,9 @@ async def test_si_el_redactor_cae_la_cinco_sale_con_la_plantilla(
         async def draft_section(self, title: str, facts: str) -> str:
             raise LlmNoDisponible("sin clave")
 
+        async def draft_recommendations(self, facts: str) -> str:
+            raise LlmNoDisponible("sin clave")
+
     monkeypatch.setattr(router_mod, "build_drafter", Caido)
 
     out = await router_mod.generate_report(sid, ReportStore(db_a, a.id))
@@ -456,6 +465,53 @@ async def test_si_el_redactor_cae_la_cinco_sale_con_la_plantilla(
     assert out.pending_sections == [5]
     assert "142" in por_numero[5].content
     assert por_numero[5].is_ai_generated is False
+
+
+@pytest.mark.asyncio
+async def test_no_se_valida_con_la_sugerencia_sin_revisar(
+    db_a, sesion_con_dibujo, perfiles_creados, monkeypatch
+):
+    """Ninguna sugerencia sin validar llega al informe firmado (SPEC-AUD-03).
+
+    La 9 llega como sugerencia de la IA. Mientras el profesional no la haya
+    guardado —aunque sea sin cambios— validar el informe es 409.
+    """
+    from psicograma.adapter.inbound.http.routers import reports as router_mod
+    from psicograma.adapter.outbound.postgres.store import Conflict, ReportStore
+
+    a, _ = perfiles_creados
+    sid = sesion_con_dibujo["session_id"]
+    repo = PostgresSessionIndicatorRepository(db_a)
+    await repo.upsert_suggestions(sid, [
+        IndicatorSuggestion(code="DIM-01", confidence=Confidence.HIGH, evidence="e1"),
+    ])
+    await db_a.execute(
+        text(
+            "update session_indicators set status='validated', validated_by=:by, "
+            "validated_at=now() where session_id=:s"
+        ),
+        {"by": a.id, "s": sid},
+    )
+
+    class Redactor:
+        disponible = True
+
+        async def draft_section(self, title: str, facts: str) -> str:
+            return "prosa"
+
+        async def draft_recommendations(self, facts: str) -> str:
+            return "Se sugiere seguimiento."
+
+    monkeypatch.setattr(router_mod, "build_drafter", Redactor)
+    store = ReportStore(db_a, a.id)
+    out = await router_mod.generate_report(sid, store)
+
+    with pytest.raises(Conflict, match="sugerencia"):
+        await store.validate(out.id)
+
+    await store.update_section(out.id, 9, "Se sugiere seguimiento a los 6 meses.")
+    report, _ = await store.validate(out.id)
+    assert report.status == "validated"
 
 
 # =============================================================================

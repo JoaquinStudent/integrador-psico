@@ -921,6 +921,15 @@ class ReportStore:
             raise Conflict(
                 "las conclusiones del profesional (seccion 9) son obligatorias"
             )
+        # La 9 puede llegar como sugerencia de la IA. Firmar el informe con una
+        # sugerencia que nadie reviso rompe la regla de SPEC-AUD-03: ninguna
+        # sugerencia sin validar llega al informe. Guardar la seccion, aunque sea sin
+        # cambios, cuenta como revisarla.
+        if conclusiones.is_ai_generated and not conclusiones.edited_by_examiner:
+            raise Conflict(
+                "la seccion 9 es una sugerencia del sistema: revisala y guardala "
+                "(o escribe la tuya) antes de validar el informe"
+            )
         has_indicator = await self._s.scalar(
             select(func.count())
             .select_from(m.SessionIndicator)

@@ -45,3 +45,44 @@ async def test_sin_pedidos_no_llama_al_proveedor():
     falso = Falso()
     assert await draft_all(falso, []) == ({}, [])
     assert falso.llamadas == 0
+
+
+# =============================================================================
+# Recomendaciones (seccion 9): sugerencia, no conclusion
+# =============================================================================
+
+
+def test_el_prompt_de_recomendaciones_mantiene_los_limites_clinicos():
+    from psicograma.adapter.outbound.llm.prompts import SISTEMA_RECOMENDACIONES as p
+
+    t = p.lower()
+    assert "no emitas diagnósticos" in t
+    assert "medicación" in t
+    assert "sugerencia" in t
+    assert "profesional" in t
+
+
+@pytest.mark.asyncio
+async def test_draft_recommendations_usa_su_propio_prompt(monkeypatch):
+    import httpx
+
+    from psicograma.adapter.outbound.llm import drafter as mod
+    from psicograma.adapter.outbound.llm.prompts import SISTEMA, SISTEMA_RECOMENDACIONES
+
+    vistos = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        import json
+
+        vistos.append(json.loads(request.content)["messages"][0]["content"])
+        cuerpo = {"choices": [{"message": {"content": " Se sugiere seguimiento. "}}]}
+        return httpx.Response(200, json=cuerpo)
+
+    real = httpx.AsyncClient
+    monkeypatch.setattr(
+        mod.httpx, "AsyncClient", lambda **kw: real(transport=httpx.MockTransport(handler), **kw)
+    )
+    d = mod.OpenRouterDrafter("clave", "modelo")
+    assert await d.draft_recommendations("hechos") == "Se sugiere seguimiento."
+    await d.draft_section("Titulo", "hechos")
+    assert vistos == [SISTEMA_RECOMENDACIONES, SISTEMA]

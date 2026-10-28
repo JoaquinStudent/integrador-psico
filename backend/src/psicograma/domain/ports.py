@@ -67,6 +67,8 @@ class LlmDrafter(Protocol):
 
     async def draft_section(self, title: str, facts: str) -> str: ...
 
+    async def draft_recommendations(self, facts: str) -> str: ...
+
 
 @runtime_checkable
 class FileStore(Protocol):

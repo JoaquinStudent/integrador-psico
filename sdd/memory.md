@@ -319,6 +319,14 @@ Lo que evita la repeticion: dos tests que corren con una conexion **que salta RL
 
 ---
 
+### DT-034: La seccion 9 pasa de vacia a sugerencia revisable
+**Fecha:** 2026-10-28
+**Contexto:** La 9 salia vacia siempre (SPEC-AUD-03, escenario 2): el examinador no encontraba recomendaciones en el informe y tenia que escribir todo desde cero.
+**Decision:** La IA propone recomendaciones **de orientacion** en la 9 con un prompt propio (`SISTEMA_RECOMENDACIONES`): puede sugerir seguimiento, reevaluacion o derivacion si el profesional lo considera; no puede diagnosticar, tratar ni medicar, y cita el manual. El dominio sigue sin llamar al modelo: `compose_report` entrega la 9 vacia y `hechos_recomendaciones()` produce el material, o `None` si no hay indicadores validados.
+**Impacto:** La sugerencia llega con `is_ai_generated=true` y sin `edited_by_examiner`; `ReportStore.validate` responde 409 hasta que el profesional la guarde (aceptarla tal cual cuenta como revisarla). Asi se conserva la regla de SPEC-AUD-03: ninguna sugerencia sin validar llega al informe firmado. Si el modelo falla, la 9 queda vacia y se reporta en `pending_sections`.
+
+---
+
 ## Lecciones Aprendidas
 
 | ID | Sprint | Leccion |

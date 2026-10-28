@@ -113,7 +113,7 @@ Verificacion de que lo construido cumple lo especificado. No construye funcional
 |---|---|---|---|
 | AUD-01 | Funcional | Los 41 RF, con evidencia por requerimiento | BACKLOG |
 | AUD-02 | Seguridad | RLS efectiva, sin credenciales en el cliente, canales privados, cifrado | BACKLOG |
-| AUD-03 | Etica y trazabilidad | Ninguna sugerencia sin validar llega al informe; seccion 9 vacia | BACKLOG |
+| AUD-03 | Etica y trazabilidad | Ninguna sugerencia sin validar llega al informe; seccion 9 solo como sugerencia revisada | BACKLOG |
 | AUD-04 | Rendimiento | Latencia del espejo, fluidez del lienzo, tiempos de respuesta | BACKLOG |
 | AUD-05 | Investigacion | **Medicion pre/post del tiempo de elaboracion del informe** | BACKLOG |
 

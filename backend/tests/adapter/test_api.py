@@ -503,3 +503,24 @@ def test_el_panel_no_expone_pacientes_de_otro_examinador(cliente_a, cliente_b):
     sid = _sesion(cliente_a)
     recientes = cliente_b.get("/api/v1/dashboard/summary").json()["recent_sessions"]
     assert sid not in {s["id"] for s in recientes}
+
+
+# =============================================================================
+# Audio de la sesion: el examinador puede escucharlo
+# =============================================================================
+
+
+def test_audio_de_una_grabacion_inexistente_es_404(cliente_a):
+    r = cliente_a.get("/api/v1/recordings/00000000-0000-0000-0000-000000000000/audio")
+    assert r.status_code == 404
+
+
+def test_audio_sin_token_es_401():
+    from starlette.testclient import TestClient
+
+    from psicograma.adapter.inbound.http.app import create_app
+
+    r = TestClient(create_app()).get(
+        "/api/v1/recordings/00000000-0000-0000-0000-000000000000/audio"
+    )
+    assert r.status_code == 401
