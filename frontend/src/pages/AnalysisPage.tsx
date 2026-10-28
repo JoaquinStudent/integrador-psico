@@ -243,7 +243,7 @@ function ObjectiveTab({ metrics, onAnalyze, analyzing }: { metrics: Record<strin
         </tbody>
       </table>
       <button className="btn-analyze" onClick={onAnalyze} disabled={analyzing}>
-        {analyzing ? 'Analizando...' : 'Analizar con IA'}
+        {analyzing ? 'Analizando...' : 'Analizar dibujo'}
       </button>
     </div>
   )
@@ -258,14 +258,14 @@ function DetectedTab({ indicators, suggestions, onToggle, onReject }: {
   const all = [...suggestions, ...indicators.filter(i => i.status !== 'suggestion')]
 
   if (all.length === 0) {
-    return <div className="tab-empty">No hay indicadores detectados. Ejecuta el análisis con IA desde la pestaña "Medición objetiva".</div>
+    return <div className="tab-empty">No hay indicadores detectados. Ejecuta el análisis desde la pestaña «Medición objetiva».</div>
   }
 
   return (
     <div className="detected-tab">
       {suggestions.length > 0 && (
         <div className="suggestions-section">
-          <h3>Sugerencias IA</h3>
+          <h3>Sugerencias del sistema</h3>
           <p className="suggestion-hint">Acepta o rechaza cada sugerencia</p>
           {suggestions.map(s => (
             <div key={s.code} className="suggestion-row">
@@ -347,7 +347,7 @@ function VerificationTab({ indicators, expandedSections, onToggleSection, onTogg
                                 {isChecked && <span>✓</span>}
                               </div>
                               <span className="indicator-title">{si.title}</span>
-                              {isSuggestion && <span className="ai-badge">IA</span>}
+                              {isSuggestion && <span className="ai-badge">Sugerido</span>}
                             </div>
                             <button
                               className="info-btn"
