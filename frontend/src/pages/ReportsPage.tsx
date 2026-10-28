@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { Toast } from '../components/ui/Toast'
 import { getReport, listReports, saveReportSection, validateReport, downloadReportPdf } from '../lib/reports'
 import { mensajeDeError } from '../lib/apiClient'
 import { REPORT_STATUS, etiquetaDe, fechaHora } from '../lib/status'
@@ -91,6 +92,10 @@ function ReportEditor({ reportId }: { reportId: string }) {
   const [saving, setSaving] = useState<number | null>(null)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const pendientes = (useLocation().state as { pendientes?: string[] } | null)?.pendientes ?? []
+  const [aviso, setAviso] = useState<string | null>(
+    pendientes.length ? `El informe se generó, pero el asistente de redacción no respondió. Escribe a mano: ${pendientes.join(', ')}.` : null,
+  )
 
   useEffect(() => { getReport(reportId).then(value => { setReport(value); setSections(value.sections) }).catch(e => setError(mensajeDeError(e))) }, [reportId])
 
@@ -112,8 +117,10 @@ function ReportEditor({ reportId }: { reportId: string }) {
 
   const incomplete = sections.some(section => !section.content.trim())
   return <div>
+    <Toast message={aviso} tone="info" onClose={() => setAviso(null)} />
     <div className="page-header"><div><button className="btn-link" onClick={() => navigate('/informes')}>← Informes</button><h1 className="page-title">Informe psicológico</h1><p className="page-subtitle">{report.patient_name} · {report.status === 'validated' ? 'Validado' : 'Borrador'}</p></div>
       {report.status === 'validated' ? <button className="btn btn-primary" onClick={pdf}>Descargar PDF</button> : <button className="btn btn-primary" disabled={incomplete} onClick={validate}>Validar informe</button>}</div>
+    {incomplete && report.status === 'draft' && <p className="validate-hint">Para validar el informe, completa todas las secciones (las vacías están marcadas en el índice).</p>}
     {error && <div className="form-error">{error}</div>}{message && <div className="form-success">{message}</div>}
     <div className="report-layout"><nav className="report-index">{sections.map(section => <a key={section.section_number} href={`#seccion-${section.section_number}`} className={!section.content ? 'report-index-empty' : ''}>{section.section_number}. {section.title}</a>)}</nav>
       <main>{sections.map(section => <ReportSectionEditor key={section.section_number} section={section} readOnly={report.status === 'validated'} saving={saving === section.section_number} onSave={save} />)}</main></div>

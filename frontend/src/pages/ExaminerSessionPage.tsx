@@ -16,6 +16,7 @@ import { AudioRecorder } from '../components/session/AudioRecorder'
 import { createAudioRecorder, type AudioRecorderState } from '../lib/audioRecorder'
 import { faseDeSesion } from '../lib/protocoloPbll'
 import { api, mensajeDeError } from '../lib/apiClient'
+import { Toast } from '../components/ui/Toast'
 import type { Consent } from '../types/api'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 
@@ -40,6 +41,7 @@ export function ExaminerSessionPage() {
   const { id: sessionId } = useParams()
   const navigate = useNavigate()
   const { session, patient, loading } = useSession(sessionId)
+  const [aviso, setAviso] = useState<string | null>(null)
   // Mientras carga vale `false`: mejor no enganchar nada que enganchar y desenganchar.
   const enVivo = !!session && EN_VIVO.includes(session.status)
   const [strokes, setStrokes] = useState<Stroke[]>([])
@@ -190,7 +192,7 @@ export function ExaminerSessionPage() {
       await cancelSession(sessionId)
       navigate('/sesiones')
     } catch (e) {
-      alert(mensajeDeError(e))
+      setAviso(mensajeDeError(e))
     }
   }
 
@@ -244,6 +246,30 @@ export function ExaminerSessionPage() {
     )
   }
 
+  // Sin consentimiento firmado no se entrega la tablet. Una sesión que se queda en
+  // `setup` (el asistente se cerró antes de firmar) no debe poder continuar.
+  if (session.status === 'setup') {
+    return (
+      <div className="session-closed">
+        <div className="session-closed-card">
+          <span className="badge badge-amber">Por configurar</span>
+          <h1 className="page-title">{patient?.full_name ?? 'Paciente'}</h1>
+          <p className="page-subtitle">
+            Esta sesión no tiene el consentimiento firmado, así que no se puede iniciar la toma.
+          </p>
+          <div className="session-closed-actions">
+            <button className="btn btn-primary" onClick={() => navigate('/sesiones/nueva')}>
+              Crear sesión con consentimiento
+            </button>
+            <button className="btn btn-secondary" onClick={handleCancel}>Cancelar esta sesión</button>
+            <button className="btn btn-secondary" onClick={() => navigate('/sesiones')}>Volver a sesiones</button>
+          </div>
+        </div>
+        <Toast message={aviso} onClose={() => setAviso(null)} />
+      </div>
+    )
+  }
+
   const isFinished = tablet?.patientFinished === true
   // La hoja que el paciente esta usando (RF-17); sin dato, la que se le entrega.
   const orientacion = tablet?.orientation ?? 'horizontal'
@@ -256,6 +282,7 @@ export function ExaminerSessionPage() {
 
   return (
     <div className="examiner-session">
+      <Toast message={aviso} onClose={() => setAviso(null)} />
       <div className="session-bar">
         <div className="session-bar-left">
           <span className="session-patient-name">{patient?.full_name ?? '...'}</span>

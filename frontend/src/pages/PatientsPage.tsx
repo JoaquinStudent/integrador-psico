@@ -124,7 +124,7 @@ export function PatientsPage() {
                   </td>
                   <td className="mono">{p.document_number}</td>
                   <td>{getAge(p.birth_date)} años</td>
-                  <td className="text-secondary">{formatDate(p.registered_at)}</td>
+                  <td className="text-secondary">{p.last_evaluation_at ? formatDate(p.last_evaluation_at) : '—'}</td>
                   <td>{p.evaluation_count ?? 0}</td>
                   <td>
                     {p.has_pending_evaluation

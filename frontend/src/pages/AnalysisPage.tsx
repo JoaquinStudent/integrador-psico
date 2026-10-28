@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { Fragment, useState, useEffect, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { api } from '../lib/apiClient'
 import { PBLL_INDICATORS, INDICATOR_SECTIONS, INDICATOR_CATEGORIES } from '../data/pbll-indicators'
@@ -9,6 +9,7 @@ import { loadDrawingData, type DibujoGuardado } from '../lib/drawingData'
 import { CanvasMirror } from '../canvas/CanvasMirror'
 import { RecordingCard } from '../components/session/RecordingCard'
 import { useRecording } from '../lib/useRecording'
+import { Toast } from '../components/ui/Toast'
 
 type Tab = 'objective' | 'detected' | 'verification'
 
@@ -20,6 +21,7 @@ export function AnalysisPage() {
   const [metrics, setMetrics] = useState<Record<string, unknown> | null>(null)
   const [patient, setPatient] = useState<{ full_name: string } | null>(null)
   const [analyzing, setAnalyzing] = useState(false)
+  const [aviso, setAviso] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [dibujo, setDibujo] = useState<DibujoGuardado | null>(null)
   const [sinDibujo, setSinDibujo] = useState(false)
@@ -118,25 +120,21 @@ export function AnalysisPage() {
       // El informe se genera igual sin el redactor; avisar cuales quedaron en blanco
       // evita que el profesional crea que el sistema no midio nada.
       const pendientes = report.pending_sections ?? []
-      if (pendientes.length > 0) {
-        window.alert(
-          `El informe se generó, pero el asistente de redacción no respondió. ` +
-          `Escribe a mano estas secciones: ${pendientes.join(', ')}.`
-        )
-      }
-      navigate(`/informes/${report.id}`)
+      // El aviso viaja con la navegación: el editor lo muestra donde se escribe.
+      navigate(`/informes/${report.id}`, { state: { pendientes } })
     } catch (error) {
-      window.alert(error instanceof Error ? error.message : 'No se pudo generar el informe')
+      setAviso(error instanceof Error ? error.message : 'No se pudo generar el informe')
     }
   }
 
   return (
     <div className="analysis-page">
+      <Toast message={aviso} onClose={() => setAviso(null)} />
       <div className="analysis-header">
-        <h1>Analisis de Resultados - Persona bajo la lluvia</h1>
+        <h1>Análisis de resultados · Persona bajo la lluvia</h1>
         <div className="analysis-notice">
           <span className="notice-icon">i</span>
-          <p>Los siguientes indicadores requieren observacion directa del profesional. El sistema los presenta organizados para evitar omisiones, sin realizar deteccion automatica.</p>
+          <p>Los siguientes indicadores requieren observación directa del profesional. El sistema los presenta organizados para evitar omisiones, sin realizar detección automática.</p>
         </div>
       </div>
 
@@ -144,7 +142,7 @@ export function AnalysisPage() {
         {/* Left: Drawing */}
         <div className="analysis-drawing">
           <div className="drawing-meta">
-            <span className="drawing-label">Dibujo Original</span>
+            <span className="drawing-label">Dibujo original</span>
             {patient && <span className="drawing-patient">Paciente: {patient.full_name}</span>}
           </div>
           <div className="drawing-preview">
@@ -169,14 +167,14 @@ export function AnalysisPage() {
         <div className="analysis-panel">
           <div className="analysis-tabs">
             <button className={tab === 'objective' ? 'active' : ''} onClick={() => setTab('objective')}>
-              Medicion objetiva
+              Medición objetiva
             </button>
             <button className={tab === 'detected' ? 'active' : ''} onClick={() => setTab('detected')}>
               Elementos detectados
               {suggestions.length > 0 && <span className="tab-badge">{suggestions.length}</span>}
             </button>
             <button className={tab === 'verification' ? 'active' : ''} onClick={() => setTab('verification')}>
-              Verificacion profesional
+              Verificación profesional
             </button>
           </div>
 
@@ -208,7 +206,7 @@ export function AnalysisPage() {
               Generar informe
             </button>
             <button className="btn-save-verification" onClick={saveVerification} disabled={saving}>
-              {saving ? 'Guardando...' : 'Guardar verificacion'}
+              {saving ? 'Guardando...' : 'Guardar verificación'}
             </button>
           </div>
         </div>
@@ -218,18 +216,18 @@ export function AnalysisPage() {
 }
 
 function ObjectiveTab({ metrics, onAnalyze, analyzing }: { metrics: Record<string, unknown> | null; onAnalyze: () => void; analyzing: boolean }) {
-  if (!metrics) return <div className="tab-empty">No hay metricas para esta sesion.</div>
+  if (!metrics) return <div className="tab-empty">No hay métricas para esta sesión.</div>
 
   const m = metrics as Record<string, unknown>
   const rows = [
     { label: 'Tiempo total', value: m.total_time_ms ? `${Math.round((m.total_time_ms as number) / 1000)}s` : 'N/A' },
     { label: 'Latencia', value: m.latency_ms ? `${Math.round((m.latency_ms as number) / 1000)}s` : 'N/A' },
     { label: 'Trazos', value: String(m.stroke_count ?? 0) },
-    { label: 'Presion promedio', value: m.pressure_avg ? (m.pressure_avg as number).toFixed(2) : 'N/A' },
+    { label: 'Presión promedio', value: m.pressure_avg ? (m.pressure_avg as number).toFixed(2) : 'N/A' },
     { label: 'Pausas (>3s)', value: String(m.pause_count ?? 0) },
     { label: 'Borrados', value: String(m.erase_count ?? 0) },
-    { label: 'Area ocupada', value: m.area_pct ? `${((m.area_pct as number) * 100).toFixed(1)}%` : 'N/A' },
-    { label: 'Secuencia inicio', value: (m.sequence_start as string) ?? 'No registrada' },
+    { label: 'Área ocupada', value: m.area_pct ? `${((m.area_pct as number) * 100).toFixed(1)}%` : 'N/A' },
+    { label: 'Secuencia de inicio', value: (m.sequence_start as string) ?? 'No registrada' },
   ]
 
   return (
@@ -260,7 +258,7 @@ function DetectedTab({ indicators, suggestions, onToggle, onReject }: {
   const all = [...suggestions, ...indicators.filter(i => i.status !== 'suggestion')]
 
   if (all.length === 0) {
-    return <div className="tab-empty">No hay indicadores detectados. Ejecuta el analisis con IA desde la pestana "Medicion objetiva".</div>
+    return <div className="tab-empty">No hay indicadores detectados. Ejecuta el análisis con IA desde la pestaña "Medición objetiva".</div>
   }
 
   return (
@@ -305,6 +303,7 @@ function VerificationTab({ indicators, expandedSections, onToggleSection, onTogg
   onToggleSection: (code: string) => void
   onToggleSessionIndicator: (code: string) => void
 }) {
+  const [infoAbierta, setInfoAbierta] = useState<string | null>(null)
   return (
     <div className="verification-tab">
       {INDICATOR_CATEGORIES.map(cat => (
@@ -338,8 +337,8 @@ function VerificationTab({ indicators, expandedSections, onToggleSection, onTogg
                         const isChecked = existing?.status === 'validated'
                         const isSuggestion = existing?.status === 'suggestion'
                         return (
+                          <Fragment key={si.code}>
                           <label
-                            key={si.code}
                             className={`indicator-row ${isChecked ? 'checked' : ''} ${isSuggestion ? 'suggested' : ''}`}
                             onClick={() => onToggleSessionIndicator(si.code)}
                           >
@@ -352,10 +351,13 @@ function VerificationTab({ indicators, expandedSections, onToggleSection, onTogg
                             </div>
                             <button
                               className="info-btn"
-                              onClick={(e) => { e.stopPropagation(); alert(si.interpretation) }}
+                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setInfoAbierta(a => a === si.code ? null : si.code) }}
+                              aria-expanded={infoAbierta === si.code}
                               title={si.interpretation}
                             >i</button>
                           </label>
+                          {infoAbierta === si.code && <p className="indicator-info">{si.interpretation}</p>}
+                          </Fragment>
                         )
                       })}
                     </div>

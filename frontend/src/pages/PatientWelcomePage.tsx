@@ -24,7 +24,7 @@ export function PatientWelcomePage() {
   return (
     <div className="patient-fullscreen">
       <div className="patient-centered">
-        <h1 className="patient-heading">Dibuja una persona bajo la lluvia</h1>
+        <h1 className="patient-heading">Dibuje una persona bajo la lluvia</h1>
         <button className="patient-cta" onClick={start} disabled={entrando}>
           {entrando ? 'Preparando...' : 'Comenzar'}
         </button>

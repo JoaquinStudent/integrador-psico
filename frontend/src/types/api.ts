@@ -50,6 +50,7 @@ export interface Patient {
   age?: number
   evaluation_count?: number
   has_pending_evaluation?: boolean
+  last_evaluation_at?: string | null
 }
 
 export interface PatientInput {

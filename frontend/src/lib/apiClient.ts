@@ -160,6 +160,7 @@ export function mensajeDeError(e: unknown): string {
     if (e.isForbidden) return 'No tienes acceso a este registro.'
     if (e.isNotFound) return 'El registro no existe o fue eliminado.'
     if (e.status === 401) return 'Tu sesión expiró. Vuelve a iniciar sesión.'
+    if (e.status >= 500 && e.status !== 502) return 'El servidor tuvo un problema. Intenta de nuevo; si sigue, avisa al equipo.'
     if (e.status === 502) return 'Un servicio externo no respondió. Intenta de nuevo en un momento.'
     return e.detail || e.title
   }

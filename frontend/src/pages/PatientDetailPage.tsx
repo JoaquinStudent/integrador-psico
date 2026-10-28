@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { usePatient, getInitials, getAge, formatDate } from '../lib/patients'
 import { api } from '../lib/apiClient'
 import type { Report } from '../types/api'
-import { REPORT_STATUS, SESSION_STATUS, etiquetaDe } from '../lib/status'
+import { REPORT_STATUS, SESSION_STATUS, accionDeSesion, etiquetaDe } from '../lib/status'
 
 type Tab = 'datos' | 'historial' | 'informes'
 
@@ -182,7 +182,7 @@ export function PatientDetailPage() {
                           {etiquetaDe(SESSION_STATUS, s.status).label}
                         </span>
                       </td>
-                      <td><Link to={`/sesion/${s.id}`} className="btn-link">Ver</Link></td>
+                      <td><Link to={accionDeSesion(s).to} className="btn-link">{accionDeSesion(s).label}</Link></td>
                     </tr>
                   ))}
                 </tbody>
@@ -201,7 +201,11 @@ export function PatientDetailPage() {
 
         <aside className="detail-sidebar">
           <div className="card">
-            <h3 className="sidebar-section-title">Notas clínicas</h3>
+            <h3 className="sidebar-section-title">Notas personales</h3>
+            <p className="notes-hint">
+              Se guardan solo en este navegador: no se respaldan ni aparecen en otro equipo.
+              No las uses como parte del expediente.
+            </p>
             <textarea
               className="notes-textarea"
               placeholder="Escribir notas sobre el paciente..."

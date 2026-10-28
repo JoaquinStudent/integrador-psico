@@ -35,3 +35,11 @@ export function duracion(inicio: string | null, fin: string | null): string {
   const min = Math.round(ms / 60000)
   return min < 1 ? '< 1 min' : min < 60 ? `${min} min` : `${Math.floor(min / 60)} h ${min % 60} min`
 }
+
+/** Qué hacer con una sesión según en qué punto quedó (listas y panel). */
+export function accionDeSesion(s: { id: string; status: string }): { to: string; label: string } {
+  if (s.status === 'completed') return { to: `/sesion/${s.id}/analisis`, label: 'Ver análisis' }
+  if (s.status === 'cancelled') return { to: `/sesion/${s.id}`, label: 'Ver detalle' }
+  if (s.status === 'setup') return { to: `/sesion/${s.id}`, label: 'Revisar' }
+  return { to: `/sesion/${s.id}`, label: 'Continuar' }
+}

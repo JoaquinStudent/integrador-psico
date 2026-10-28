@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../lib/apiClient'
-import { SESSION_STATUS, duracion, etiquetaDe, fechaHora } from '../lib/status'
+import { SESSION_STATUS, accionDeSesion as accion, duracion, etiquetaDe, fechaHora } from '../lib/status'
 import type { Page, Session, SessionStatus } from '../types/api'
 
 type Filtro = '' | SessionStatus
@@ -10,13 +10,6 @@ const FILTROS: [Filtro, string][] = [
   ['', 'Todas'], ['active', 'En curso'], ['completed', 'Completadas'],
   ['consent', 'Pendientes'], ['cancelled', 'Canceladas'],
 ]
-
-/** Qué hacer con una sesión según en qué punto quedó. */
-function accion(s: Session): { to: string; label: string } {
-  if (s.status === 'completed') return { to: `/sesion/${s.id}/analisis`, label: 'Ver análisis' }
-  if (s.status === 'cancelled') return { to: `/sesion/${s.id}`, label: 'Ver detalle' }
-  return { to: `/sesion/${s.id}`, label: 'Continuar' }
-}
 
 export function SessionsPage() {
   const [sessions, setSessions] = useState<Session[]>([])

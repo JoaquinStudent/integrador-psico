@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { PBLL_INDICATORS } from '../data/pbll-indicators'
 
 const TESTS = [
   {
@@ -7,7 +8,7 @@ const TESTS = [
     code: 'PBLL',
     description: 'Evalúa la imagen corporal y los mecanismos de defensa del sujeto ante condiciones ambientales adversas.',
     available: true,
-    stats: { indicators: 149, population: 'Todas las edades', duration: '15 a 20 minutos' },
+    stats: { indicators: PBLL_INDICATORS.length, population: 'Todas las edades', duration: '15 a 20 minutos' },
   },
   {
     id: 'htp',
