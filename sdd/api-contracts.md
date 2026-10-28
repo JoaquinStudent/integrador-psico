@@ -248,3 +248,20 @@ Los tres primeros grupos son los que la demo necesita:
 
 Mientras 4-6 no existan, el frontend sigue con Supabase directo para esas rutas. Es deuda explicita:
 la frontera no esta cerrada hasta que `grep -r "supabase.from" frontend/src/` no devuelva nada.
+
+---
+
+## Agenda y Google Calendar (SPEC-CAL-01)
+
+| Metodo | Ruta | Descripcion |
+|---|---|---|
+| GET | `/appointments?desde&hasta` | Citas del examinador, por fecha |
+| POST | `/appointments` | `{patient_id, test_code, starts_at, ends_at, notes}` → 201. 409 si se cruza con otra cita activa o el paciente esta inactivo. Responde `google_sync`: `off` / `ok` / `error` |
+| PATCH | `/appointments/{id}` | Mueve la cita (`starts_at`, `ends_at`) o cambia la nota; solo `scheduled` |
+| POST | `/appointments/{id}/cancel` | Libera el horario y borra el evento de Google |
+| POST | `/appointments/{id}/start` | Crea la sesion (`setup`) y enlaza `session_id`; 409 si ya no esta pendiente |
+| GET | `/integrations/google` | `{configured, connected, connected_at}` |
+| POST | `/integrations/google/connect` | `{url}` de consentimiento de Google (state firmado, 10 min) |
+| GET | `/integrations/google/callback` | **Sin Bearer** (lo abre Google). **No guarda nada**: redirige a `FRONTEND_URL/ajustes?google_code=…&google_state=…` (o `?google=cancelado`) |
+| POST | `/integrations/google/complete` | `{code, state}` **con la sesion del usuario**. 403 si el `state` no lo emitio ese mismo usuario; 502 si Google rechaza el codigo. Guarda el token cifrado |
+| DELETE | `/integrations/google` | Desautoriza el token y borra la conexion; las citas se conservan |

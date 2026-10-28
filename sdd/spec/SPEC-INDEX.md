@@ -112,6 +112,7 @@ a `SPEC-S6-01` a `SPEC-S6-04`; mantenerlos en ambos sitios violaba la regla R5. 
 | `SPEC-S6-04` | Export | Exportacion del informe validado a PDF | RF-38 | **IMPLEMENTED** |
 | `SPEC-S6-05` | Pacientes | Baja logica de paciente y supresion de datos | RF-08, RNF-16 | **IMPLEMENTED** |
 | `SPEC-S6-06` | Panel | Panel de control con datos consolidados | RF-40 | **IMPLEMENTED** |
+| `SPEC-CAL-01` | Sesiones | Agenda de citas con Google Calendar (App → Google) | RF-09 (ampliacion) | **IN_PROGRESS** — codigo y tests listos; falta aplicar la migracion 0003 y probar el OAuth real |
 
 `SPEC-S6-05` se resolvio con la revision `0002_privacidad_pacientes`, que anade
 `patients.anonymized_at` y conserva el historial sin datos identificables.
