@@ -1,5 +1,6 @@
 import type { Stroke } from './types'
 import { getStrokesBounds } from './StrokeRenderer'
+import { pausasEntreTrazos } from './timing'
 
 export interface LiveMetrics {
   elapsedMs: number
@@ -31,18 +32,17 @@ export function calculateMetrics(
     }
   }
 
-  let pauseCount = 0
+  // Pausa = hueco entre el fin de un trazo y el inicio del siguiente. El `timeMillis`
+  // de un punto es relativo a su trazo, asi que se usa `t0` (pen-down absoluto).
   const PAUSE_THRESHOLD = 3000
-  for (let i = 1; i < strokes.length; i++) {
-    const prevEnd = strokes[i - 1].inputs.inputs
-    const curStart = strokes[i].inputs.inputs
-    if (prevEnd.length && curStart.length) {
-      const gap = curStart[0].timeMillis - prevEnd[prevEnd.length - 1].timeMillis
-      // ponytail: gap is relative within each stroke — use absolute timestamps broadcast alongside
-      // for now approximate: if gap in timeMillis of current stroke's first point is large, count as pause
-      if (gap > PAUSE_THRESHOLD) pauseCount++
-    }
-  }
+  const pauseCount = pausasEntreTrazos(
+    strokes.flatMap(s => {
+      const pts = s.inputs.inputs
+      if (s.t0 === undefined || pts.length === 0) return []
+      return [{ inicio: s.t0, fin: s.t0 + pts[pts.length - 1].timeMillis }]
+    }),
+    PAUSE_THRESHOLD,
+  )
 
   let areaPct = 0
   const bounds = getStrokesBounds(strokes)

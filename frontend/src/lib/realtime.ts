@@ -15,7 +15,8 @@ export function createSessionChannel(sessionId: string): RealtimeChannel {
  */
 export interface TabletStatus {
   connected: boolean
-  orientation?: string
+  /** Orientación de la hoja que el paciente está usando (RF-17). */
+  orientation?: 'horizontal' | 'vertical'
   /** El `started_at` que selló el servidor al pasar la sesión a `active`. */
   startedAt?: string | null
   /** Hay al menos un trazo. Es lo que dispara la grabación automática. */

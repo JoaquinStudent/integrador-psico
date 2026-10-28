@@ -5,6 +5,7 @@ import type { LiveMetrics as MetricsType } from '../canvas/metricsCalculator'
 import { formatTime } from '../canvas/metricsCalculator'
 import { deserializeStrokes } from '../canvas/serialization'
 import { CanvasMirror } from '../canvas/CanvasMirror'
+import { dimensiones, giroLaHoja } from '../canvas/orientation'
 import { LiveMetrics } from '../components/session/LiveMetrics'
 import { ObservationsPanel } from '../components/session/ObservationsPanel'
 import { ProtocolPanel } from '../components/session/ProtocolPanel'
@@ -244,6 +245,9 @@ export function ExaminerSessionPage() {
   }
 
   const isFinished = tablet?.patientFinished === true
+  // La hoja que el paciente esta usando (RF-17); sin dato, la que se le entrega.
+  const orientacion = tablet?.orientation ?? 'horizontal'
+  const hoja = dimensiones(orientacion)
   // Conectada es "dijo que sí y sigue diciéndolo". Una tablet que se apaga deja de
   // reemitir, y sin esta comprobación quedaba marcada como conectada para siempre.
   const isConnected = tablet?.connected === true && (isFinished || tabletViva)
@@ -286,13 +290,15 @@ export function ExaminerSessionPage() {
                 <span className="status-dot" />
                 {isConnected ? 'Tablet conectada' : 'Sin conexión'}
               </span>
-              <span className="badge-info">Orientación: horizontal</span>
+              <span className="badge-info" title="El manual toma el cambio de posición del papel como una primera señal interpretable">
+                Hoja: {orientacion}{giroLaHoja(orientacion) ? ' · el paciente la giró' : ''}
+              </span>
             </div>
           </div>
           <div className="mirror-container">
             {isConnected || strokes.length > 0 ? (
               <>
-                <CanvasMirror strokes={strokes} />
+                <CanvasMirror strokes={strokes} width={hoja.width} height={hoja.height} />
                 {isDrawing && (
                   <div className="drawing-indicator">Paciente dibujando...</div>
                 )}

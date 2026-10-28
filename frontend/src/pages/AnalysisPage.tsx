@@ -5,11 +5,10 @@ import { PBLL_INDICATORS, INDICATOR_SECTIONS, INDICATOR_CATEGORIES } from '../da
 import { analyzeDrawing } from '../lib/analyzeDrawing'
 import type { SessionIndicator } from '../types/api'
 import { generateReport } from '../lib/reports'
-import { loadDrawingData } from '../lib/drawingData'
+import { loadDrawingData, type DibujoGuardado } from '../lib/drawingData'
 import { CanvasMirror } from '../canvas/CanvasMirror'
 import { RecordingCard } from '../components/session/RecordingCard'
 import { useRecording } from '../lib/useRecording'
-import type { Stroke } from '../canvas/types'
 
 type Tab = 'objective' | 'detected' | 'verification'
 
@@ -22,7 +21,8 @@ export function AnalysisPage() {
   const [patient, setPatient] = useState<{ full_name: string } | null>(null)
   const [analyzing, setAnalyzing] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [strokes, setStrokes] = useState<Stroke[] | null>(null)
+  const [dibujo, setDibujo] = useState<DibujoGuardado | null>(null)
+  const [sinDibujo, setSinDibujo] = useState(false)
   const rec = useRecording(sessionId)
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set())
 
@@ -30,7 +30,7 @@ export function AnalysisPage() {
     if (!sessionId) return
     loadData()
     // El dibujo se repinta desde los trazos guardados: no pasa por Storage.
-    loadDrawingData(sessionId).then(setStrokes).catch(() => setStrokes([]))
+    loadDrawingData(sessionId).then(setDibujo).catch(() => setSinDibujo(true))
   }, [sessionId])
 
   async function loadData() {
@@ -148,11 +148,11 @@ export function AnalysisPage() {
             {patient && <span className="drawing-patient">Paciente: {patient.full_name}</span>}
           </div>
           <div className="drawing-preview">
-            {strokes === null
-              ? <div className="drawing-placeholder">Cargando dibujo…</div>
-              : strokes.length === 0
-                ? <div className="drawing-placeholder">La sesión no tiene dibujo registrado.</div>
-                : <CanvasMirror strokes={strokes} />}
+            {sinDibujo || (dibujo && dibujo.strokes.length === 0)
+              ? <div className="drawing-placeholder">La sesión no tiene dibujo registrado.</div>
+              : dibujo === null
+                ? <div className="drawing-placeholder">Cargando dibujo…</div>
+                : <CanvasMirror strokes={dibujo.strokes} width={dibujo.width} height={dibujo.height} />}
           </div>
           <RecordingCard
             recording={rec.recording}

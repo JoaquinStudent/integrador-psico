@@ -327,6 +327,15 @@ Lo que evita la repeticion: dos tests que corren con una conexion **que salta RL
 
 ---
 
+### DT-035: El lienzo del paciente, y el bug de los tiempos que el backend no podia ver
+**Fecha:** 2026-10-28
+**Contexto:** `saveDrawingData` mandaba `stroke.points[0].t` como `started_at_ms`. Ese `t` es relativo al trazo, asi que valia ~0 en todos: `latency_ms` salia siempre 0 y `pause_count` siempre 0 (el hueco `inicio_siguiente - fin_anterior` nunca superaba el umbral). E-002 se dio por resuelto "en el backend", pero el contrato del backend (offsets absolutos desde la consigna) nunca se cumplio desde el cliente. Los indicadores de tiempo de la seccion A-5 del manual salian mal en el analisis y en el informe.
+**Decision:** `Stroke.t0` (pen-down, epoch ms) y `offsetsDeTrazo(t0, puntos, inicioToma)` en `canvas/timing.ts`. El cero es el montaje de la pantalla de dibujo (la consigna), no el reloj del servidor: asi la latencia y las pausas dependen de un solo reloj, el de la tablet. Las pausas en vivo usan la misma funcion.
+**Tambien:** (1) RF-17 estaba escrito a mano como `'horizontal'`. La hoja se entrega horizontal (guion del manual) y sigue a la pantalla hasta el primer trazo, donde se fija; la orientacion real se guarda y se muestra al examinador, y "giro la hoja" es `orientacion != ORIENTACION_ENTREGA`. (2) Rechazo de palma: con lapiz el tacto se ignora, y un solo puntero a la vez. (3) Dibujo incremental con `getCoalescedEvents` en vez de repintar toda la hoja. (4) "Termine" pide confirmacion neutra, un fallo de guardado deja el dibujo en pantalla y se puede reintentar, y hay un borrador en `localStorage` por si la tablet se recarga. (5) Se quito "Puedes tomarte el tiempo que necesites": el guion dice que la consigna "es esa y no se amplia", y el tiempo es un indicador (A-5).
+**Impacto:** Los dibujos guardados antes de este cambio tienen latencia y pausas en 0 y no se pueden recuperar. Sin color, grosor, guias ni mensajes de aliento: todo eso es estimulo en un test proyectivo. La logica pura se prueba con `npm test` (`node --test`, sin dependencias nuevas).
+
+---
+
 ## Lecciones Aprendidas
 
 | ID | Sprint | Leccion |

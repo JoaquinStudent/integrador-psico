@@ -35,12 +35,20 @@ export class StrokeBuilder {
 
   finish(): Stroke | null {
     if (this.inputs.length < 2) return null
-    return { inputs: { tool: this.toolType, inputs: [...this.inputs] }, brush: { ...this.brush } }
+    return {
+      inputs: { tool: this.toolType, inputs: [...this.inputs] },
+      brush: { ...this.brush },
+      t0: this.startTime,
+    }
   }
 
   getCurrentStroke(): Stroke | null {
     if (this.inputs.length === 0) return null
-    return { inputs: { tool: this.toolType, inputs: [...this.inputs] }, brush: { ...this.brush } }
+    return {
+      inputs: { tool: this.toolType, inputs: [...this.inputs] },
+      brush: { ...this.brush },
+      t0: this.startTime,
+    }
   }
 
   getStartTime(): number { return this.startTime }

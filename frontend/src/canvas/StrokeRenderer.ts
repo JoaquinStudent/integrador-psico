@@ -53,6 +53,28 @@ export function renderStroke(ctx: CanvasRenderingContext2D, stroke: Stroke): voi
   }
 }
 
+/**
+ * Dibuja solo el ultimo tramo de un trazo en curso. Repintar toda la hoja en cada
+ * movimiento se traba cuando hay decenas de trazos; al levantar el lapiz el estado
+ * cambia y `renderStrokes` repinta el trazo ya suavizado.
+ */
+export function renderSegment(
+  ctx: CanvasRenderingContext2D,
+  a: { x: number; y: number; pressure?: number },
+  b: { x: number; y: number; pressure?: number },
+  brush: { color: number; size: number },
+): void {
+  ctx.strokeStyle = colorToCSSRGBA(brush.color)
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+  ctx.globalCompositeOperation = 'source-over'
+  ctx.lineWidth = brush.size * (((a.pressure ?? 1) + (b.pressure ?? 1)) / 2)
+  ctx.beginPath()
+  ctx.moveTo(a.x, a.y)
+  ctx.lineTo(b.x, b.y)
+  ctx.stroke()
+}
+
 export function renderStrokes(ctx: CanvasRenderingContext2D, strokes: Stroke[]): void {
   for (const s of strokes) renderStroke(ctx, s)
 }

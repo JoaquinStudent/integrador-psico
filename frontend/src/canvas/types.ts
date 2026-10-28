@@ -18,6 +18,8 @@ export interface Brush {
 export interface Stroke {
   inputs: StrokeInputBatch
   brush: Brush
+  /** Instante (epoch ms) del pen-down. Con él se obtienen los offsets absolutos. */
+  t0?: number
 }
 
 export interface Offset {

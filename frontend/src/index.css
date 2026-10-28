@@ -1022,54 +1022,107 @@ body {
 .patient-cta:hover { background: #2A2A2A; }
 
 /* Drawing page */
+/* La toma es de la tablet: nada se selecciona, no hay menu contextual ni arrastre de
+   pagina, y un gesto accidental no debe poder recargar ni hacer zoom. */
+.patient-drawing {
+  flex-direction: column;
+  gap: 0;
+  padding: 16px 16px 0;
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: none;
+}
+
+.drawing-stage {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: grid;
+  place-items: center;
+}
+
+/* La hoja ocupa lo que cabe sin deformarse, vertical u horizontal. */
 .drawing-paper {
-  width: min(1100px, 90vw);
-  aspect-ratio: 1100 / 850;
+  --reservado: 104px; /* barra de controles + margenes */
+  width: min(calc(100vw - 32px), calc((100dvh - var(--reservado)) * var(--ratio, 1.294)));
+  aspect-ratio: var(--ratio, 1.294);
   background: #fff;
   border-radius: 4px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.04);
   overflow: hidden;
 }
 
 .drawing-controls {
-  position: fixed;
-  bottom: 32px;
-  right: 32px;
+  flex: 0 0 auto;
+  height: 88px;
+  padding-bottom: env(safe-area-inset-bottom, 0);
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 12px;
+  width: 100%;
 }
 
 .drawing-btn {
-  width: 44px;
-  height: 44px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   border: 1px solid #E5E5E5;
   background: #fff;
-  color: #9A9A9A;
+  color: #6B6B6B;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
 }
 .drawing-btn:hover { color: #1C1C1C; border-color: #9A9A9A; }
 .drawing-btn:disabled { opacity: 0.3; cursor: default; }
-.drawing-btn.active { color: var(--color-primary); border-color: var(--color-primary); background: rgba(69,58,125,0.06); }
+.drawing-btn.active { color: var(--color-primary); border-color: var(--color-primary); background: rgba(69,58,125,0.08); }
 
 .drawing-btn-finish {
-  padding: 10px 24px;
+  min-height: 56px;
+  padding: 0 32px;
   border-radius: 999px;
-  border: 1px solid #E5E5E5;
+  border: 1px solid #D5D5D5;
   background: #fff;
-  color: #9A9A9A;
-  font-size: 14px;
+  color: #1C1C1C;
+  font-size: 16px;
   font-weight: 500;
   cursor: pointer;
   transition: color 0.15s, border-color 0.15s;
 }
-.drawing-btn-finish:hover { color: #1C1C1C; border-color: #9A9A9A; }
+.drawing-btn-finish:hover { border-color: #1C1C1C; }
 .drawing-btn-finish:disabled { opacity: 0.5; cursor: default; }
+
+/* Confirmacion neutra de "Terminé": sin elogio ni evaluacion. */
+.drawing-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 28, 28, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+.drawing-modal-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 32px;
+  max-width: 440px;
+  width: calc(100vw - 48px);
+  text-align: center;
+  display: grid;
+  gap: 12px;
+}
+.drawing-modal-card h2 { font-size: 24px; font-weight: 600; color: #1C1C1C; }
+.drawing-modal-card p { color: #6B6B6B; }
+.drawing-modal-actions { display: flex; gap: 12px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
+.drawing-modal-actions .patient-cta { margin-top: 0; min-height: 52px; padding: 0 28px; }
+.patient-cta.secondary { background: #fff; color: #1C1C1C; border: 1px solid #D5D5D5; }
+.patient-cta.secondary:hover { background: #F5F5F4; }
 
 /* ============================
    Sprint 2 — Examiner Session
