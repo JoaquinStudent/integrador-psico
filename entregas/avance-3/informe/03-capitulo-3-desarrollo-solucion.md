@@ -98,7 +98,7 @@ Puntaje de 1 (malo) a 5 (muy bueno), ponderado. Los puntajes son **juicio del eq
 | 2 | Sprint 4 — Análisis y motor de reglas | Iam Arias | 16/09 | 22/09 | ✅ |
 | 2 | Sprint 5 — Rearquitectura (backend hexagonal y BD) | Joaquin Chaparro | 25/09 | 06/10 | 🟡 En proceso (71 %): implementado · ⚠️ cierre de RLS (R-08) y validación contra entorno real pendientes |
 | 2 | Sprint 6 — Informe, PDF y cierre funcional | Jose Diaz | 13/10 | 26/10 | ✅ Implementado · ⚠️ recorrido completo en navegador pendiente (§4.1.1) |
-| 2 | Extensión — Agenda de citas y Google Calendar | Joaquin Chaparro | 28/10 | 28/10 | 🟡 Código y pruebas listos · ⚠️ falta aplicar la migración y probar el OAuth real |
+| 2 | Extensión — Agenda de citas y Google Calendar | Joaquin Chaparro | 28/10 | 29/10 | 🟡 Código y pruebas listos · ⚠️ falta aplicar la migración y probar el OAuth real |
 | 3 | Auditoría del sistema (QA, seguridad, medición) | Iam Arias | 02/11 | 11/11 | ⏳ En curso: auditoría técnica hecha el 28/10; medición pendiente |
 | 3 | Despliegue y capacitación | Jose Diaz | 20/11 | 24/11 | ⏳ Sin empezar |
 | 3 | Cierre del proyecto | Joaquin Chaparro | 07/12 | 08/12 | ⏳ Sin empezar |
@@ -127,11 +127,13 @@ Los 13 prototipos del Avance 1 (Anexo 5) se implementaron como pantallas reales.
 
 **Pantallas añadidas después del prototipo** (reales, sin prototipo previo): Citas (`/citas`), Sesiones (`/sesiones`), Informes (`/informes`), Ajustes y conexión con Google Calendar (`/ajustes`), entrada de la tablet (`/sesion/activa`) e inicio de sesión (`/login`). Con ellas el sistema tiene **18 pantallas de página** (`src/pages`).
 
-**Revisión de interfaz del 28/10/2026.** Se recorrieron las pantallas en un navegador real y se corrigieron, entre otros: variables de CSS sin definir que dejaban botones y fondos invisibles (por ejemplo «Generar informe»), el dibujo del paciente que quedaba fuera de pantalla en el análisis, columnas con datos incorrectos en Pacientes, y el bloqueo de una sesión sin consentimiento firmado (DT-037). Las capturas comparativas prototipo/pantalla real van en el Anexo 5.
+**Revisión de interfaz del 28/10/2026.** Se recorrieron las pantallas en un navegador real y se corrigieron, entre otros: variables de CSS sin definir que dejaban botones y fondos invisibles (por ejemplo «Generar informe»), el dibujo del paciente que quedaba fuera de pantalla en el análisis, columnas con datos incorrectos en Pacientes, y el bloqueo de una sesión sin consentimiento firmado (DT-037). Las capturas comparativas prototipo/pantalla real, con las diferencias de cada una, están en el Anexo 5 (`anexo-5-prototipos/`).
 
 **Principio de diseño de la interfaz del paciente.** Hoja en blanco, lápiz, borrador y deshacer; sin colores, grosores, guías, cuadrícula ni mensajes de aliento, porque cualquiera de ellos es un estímulo que contamina el test. La hoja se entrega horizontal («a lo largo», como indica el manual) y se respeta si el paciente la gira; el giro se registra como dato (RF-17).
 
 ## 3.5. Diagrama de casos de uso
+
+El diagrama general se desglosa en 10 diagramas por módulo (cada requerimiento como caso de uso) en `diagramas/casos-de-uso.html` (Anexo 7).
 
 **Actores.** *Examinador* (psicólogo; usuario principal), *Paciente* (solo ve el lienzo de su sesión) y los actores externos *Whisper* (transcripción), *OpenRouter* (redacción asistida) y *Google Calendar* (agenda). Los 41 requerimientos funcionales se agrupan en 13 casos de uso.
 
@@ -164,8 +166,10 @@ flowchart LR
   CU03 -.-> GC
   CU08 -.-> WH
   CU11 -.-> LL
-  CU04 -. incluye .-> CU05
-  CU10 -. precede a .-> CU11
+  CU04 -. «include» .-> CU05
+  CU11 -. «include» .-> CU10
+  CU03 -. «extend» .-> CU04
+  CU09 -. «extend» .-> CU07
 ```
 
 | Caso de uso | Actor | Descripción | Requerimientos |
@@ -602,7 +606,7 @@ El docente autorizó un **stack libre**; no se usa Java. La rúbrica pide MVC, T
 |---|---|---|
 | **MVC** | **Modelo:** entidades del dominio (`domain/model.py`) y modelos de persistencia (`adapter/outbound/postgres/models.py`). **Vista:** el frontend React (`frontend/src/pages`, `components`). **Controlador:** los routers de FastAPI y los esquemas Pydantic (`adapter/inbound/http/`). | Carpetas citadas; contrato de la API en `sdd/api-contracts.md` |
 | **DAO** | Cada acceso a datos con reglas pasa por un **puerto** (interfaz `Protocol` en `domain/ports.py`: `DrawingRepository`, `IndicatorCatalog`, `SessionIndicatorRepository`) con su implementación PostgreSQL en `adapter/outbound/postgres/repositories.py`. El CRUD sin reglas usa *stores* (`PatientStore`, `SessionStore`, `AppointmentStore`…) | `domain/ports.py`, `repositories.py`, `store.py` |
-| **TDD** | Regla del proyecto (R1–R2 de `sdd/AGENTS.md`): primero la especificación en Given-When-Then (`sdd/spec/`), luego la prueba y después el código. Hay 153 pruebas de backend recogidas por pytest (al menos 61 corren sin red ni base de datos; el resto se ejecuta contra la base real) y 11 del frontend | `backend/tests/`, `frontend/tests/`, `sdd/spec/` |
+| **TDD** | Regla del proyecto (R1–R2 de `sdd/AGENTS.md`): primero la especificación en Given-When-Then (`sdd/spec/`), luego la prueba y después el código. Hay 156 pruebas de backend recogidas por pytest (al menos 70 corren sin red ni base de datos; el resto se ejecuta contra la base real) y 11 del frontend | `backend/tests/`, `frontend/tests/`, `sdd/spec/` |
 | **SOLID** | Ver tabla siguiente | `scripts/check-hexagon.sh`, `config/container.py` |
 
 | Principio | Aplicación concreta |
@@ -640,7 +644,7 @@ El docente autorizó un **stack libre**; no se usa Java. La rúbrica pide MVC, T
 
 **Total del plan de 47 tareas:** 31 completas + 6 implementadas del Sprint 6 = **37 de 47 (79 %)**; con las 4 parciales del Sprint 5 y la extensión, el trabajo en curso supera ese número. Se informa el 79 % como «completo o implementado» y **no** como «verificado»: la verificación de punta a punta sigue pendiente.
 
-**Cumplimiento del 30 % de funcionalidades que pide la rúbrica.** El Anexo 14 relaciona los 41 requerimientos funcionales con su implementación: **28 implementados y verificados** (por prueba automática o por revisión en navegador), **9 implementados sin verificación completa** y **4 cubiertos parcialmente** (con la razón de cada uno). Ningún requerimiento está sin componente. Es decir, **37 de 41 (90 %) están implementados**, muy por encima del 30 % exigido.
+**Cumplimiento del 30 % de funcionalidades que pide la rúbrica.** El Anexo 14 relaciona los 41 requerimientos funcionales con su implementación: **33 implementados y verificados** (por prueba automática o por revisión en navegador), **4 implementados sin verificación completa** y **4 cubiertos parcialmente** (con la razón de cada uno). Ningún requerimiento está sin componente. Es decir, **37 de 41 (90 %) están implementados**, muy por encima del 30 % exigido.
 
 ### 3.10.3. Seguridad
 
@@ -673,7 +677,7 @@ El docente autorizó un **stack libre**; no se usa Java. La rúbrica pide MVC, T
 
 - **Plataforma:** Git y GitHub; rama principal `main`.
 - **Ramas:** `main`, `srs-specs-y-esquema-2fn` (especificaciones y esquema), `test` (integración de este avance), y ramas por integrante (`iam-sprint-1`, `jonathan`, `jonathan-sprint1`, `joaquin-sprint1`, `testing`).
-- **Historial:** 36 commits en la rama de trabajo; el repositorio también contiene la documentación de especificación (`sdd/`) y los entregables (`entregas/`), de modo que el avance de los documentos queda versionado junto con el código.
+- **Historial:** 57 commits en la rama de trabajo al 28/10/2026; el repositorio también contiene la documentación de especificación (`sdd/`) y los entregables (`entregas/`), de modo que el avance de los documentos queda versionado junto con el código.
 - **Convención:** mensajes en español que describen el cambio y su motivo; las decisiones técnicas se numeran (DT-001 a DT-037) en `sdd/memory.md`.
-- **Honestidad sobre la autoría.** El registro muestra tres identidades de autor, una de ellas con la gran mayoría de los commits; **no todos los integrantes tienen commits propios visibles**. Para que la evidencia refleje el trabajo real, de aquí en adelante cada integrante debe commitear su parte desde su cuenta.
-- **Pendiente de la rúbrica (evidencia del 100 %):** integrar la rama de trabajo a `main` mediante *pull request*, crear *tags* por sprint (`sprint-1` … `sprint-6`) y agregar un `README.md` en la raíz del repositorio con la descripción del proyecto, cómo ejecutarlo y cómo correr las pruebas. A la fecha **no existen tags ni README en la raíz**.
+- **Honestidad sobre la autoría.** En la rama de trabajo todos los commits son de una sola cuenta; sumando todas las ramas el registro muestra tres identidades de autor (82, 6 y 4 commits); **no todos los integrantes tienen commits propios visibles**. Para que la evidencia refleje el trabajo real, de aquí en adelante cada integrante debe commitear su parte desde su cuenta.
+- **Pendiente de la rúbrica (evidencia del 100 %):** integrar la rama de trabajo a `main` mediante *pull request* y crear *tags* por sprint (`sprint-1` … `sprint-6`). El **README de la raíz ya existe** (y el de `backend/` y el de `frontend/`); **todavía no existen tags**.

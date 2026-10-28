@@ -187,7 +187,7 @@ stateDiagram-v2
   [*] --> setup: se crea la sesión
   setup --> consent: se firma el consentimiento
   setup --> cancelled: cancelar
-  consent --> active: se inicia la toma
+  consent --> active: el paciente pulsa Comenzar en la tablet
   consent --> cancelled: cancelar
   active --> completed: finalizar
   active --> cancelled: cancelar
@@ -196,6 +196,7 @@ stateDiagram-v2
   note right of setup
     Sin consentimiento firmado
     no se puede iniciar la toma
+    (la pantalla del examinador lo bloquea)
   end note
   note right of completed
     No se reabre.

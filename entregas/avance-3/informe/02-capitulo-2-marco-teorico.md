@@ -30,7 +30,7 @@ La persistencia usa PostgreSQL (sobre Supabase) con un esquema normalizado a 2FN
 El lienzo del paciente usa la API *Pointer Events* del W3C sobre un `<canvas>` HTML5. A diferencia de los eventos táctiles, permite muestrear coordenadas, **marcas de tiempo absolutas en milisegundos** y la **presión** normalizada (0 a 1). Cada trazo se registra como una serie temporal entre `pointerdown` y `pointerup`. Eso permite calcular de forma determinista indicadores que en papel son inobservables:
 
 - **Latencia de inicio:** tiempo entre la entrega de la consigna y el primer punto del primer trazo.
-- **Pausas (quietud):** intervalos entre el fin de un trazo y el inicio del siguiente que superan un umbral configurable (3 s por defecto).
+- **Pausas (quietud):** intervalos entre el fin de un trazo y el inicio del siguiente que superan un umbral de 3 s (constante del dominio; en cambio los umbrales de detección de indicadores sí son parámetros calibrables).
 - **Secuencia de partes:** orden en que se dibujan los elementos.
 - **Presión y borrados:** media de presión y uso del borrador como evento de edición.
 
@@ -59,11 +59,11 @@ Prueba proyectiva gráfica sistematizada y adaptada al contexto hispanohablante 
 | Categoría | Denominación | Secciones | Estado en Psicograma |
 |---|---|---|---|
 | **A** | Recursos expresivos | A-1 Dimensiones · A-2 Emplazamiento · A-3 Trazos · A-4 Presión · A-5 Tiempo · A-6 Secuencia · A-7 Movimiento · A-8 Sombreados | **Activa** |
-| **B** | Análisis de contenido | B-1 Orientación · B-2 Posturas · B-3 Borrados · B-4 Repaso de líneas · B-5 Detalles accesorios · B-6 Vestimenta · B-7 Paraguas · B-8 Reemplazo del paraguas · B-9 Partes del cuerpo · B-10 Identidad sexual · B-11 Personaje | **Activa** |
-| **C** | Expresiones de conflicto | C-1 a C-11 | Modelada pero **desactivada** por decisión ética |
-| **D** | Mecanismos de defensa | D-1 a D-7 | Modelada pero **desactivada** por decisión ética |
+| **B** | Análisis de contenido | B-1 Orientación · B-2 Posturas · B-3 Borrados · B-5 Detalles accesorios · B-6 Vestimenta · B-7 Paraguas · B-9 Partes del cuerpo · B-10 Identidad sexual | **Activa** (8 secciones modeladas) |
+| **C** | Expresiones de conflicto | Una sección en el catálogo (11 indicadores) | Modelada pero **desactivada** por decisión ética |
+| **D** | Mecanismos de defensa | Una sección en el catálogo (7 indicadores) | Modelada pero **desactivada** por decisión ética |
 
-El catálogo modela **201 indicadores** en 18 secciones; con C y D desactivadas quedan **183 indicadores activos en 16 secciones**, que se procesan así:
+El catálogo modela **201 indicadores** en 18 secciones; con C y D desactivadas quedan **183 indicadores activos en 16 secciones** (8 de la categoría A y 8 de la B), que se procesan así:
 
 | Tipo | Cantidad | Cómo se obtiene |
 |---|---|---|
@@ -71,6 +71,10 @@ El catálogo modela **201 indicadores** en 18 secciones; con C y D desactivadas 
 | Semiautomáticos | **20** | El sistema aporta datos del trazo, marcas rápidas y transcripción; el profesional confirma o rechaza. La propuesta asistida por modelo de lenguaje está **prevista, no implementada** |
 | Verificación profesional | **140** | Checklist por secciones para contenido visual complejo (rasgos, vestimenta, accesorios); presencia/ausencia con un clic |
 | **Total activos** | **183** | |
+
+**Indicadores activos por sección del catálogo:** A-1 (4) · A-2 (5) · A-3 (16) · A-4 (6) · A-5 (7) · A-6 (3) · A-7 (5) · A-8 (1) · B-1 (12) · B-2 (3) · B-3 (1) · B-5 (22) · B-6 (8) · B-7 (18) · B-9 (69) · B-10 (3) = **183**.
+
+> ⚠️ El manual de Querol y Chaves Paz (2004) describe además las secciones B-4 (repaso de líneas), B-8 (reemplazo del paraguas) y B-11 (personaje), que el catálogo **no modela como secciones propias**. Confirmar con el equipo si sus indicadores se incorporaron a otras secciones o quedaron fuera, y dejarlo escrito.
 
 #### Indicadores temporales y cinemáticos del proceso gráfico
 

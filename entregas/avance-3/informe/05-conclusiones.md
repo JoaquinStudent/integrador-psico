@@ -22,5 +22,5 @@ El proyecto alcanzó una versión funcional del sistema que cubre la gran mayor�
 2. Aplicar los dos scripts pendientes en la base (catálogo de 183 indicadores y migración de la agenda).
 3. Recorrer el flujo completo con la tablet y el lápiz físicos y medir la latencia del espejo.
 4. Crear un rol de base de datos sin `BYPASSRLS` (R-08) y persistir las notas del paciente en la base.
-5. Integrar a `main`, etiquetar los sprints y agregar el README en la raíz del repositorio.
+5. Integrar a `main` y etiquetar los sprints en el repositorio (el README de la raíz ya existe).
 6. Aplicar el cuestionario SUS a los psicólogos y obtener la validación firmada de la matriz de requerimientos.

@@ -74,4 +74,6 @@
 
 **Hoja `Resultados` esperada:** Completado 10 · En Proceso 3 (0,71 + 0,70 + 0,20) · Sin Empezar 2 · Atrasado 0 · **Total 15 actividades** · **avance 77,4 %** (11,61 / 15).
 
+> **Dos porcentajes distintos, a propósito:** el 77,4 % es por *actividades del Gantt* (15); el 79 % de §3.10.2 es por las *47 tareas del plan* (completas o implementadas). Miden unidades diferentes y no deben compararse entre sí.
+>
 > Sprint 5 al 71 % = (3 completas + 0,5 × 4 parciales) / 7 tareas. Sprint 6 figura «Completado» por contar con pruebas automáticas; su recorrido completo en navegador sigue pendiente (§4.1.1).

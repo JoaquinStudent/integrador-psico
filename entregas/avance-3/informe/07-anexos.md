@@ -8,7 +8,7 @@
 | 2 | FODA | `entregas/avance-1/02-foda/foda.pdf` | ✅ Vigente |
 | 3 | Project Charter | `project-charter.xlsx` | ⚠️ **Corregir** los 7 defectos (ver `anexos-charter-gantt-actualizado.md`) |
 | 4 | Cronograma de actividades (Gantt) | `cronograma-gantt.xlsx` | ⚠️ **Actualizar** con el estado al 28/10/2026 |
-| 5 | Prototipos y pantallas reales | `entregas/avance-1/05-prototipo/` + capturas del sistema | ⚠️ Tomar capturas de las pantallas reales (tabla en §3.4) |
+| 5 | Prototipos y pantallas implementadas | `anexo-5-prototipos/` (`README.md` para el Word y `comparacion.html` lado a lado, con 24 capturas reales) | ✅ Hecho; falta la captura de Citas (requiere la migración `0003`) |
 | 6 | Modelo físico de la base de datos (24 tablas) | `diagramas/arquitectura-y-estados.md`, diagrama F (generado desde `schema.sql`) | ✅ Generado; ⚠️ exportar a imagen para el Word (reemplaza el de 22 tablas del Avance 2) |
 | 7 | Diagramas de casos de uso (general + 10 por módulo) | §3.5 (Mermaid) y `diagramas/casos-de-uso.html` (referencia para rehacerlos en la herramienta UML) | ✅ Escritos; rehacer en la herramienta UML o exportar |
 | 8 | Diagrama de procesos (BPM), AS-IS y TO-BE | §3.6 (Mermaid) | ✅ Escrito; exportar a PNG |
@@ -48,7 +48,7 @@ Estados: **✅ Verificado** = implementado y comprobado por prueba automática o
 | RF-08 | Desactivar paciente (baja lógica) | `PatientDetailPage`, `PATCH /patients/{id}/status` | — | 🟡 |
 | RF-09 | Configurar nueva sesión | `NewSessionPage`, `POST /sessions` | Pruebas de creación | 🔶 El asistente no captura el **motivo de evaluación** (la API lo admite) |
 | RF-10 | Registrar consentimiento | `NewSessionPage` (paso 3), `POST /sessions/{id}/consent` | Pruebas de consentimiento | ✅ |
-| RF-11 | Emparejar dispositivos | `TabletEntryPage`, enlace de la sesión | — (sin tablet física) | 🟡 |
+| RF-11 | Emparejar dispositivos | `TabletEntryPage`, enlace de la sesión | En vivo con dos pestañas: enlace, «Tablet conectada» y sesión activa | ✅ (sin tablet física) |
 | RF-12 | Finalizar sesión | `ExaminerSessionPage`, `POST /sessions/{id}/finalize` | Prueba de idempotencia | ✅ |
 | RF-13 | Cancelar sesión | `ExaminerSessionPage`, `PATCH /sessions/{id}` | Pruebas de cancelación | ✅ |
 | RF-14 | Lienzo digital | `PatientDrawingPage`, `DrawingCanvas` | Trazo de prueba en navegador | ✅ |
@@ -56,13 +56,13 @@ Estados: **✅ Verificado** = implementado y comprobado por prueba automática o
 | RF-16 | Captura de la dimensión temporal | `canvas/timing.ts`, `StrokeBuilder` | 11 pruebas del frontend + validación 422 de tiempos incoherentes | ✅ (los dibujos anteriores a la corrección conservan ceros) |
 | RF-17 | Orientación de la hoja | `canvas/orientation.ts`, `drawings.orientation` | Pruebas del frontend | ✅ |
 | RF-18 | Persistencia del dibujo | `PUT/GET /sessions/{id}/drawing` | Pruebas + dibujo visible en el análisis | ✅ |
-| RF-19 | Consigna y cierre | `PatientWelcomePage`, `PatientClosePage` | Consigna vista en navegador | 🟡 (la pantalla de cierre no se revisó) |
-| RF-20 | Espejo del dibujo en vivo | `CanvasMirror`, Realtime | — (sin dos dispositivos) | 🟡 |
-| RF-21 | Métricas en vivo | `LiveMetrics`, `canvas/metricsCalculator.ts` | — | 🟡 |
+| RF-19 | Consigna y cierre | `PatientWelcomePage`, `PatientClosePage` | Consigna y cierre vistos en navegador | ✅ |
+| RF-20 | Espejo del dibujo en vivo | `CanvasMirror`, Realtime | En vivo con dos pestañas: el dibujo se replica trazo a trazo | ✅ (sin tablet física) |
+| RF-21 | Métricas en vivo | `LiveMetrics`, `canvas/metricsCalculator.ts` | En vivo: tiempo, latencia, trazos, presión y área ocupada | ✅ |
 | RF-22 | Marcas rápidas | `ProtocolPanel`, `POST /sessions/{id}/quick-marks` | Pruebas | ✅ |
 | RF-23 | Observaciones estructuradas | `ObservationsPanel`, `PUT /sessions/{id}/observations` | Pruebas | ✅ |
 | RF-24 | Actitudes observadas | `PUT /sessions/{id}/observations` | Pruebas | ✅ |
-| RF-25 | Estado de conexión | `ExaminerSessionPage` (estado de la tablet) | — | 🟡 |
+| RF-25 | Estado de conexión | `ExaminerSessionPage` (estado de la tablet) | En vivo: «Tablet conectada» / «Sin conexión» | ✅ |
 | RF-26 | Grabar audio | `AudioRecorder`, `POST /sessions/{id}/recordings` | Grabación real del equipo + pruebas | ✅ |
 | RF-27 | Transcribir | `useRecording`, Whisper | Prueba con audio real + navegador (transcripción visible) | ✅ |
 | RF-28 | Extraer verbalizaciones | `/sessions/{id}/verbalizations` | Pruebas | ✅ |
@@ -72,7 +72,7 @@ Estados: **✅ Verificado** = implementado y comprobado por prueba automática o
 | RF-32 | Verificación profesional (checklist) | `AnalysisPage` (pestaña), `GET /tests/{code}/indicators` | Pruebas + navegador | ✅ |
 | RF-33 | Validar o descartar indicadores | `PUT /sessions/{id}/indicators/{code}` | Prueba «reanalizar no pisa lo validado» | ✅ |
 | RF-34 | Motor de reglas configurable | Catálogo en la tabla `indicator_catalog` | Pruebas del catálogo | 🔶 El catálogo es dato; **las reglas de detección de los 23 automáticos están en código** |
-| RF-35 | Generar borrador del informe | `compose_report`, `POST /sessions/{id}/report` | Prueba: deja las nueve secciones | ✅ |
+| RF-35 | Generar borrador del informe | `compose_report`, `POST /sessions/{id}/report` | Prueba: deja las nueve secciones + borrador generado en navegador | ✅ |
 | RF-36 | Editar el informe | `ReportsPage`, `PATCH /reports/{id}/sections/{n}` | — | 🟡 |
 | RF-37 | Validar el informe | `POST /reports/{id}/validate` | Prueba: no se valida con la sugerencia sin revisar | ✅ |
 | RF-38 | Exportar a PDF | `GET /reports/{id}/pdf`, WeasyPrint | Prueba: el PDF contiene las secciones | ✅ (requiere pango en el servidor) |
@@ -80,7 +80,7 @@ Estados: **✅ Verificado** = implementado y comprobado por prueba automática o
 | RF-40 | Panel de indicadores | `DashboardPage`, `GET /dashboard/summary` | Pruebas de aislamiento + navegador | ✅ |
 | RF-41 | Catálogo de tests | `TestCatalogPage`, `GET /tests` | Prueba + navegador | ✅ |
 
-**Resumen:** ✅ 28 · 🟡 9 · 🔶 4 · sin componente 0 → **37 de 41 implementados (90 %)**.
+**Resumen:** ✅ 33 · 🟡 4 · 🔶 4 · sin componente 0 → **37 de 41 implementados (90 %)**. Los 5 que pasaron de 🟡 a ✅ se verificaron en vivo el 28/10 con dos pestañas del navegador (examinador y «tablet»); **falta repetirlo con la tablet física y el lápiz**.
 
 **Ampliación sin RF propio:** agenda de citas y Google Calendar (SPEC-CAL-01): `AppointmentsPage`, `/appointments`, `/integrations/google`; código y pruebas listos, migración `0003` pendiente de aplicar.
 
@@ -88,11 +88,11 @@ Estados: **✅ Verificado** = implementado y comprobado por prueba automática o
 
 ## Anexo 15. Evidencia de control de versiones (qué capturar)
 
-1. Lista de commits de la rama de trabajo en GitHub (36 al corte).
+1. Lista de commits de la rama de trabajo en GitHub (57 al 28/10/2026).
 2. Lista de ramas (`main`, `srs-specs-y-esquema-2fn`, `test`, ramas por integrante).
 3. El *pull request* de `test` a `main` abierto o fusionado.
 4. La pestaña *Contributors* del repositorio. ⚠️ Hoy muestra pocos autores; conviene que cada integrante commitee su parte.
-5. *Tags* de sprint (`sprint-1` … `sprint-6`) y `README.md` en la raíz. ⚠️ **Aún no existen.**
+5. *Tags* de sprint (`sprint-1` … `sprint-6`). ⚠️ **Aún no existen.** El `README.md` de la raíz ya está.
 
 ---
 

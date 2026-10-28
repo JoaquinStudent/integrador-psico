@@ -13,8 +13,8 @@ Corte: **28/10/2026**, rama `test`. Todas las cifras proceden de una corrida rea
 | Resultado | Valor | Fuente |
 |---|---|---|
 | Requerimientos funcionales con componente | **41 de 41** | Anexo 14 |
-| Implementados y verificados (prueba automática o revisión en navegador) | 28 | Anexo 14 |
-| Implementados sin verificación completa | 9 | Anexo 14 |
+| Implementados y verificados (prueba automática o revisión en navegador) | 33 | Anexo 14 |
+| Implementados sin verificación completa | 4 (RF-05, RF-08, RF-36, RF-39) | Anexo 14 |
 | Cubiertos parcialmente | 4 (RF-03, RF-09, RF-31, RF-34) | Anexo 14 |
 | Requerimientos no funcionales especificados | 30 | SRS (Avance 2) |
 
@@ -22,9 +22,9 @@ Corte: **28/10/2026**, rama `test`. Todas las cifras proceden de una corrida rea
 
 | Verificación | Resultado del 28/10/2026 |
 |---|---|
-| Pruebas de backend recogidas | **153** |
-| Pruebas de backend sin red ni base de datos | **67 de 67 pasan** |
-| Pruebas contra la base real | 83 pasan · 1 omitida · **9 fallan por dos pendientes de despliegue** (ver abajo), ninguna por regresión |
+| Pruebas de backend recogidas | **156** |
+| Pruebas de backend sin red ni base de datos | **70 de 70 pasan** |
+| Pruebas contra la base real (corrida completa del 28/10, antes de agregar las últimas pruebas sin red) | 83 pasan · 1 omitida · **9 fallan por dos pendientes de despliegue** (ver abajo), ninguna por regresión |
 | Pruebas del frontend | 11 de 11 pasan |
 | Frontera hexagonal (`check-hexagon.sh`) | **OK**: el dominio no importa infraestructura |
 | Linter del backend (Ruff) | Sin errores en `src` y `tests` |
@@ -70,8 +70,8 @@ Durante la revisión del lienzo se encontró y corrigió un defecto que afectaba
 | Aspecto | Estado |
 |---|---|
 | Latencia del espejo en vivo (RNF-01: < 1 s; objetivo de diseño < 200 ms) | ⚠️ **No medida**. Es parte de AUD-04 |
-| Espejo en vivo con la tablet física y el lápiz | ⚠️ Sin verificar en esta auditoría |
-| Recorrido completo hasta el PDF en navegador | ⚠️ Pendiente (generar el informe consume el servicio de lenguaje) |
+| Espejo en vivo con la tablet física y el lápiz | ⚠️ Verificado con **dos pestañas del navegador** (examinador y «tablet»: espejo, métricas y conexión funcionan); **no** con la tablet y el lápiz físicos |
+| Recorrido completo hasta el PDF en navegador | ⚠️ Verificado hasta el **borrador del informe** (consentimiento, tablet, espejo, análisis, generación); **faltan** validar el informe y descargar el PDF |
 | Latencia de la API contra la base remota | Medida: ~1,2 s de base por petición (la base está lejos del servidor); la lista de sesiones, ~2,5 s |
 | Usabilidad (escala SUS ≥ 68, objetivo 3) | ⚠️ **No aplicada** |
 
