@@ -7,6 +7,8 @@ import type { SessionIndicator } from '../types/api'
 import { generateReport } from '../lib/reports'
 import { loadDrawingData } from '../lib/drawingData'
 import { CanvasMirror } from '../canvas/CanvasMirror'
+import { RecordingCard } from '../components/session/RecordingCard'
+import { useRecording } from '../lib/useRecording'
 import type { Stroke } from '../canvas/types'
 
 type Tab = 'objective' | 'detected' | 'verification'
@@ -21,6 +23,7 @@ export function AnalysisPage() {
   const [analyzing, setAnalyzing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [strokes, setStrokes] = useState<Stroke[] | null>(null)
+  const rec = useRecording(sessionId)
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set())
 
   useEffect(() => {
@@ -151,6 +154,15 @@ export function AnalysisPage() {
                 ? <div className="drawing-placeholder">La sesión no tiene dibujo registrado.</div>
                 : <CanvasMirror strokes={strokes} />}
           </div>
+          <RecordingCard
+            recording={rec.recording}
+            segments={rec.segments}
+            audioUrl={rec.audioUrl}
+            loading={rec.loading}
+            transcribing={rec.transcribing}
+            error={rec.error}
+            onTranscribe={() => rec.recording && void rec.transcribe(rec.recording)}
+          />
         </div>
 
         {/* Right: Tabs */}

@@ -2,10 +2,10 @@ import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { api, mensajeDeError } from '../lib/apiClient'
 import { SessionTimeline } from '../components/session/SessionTimeline'
+import { RecordingCard } from '../components/session/RecordingCard'
+import { useRecording } from '../lib/useRecording'
 import type {
   Observations,
-  Recording,
-  TranscriptSegment,
   Verbalization,
 } from '../types/api'
 
@@ -15,10 +15,10 @@ export function PostSessionPage() {
   const [patient, setPatient] = useState<{ full_name: string } | null>(null)
   const [notes, setNotes] = useState('')
   const [marks, setMarks] = useState<Observations['quick_marks']>([])
-  const [segments, setSegments] = useState<TranscriptSegment[]>([])
-  const [recording, setRecording] = useState<Recording | null>(null)
+  // Transcribe sola al abrir si hay audio sin transcribir (una vez; reintento manual).
+  const rec = useRecording(sessionId, true)
+  const { recording, segments } = rec
   const [verbalizations, setVerbalizations] = useState<Verbalization[]>([])
-  const [transcribing, setTranscribing] = useState(false)
   const [promoviendo, setPromoviendo] = useState(false)
   const [transcribeError, setTranscribeError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
@@ -33,36 +33,9 @@ export function PostSessionPage() {
     setMarks(observations.quick_marks)
 
     setVerbalizations(await api.get<Verbalization[]>(`/sessions/${sessionId}/verbalizations`))
-
-    const grabaciones = await api.get<Recording[]>(`/sessions/${sessionId}/recordings`)
-    const ultima = grabaciones[0] ?? null
-    setRecording(ultima)
-    // Si ya se transcribió antes, se lee lo guardado en vez de volver a pagarle al
-    // proveedor: la transcripción vive en `transcript_segments`, no en memoria.
-    if (ultima?.transcribed_at) {
-      setSegments(await api.get<TranscriptSegment[]>(`/recordings/${ultima.id}/transcript`))
-    }
   }, [sessionId])
 
   useEffect(() => { void cargar() }, [cargar])
-
-  async function handleTranscribe() {
-    if (!recording) return
-    setTranscribing(true)
-    setTranscribeError(null)
-    try {
-      setSegments(
-        await api.post<TranscriptSegment[]>(`/recordings/${recording.id}/transcribe`),
-      )
-      setRecording({ ...recording, transcribed_at: new Date().toISOString() })
-    } catch (error) {
-      // El error se muestra. Que el proveedor no esté disponible es información que el
-      // examinador necesita para decidir si reintenta o escribe a mano.
-      setTranscribeError(mensajeDeError(error))
-    } finally {
-      setTranscribing(false)
-    }
-  }
 
   /** Promueve una frase del audio a verbalización del paciente para el informe. */
   async function promover(texto: string, offsetMs: number) {
@@ -121,14 +94,17 @@ export function PostSessionPage() {
         <div className="post-section">
           <div className="post-section-head">
             <h2>Línea de tiempo de la sesión</h2>
-            {recording && !recording.transcribed_at && (
-              <button className="btn-transcribe" onClick={handleTranscribe} disabled={transcribing}>
-                {transcribing ? 'Transcribiendo...' : 'Transcribir con Whisper'}
-              </button>
-            )}
           </div>
 
-          {!recording && <p className="no-audio">No se grabó audio en esta sesión.</p>}
+          <RecordingCard
+            recording={rec.recording}
+            segments={rec.segments}
+            audioUrl={rec.audioUrl}
+            loading={rec.loading}
+            transcribing={rec.transcribing}
+            error={rec.error}
+            onTranscribe={() => rec.recording && void rec.transcribe(rec.recording)}
+          />
           {transcribeError && <p className="transcription-error">{transcribeError}</p>}
 
           <SessionTimeline

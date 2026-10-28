@@ -7,7 +7,7 @@ from pathlib import PurePosixPath
 from uuid import UUID
 
 import httpx
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, File, Form, HTTPException, Response, UploadFile, status
 
 from .....adapter.outbound.storage import StorageNoDisponible, download
 from .....adapter.outbound.whisper.transcriber import (
@@ -127,3 +127,22 @@ async def transcript(recording_id: UUID, audio: Audio) -> list[TranscriptSegment
     await audio.get(recording_id)
     rows = await audio.transcript(recording_id)
     return [TranscriptSegmentOut.model_validate(row) for row in rows]
+
+
+@router.get("/recordings/{recording_id}/audio")
+async def audio_de_la_grabacion(recording_id: UUID, audio: Audio) -> Response:
+    """Entrega el audio al examinador dueno de la sesion para que lo escuche.
+
+    El bucket es privado y el navegador no tiene la clave de Storage (RNF-12), asi que
+    el audio pasa por aqui. `audio.get` aplica RLS: la grabacion de otro examinador es 404.
+    """
+    grabacion = await audio.get(recording_id)
+    try:
+        datos = await download(grabacion.storage_path)
+    except StorageNoDisponible as exc:
+        raise HTTPException(status.HTTP_502_BAD_GATEWAY, str(exc)) from exc
+    return Response(
+        content=datos,
+        media_type="audio/webm",
+        headers={"Cache-Control": "private, max-age=3600"},
+    )
