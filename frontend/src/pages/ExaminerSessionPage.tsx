@@ -9,12 +9,12 @@ import { LiveMetrics } from '../components/session/LiveMetrics'
 import { ObservationsPanel } from '../components/session/ObservationsPanel'
 import { ProtocolPanel } from '../components/session/ProtocolPanel'
 import { TabletLinkCard } from '../components/session/TabletLinkCard'
-import { useSession, finalizeSession } from '../lib/sessions'
+import { useSession, finalizeSession, cancelSession } from '../lib/sessions'
 import { createSessionChannel, subscribeToStrokes, subscribeToMetrics, subscribeToStatus, type TabletStatus } from '../lib/realtime'
 import { AudioRecorder } from '../components/session/AudioRecorder'
 import { createAudioRecorder, type AudioRecorderState } from '../lib/audioRecorder'
 import { faseDeSesion } from '../lib/protocoloPbll'
-import { api } from '../lib/apiClient'
+import { api, mensajeDeError } from '../lib/apiClient'
 import type { Consent } from '../types/api'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 
@@ -181,6 +181,18 @@ export function ExaminerSessionPage() {
     navigate(`/sesion/${sessionId}/observaciones`)
   }
 
+  const handleCancel = async () => {
+    if (!sessionId || !confirm('¿Cancelar esta sesión? Quedará registrada como cancelada y no se podrá reanudar.')) return
+    // Mismo motivo que al finalizar: parar el grabador antes de salir de la pantalla.
+    if (audio.status === 'recording') recorderRef.current?.stop()
+    try {
+      await cancelSession(sessionId)
+      navigate('/sesiones')
+    } catch (e) {
+      alert(mensajeDeError(e))
+    }
+  }
+
   if (loading) return <div style={{ padding: 40, color: '#6B6885' }}>Cargando sesión...</div>
   if (!session) return <div style={{ padding: 40 }}>Sesión no encontrada</div>
 
@@ -254,6 +266,7 @@ export function ExaminerSessionPage() {
           <AudioRecorder state={audio} onToggle={alternarGrabacion} allowed={audioPermitido} />
         </div>
         <div className="session-bar-right">
+          <button className="btn btn-secondary" onClick={handleCancel}>Cancelar sesión</button>
           <button className="btn-finalize" onClick={handleFinalize}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
             Finalizar sesión

@@ -106,7 +106,11 @@ def test_catalogo_de_tests(cliente_a):
 def test_catalogo_de_indicadores(cliente_a):
     r = cliente_a.get("/api/v1/tests/PBLL/indicators")
     assert r.status_code == 200
-    assert len(r.json()) == 201
+    codigos = [i["code"] for i in r.json()]
+    # C y D no se modelan (Cap. 1, Lin et al. 2022). Si falla, falta correr
+    # sdd/database/seed-catalog.sql: el seed desactiva las filas que dejo una siembra anterior.
+    assert not [c for c in codigos if c.startswith(("EXP-", "DEF-"))]
+    assert len(codigos) == 183
 
 
 def test_checklist_de_verificacion_profesional(cliente_a):
@@ -124,6 +128,38 @@ def test_indicadores_por_seccion(cliente_a):
 def test_marcas_y_actitudes(cliente_a):
     assert len(cliente_a.get("/api/v1/catalogs/quick-marks").json()) == 6
     assert len(cliente_a.get("/api/v1/catalogs/attitudes").json()) == 8
+
+
+# =============================================================================
+# Perfil profesional (RF-02)
+# =============================================================================
+
+
+def test_el_perfil_es_el_propio(cliente_a):
+    r = cliente_a.get("/api/v1/profile")
+    assert r.status_code == 200, r.text
+    assert r.json()["full_name"]
+
+
+def test_actualizar_perfil_persiste_matricula_y_especialidad(cliente_a):
+    r = cliente_a.patch(
+        "/api/v1/profile",
+        json={"license_number": "CPsP 12345", "specialty": "Psicologia clinica"},
+    )
+    assert r.status_code == 200, r.text
+    otra = cliente_a.get("/api/v1/profile").json()
+    assert otra["license_number"] == "CPsP 12345"
+    assert otra["specialty"] == "Psicologia clinica"
+
+
+def test_el_perfil_no_acepta_nombre_vacio(cliente_a):
+    assert cliente_a.patch("/api/v1/profile", json={"full_name": "  "}).status_code == 422
+
+
+def test_editar_mi_perfil_no_toca_el_de_otro_examinador(cliente_a, cliente_b):
+    antes = cliente_b.get("/api/v1/profile").json()
+    cliente_a.patch("/api/v1/profile", json={"specialty": "Solo de A"})
+    assert cliente_b.get("/api/v1/profile").json() == antes
 
 
 # =============================================================================
@@ -280,6 +316,23 @@ def test_finalizar_es_idempotente(cliente_a):
     _activar(cliente_a, sid)
     assert cliente_a.post(f"/api/v1/sessions/{sid}/finalize").status_code == 200
     assert cliente_a.post(f"/api/v1/sessions/{sid}/finalize").status_code == 200
+
+
+def test_cancelar_una_sesion_activa_la_conserva_como_cancelada(cliente_a):
+    """RF-13: la sesión cancelada queda registrada, no se borra."""
+    sid = _sesion(cliente_a)
+    _activar(cliente_a, sid)
+    r = cliente_a.patch(f"/api/v1/sessions/{sid}", json={"status": "cancelled"})
+    assert r.status_code == 200, r.text
+    assert r.json()["status"] == "cancelled"
+    assert cliente_a.get(f"/api/v1/sessions/{sid}").json()["status"] == "cancelled"
+
+
+def test_una_sesion_cancelada_no_se_reabre_ni_se_finaliza(cliente_a):
+    sid = _sesion(cliente_a)
+    cliente_a.patch(f"/api/v1/sessions/{sid}", json={"status": "cancelled"})
+    assert cliente_a.patch(f"/api/v1/sessions/{sid}", json={"status": "active"}).status_code == 409
+    assert cliente_a.post(f"/api/v1/sessions/{sid}/finalize").status_code == 409
 
 
 # =============================================================================

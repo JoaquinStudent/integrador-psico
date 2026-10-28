@@ -5,6 +5,9 @@ import { PBLL_INDICATORS, INDICATOR_SECTIONS, INDICATOR_CATEGORIES } from '../da
 import { analyzeDrawing } from '../lib/analyzeDrawing'
 import type { SessionIndicator } from '../types/api'
 import { generateReport } from '../lib/reports'
+import { loadDrawingData } from '../lib/drawingData'
+import { CanvasMirror } from '../canvas/CanvasMirror'
+import type { Stroke } from '../canvas/types'
 
 type Tab = 'objective' | 'detected' | 'verification'
 
@@ -17,11 +20,14 @@ export function AnalysisPage() {
   const [patient, setPatient] = useState<{ full_name: string } | null>(null)
   const [analyzing, setAnalyzing] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [strokes, setStrokes] = useState<Stroke[] | null>(null)
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     if (!sessionId) return
     loadData()
+    // El dibujo se repinta desde los trazos guardados: no pasa por Storage.
+    loadDrawingData(sessionId).then(setStrokes).catch(() => setStrokes([]))
   }, [sessionId])
 
   async function loadData() {
@@ -139,7 +145,11 @@ export function AnalysisPage() {
             {patient && <span className="drawing-patient">Paciente: {patient.full_name}</span>}
           </div>
           <div className="drawing-preview">
-            <div className="drawing-placeholder">La imagen se cargará desde el Storage privado.</div>
+            {strokes === null
+              ? <div className="drawing-placeholder">Cargando dibujo…</div>
+              : strokes.length === 0
+                ? <div className="drawing-placeholder">La sesión no tiene dibujo registrado.</div>
+                : <CanvasMirror strokes={strokes} />}
           </div>
         </div>
 

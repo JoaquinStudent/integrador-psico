@@ -41,6 +41,30 @@ class Conflict(Exception):
 
 
 # =============================================================================
+# Perfil profesional
+# =============================================================================
+
+
+class ProfileStore:
+    def __init__(self, session: AsyncSession, user_id: UUID) -> None:
+        self._s = session
+        self._uid = user_id
+
+    async def get(self) -> m.Profile:
+        row = await self._s.get(m.Profile, self._uid)
+        if row is None:
+            raise NotFound("perfil")
+        return row
+
+    async def save(self, data: dict) -> m.Profile:
+        row = await self.get()
+        for campo, valor in data.items():
+            setattr(row, campo, valor)
+        await self._s.flush()
+        return row
+
+
+# =============================================================================
 # Pacientes
 # =============================================================================
 

@@ -18,7 +18,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from ....config.settings import get_settings
 from ...outbound.postgres.store import Conflict, NotFound
-from .routers import analysis, audio, catalogs, dashboard, patients, reports, sessions
+from .routers import analysis, audio, catalogs, dashboard, patients, profile, reports, sessions
 
 PROBLEM_JSON = "application/problem+json"
 logger = logging.getLogger("psicograma")
@@ -108,6 +108,7 @@ def create_app() -> FastAPI:
 
     app.include_router(catalogs.router, prefix=settings.api_prefix)
     app.include_router(patients.router, prefix=settings.api_prefix)
+    app.include_router(profile.router, prefix=settings.api_prefix)
     app.include_router(sessions.router, prefix=settings.api_prefix)
     app.include_router(analysis.router, prefix=settings.api_prefix)
     app.include_router(audio.router, prefix=settings.api_prefix)

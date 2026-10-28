@@ -31,6 +31,7 @@ from ..adapter.outbound.postgres.store import (
     DrawingStore,
     ObservationStore,
     PatientStore,
+    ProfileStore,
     ReportStore,
     SessionStore,
 )
@@ -117,3 +118,10 @@ def report_store(session: DbSession, user_id: CurrentUser) -> ReportStore:
 
 
 Reports = Annotated[ReportStore, Depends(report_store)]
+
+
+def profile_store(session: DbSession, user_id: CurrentUser) -> ProfileStore:
+    return ProfileStore(session, user_id)
+
+
+Profiles = Annotated[ProfileStore, Depends(profile_store)]

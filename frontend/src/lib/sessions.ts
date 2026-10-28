@@ -67,3 +67,8 @@ export async function finalizeSession(sessionId: string, metrics: FinalMetrics) 
   void metrics
   await api.post(`/sessions/${sessionId}/finalize`)
 }
+
+/** RF-13: la sesión queda registrada como cancelada, no se borra. */
+export async function cancelSession(sessionId: string) {
+  await api.patch(`/sessions/${sessionId}`, { status: 'cancelled' })
+}

@@ -13,7 +13,7 @@ import { PatientDrawingPage } from './pages/PatientDrawingPage'
 import { PatientClosePage } from './pages/PatientClosePage'
 import { TabletEntryPage } from './pages/TabletEntryPage'
 import { ExaminerSessionPage } from './pages/ExaminerSessionPage'
-import { PlaceholderPage } from './pages/PlaceholderPage'
+import { SettingsPage } from './pages/SettingsPage'
 import { AnalysisPage } from './pages/AnalysisPage'
 import { PostSessionPage } from './pages/PostSessionPage'
 import { SessionsPage } from './pages/SessionsPage'
@@ -48,7 +48,7 @@ export default function App() {
             <Route path="sesion/:id/analisis" element={<AnalysisPage />} />
             <Route path="informes" element={<ReportsPage />} />
             <Route path="informes/:id" element={<ReportsPage />} />
-            <Route path="ajustes" element={<PlaceholderPage />} />
+            <Route path="ajustes" element={<SettingsPage />} />
           </Route>
         </Routes>
       </AuthProvider>

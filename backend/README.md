@@ -14,6 +14,20 @@ uv run uvicorn psicograma.adapter.inbound.http.app:app --reload
 - API: http://localhost:8000
 - OpenAPI: http://localhost:8000/docs
 
+### Exportar PDF (RF-38)
+
+El PDF usa WeasyPrint, que necesita pango del sistema:
+
+```bash
+brew install pango                                  # una vez
+uv sync --extra pdf --group dev                     # una vez
+DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib \
+  uv run uvicorn psicograma.adapter.inbound.http.app:app --reload
+```
+
+Sin esa variable en macOS, `GET /reports/{id}/pdf` responde 502 "WeasyPrint no esta
+instalado" aunque el paquete este instalado (falla el enlace con pango, no el import).
+
 ## Verificacion
 
 ```bash
@@ -72,15 +86,15 @@ primera capa; RLS es la segunda. El rol de conexion **no** debe tener `BYPASSRLS
 | Pieza | Estado |
 |---|---|
 | Modelo de dominio + puertos | Hecho |
-| Medicion objetiva (7 metricas) | Hecho, 14 tests |
-| Motor de indicadores `auto` (DIM, UBI, PRE, TMP, BOR) | Hecho |
-| App FastAPI + auth JWT + errores RFC 9457 + `/health` | Hecho |
-| Motor + engine Postgres | Configurado, sin repositorios aun |
-| Repositorios, routers, Whisper, LLM, PDF | Pendiente — requiere el schema aplicado |
-| Alembic | Pendiente |
+| Medicion objetiva (7 metricas) y motor de indicadores | Hecho, 14 tests sin red |
+| App FastAPI + auth JWT (ES256/JWKS) + errores RFC 9457 + `/health` | Hecho |
+| Repositorios, stores y routers (pacientes, sesiones, analisis, audio, informes, panel, perfil) | Hecho, tests de integracion contra Supabase |
+| Whisper (transcripcion) y OpenRouter (secciones 5, 7 y 8) | Hecho, con respaldo determinista |
+| PDF del informe | Hecho; requiere pango (ver arriba) |
+| Alembic | Hecho, revisiones 0001 y 0002 |
 
-El siguiente paso depende de aplicar `sdd/database/schema.sql` y correr
-`sdd/database/seed-catalog.sql` contra Supabase.
+Riesgos abiertos de seguridad: R-07 (canal realtime sin token) y R-08 (rol de conexion
+con `BYPASSRLS`). Detalle en `sdd/informe-sprints.md`.
 
 ## Contrato
 

@@ -360,3 +360,26 @@ class DashboardSummary(Model):
     pending_analysis: int
     active_patients: int
     recent_sessions: list[SessionOut]
+
+
+# --- Perfil profesional -------------------------------------------------------
+
+
+class ProfileOut(Model):
+    id: UUID
+    full_name: str
+    license_number: str | None
+    specialty: str | None
+
+
+class ProfilePatch(Model):
+    full_name: str | None = None
+    license_number: str | None = None
+    specialty: str | None = None
+
+    @field_validator("full_name")
+    @classmethod
+    def _nombre_no_vacio(cls, v: str | None) -> str | None:
+        if v is not None and not v.strip():
+            raise ValueError("el nombre no puede quedar vacio")
+        return v.strip() if v else v
