@@ -377,3 +377,34 @@ class ReportSection(Base):
     is_ai_generated: Mapped[bool] = mapped_column(Boolean, server_default=FetchedValue())
     edited_by_examiner: Mapped[bool] = mapped_column(Boolean, server_default=FetchedValue())
     updated_at: Mapped[dt.datetime] = mapped_column(TS, server_default=FetchedValue())
+
+
+# =============================================================================
+# Agenda y Google Calendar (SPEC-CAL-01)
+# =============================================================================
+
+
+class Appointment(Base):
+    __tablename__ = "appointments"
+
+    id: Mapped[uuid.UUID] = pk()
+    patient_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("patients.id"))
+    test_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tests.id"))
+    created_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("profiles.id"))
+    starts_at: Mapped[dt.datetime] = mapped_column(TS)
+    ends_at: Mapped[dt.datetime] = mapped_column(TS)
+    status: Mapped[str] = mapped_column(Text, server_default=FetchedValue())
+    notes: Mapped[str | None] = mapped_column(Text)
+    session_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("sessions.id"))
+    google_event_id: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[dt.datetime] = mapped_column(TS, server_default=FetchedValue())
+
+
+class GoogleConnection(Base):
+    __tablename__ = "google_connections"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("profiles.id"), primary_key=True
+    )
+    refresh_token: Mapped[str] = mapped_column(Text)
+    connected_at: Mapped[dt.datetime] = mapped_column(TS, server_default=FetchedValue())
