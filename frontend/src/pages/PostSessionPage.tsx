@@ -86,7 +86,7 @@ export function PostSessionPage() {
   return (
     <div className="post-session-page">
       <div className="post-session-header">
-        <h1>Observaciones Post-Sesion</h1>
+        <h1>Observaciones post-sesión</h1>
         {patient && <span className="post-patient-name">{patient.full_name}</span>}
       </div>
 
@@ -132,7 +132,7 @@ export function PostSessionPage() {
             className="post-notes-input"
             value={notes}
             onChange={e => setNotes(e.target.value)}
-            placeholder="Agrega observaciones sobre la conducta del paciente, verbalizaciones, actitud durante la sesion..."
+            placeholder="Agrega observaciones sobre la conducta del paciente, verbalizaciones, actitud durante la sesión…"
             rows={8}
           />
           <button className="btn-save-notes" onClick={handleSave} disabled={saving}>
@@ -143,7 +143,7 @@ export function PostSessionPage() {
 
       <div className="post-session-footer">
         <button className="btn-back" onClick={() => navigate('/sesiones')}>Volver a sesiones</button>
-        <button className="btn-continue" onClick={handleContinue}>Continuar al analisis</button>
+        <button className="btn-continue" onClick={handleContinue}>Continuar al análisis</button>
       </div>
     </div>
   )

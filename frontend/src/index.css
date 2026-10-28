@@ -13,6 +13,13 @@
   --color-border: rgba(107, 95, 168, 0.2);
   --color-border-active: #6B5FA8;
 
+  /* Alias: estos nombres se usaban en el CSS sin estar definidos (fondos y botones invisibles). */
+  --color-action: var(--color-primary);
+  --color-background: var(--color-bg);
+  --text-secondary: var(--color-text-secondary);
+  --border: var(--color-border);
+  --radius-md: 8px;
+
   --color-amber: #C97A1F;
   --color-amber-bg: rgba(201, 122, 31, 0.1);
   --color-green: #2E7D5B;
@@ -132,7 +139,15 @@ body {
   cursor: not-allowed;
 }
 
+a.btn, a.btn:hover { text-decoration: none; }
+
 .btn-link {
+  /* También se usa en <button>: sin esto el navegador lo pinta como botón gris. */
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  cursor: pointer;
   color: var(--color-primary);
   text-decoration: none;
   font-weight: 600;
@@ -952,7 +967,11 @@ body {
   margin-bottom: 16px;
 }
 
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
 .summary-label {
+  display: block;
+  margin-bottom: 4px;
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
@@ -1421,6 +1440,7 @@ body {
   padding: 20px;
   display: flex;
   flex-direction: column;
+  overflow-y: auto; /* el dibujo va primero; grabación y transcripción desplazan debajo */
 }
 .drawing-meta {
   display: flex;
@@ -1441,7 +1461,8 @@ body {
   border: 1px solid var(--color-border);
 }
 .drawing-preview {
-  flex: 1;
+  flex: 0 0 auto;
+  min-height: 260px;
   background: var(--color-background);
   border-radius: 12px;
   overflow: hidden;
@@ -2202,3 +2223,23 @@ body {
 .filter-count { display: inline-block; min-width: 20px; margin-left: 4px; padding: 0 6px; border-radius: 10px; background: rgba(107, 95, 168, 0.12); font-size: 0.75rem; font-variant-numeric: tabular-nums; text-align: center; }
 .filter-chip.active .filter-count { background: rgba(255, 255, 255, 0.25); }
 .data-table .cell-action { text-align: right; white-space: nowrap; }
+
+/* Panel: próximas citas */
+.upcoming-list { list-style: none; margin: 0; padding: 4px 16px; }
+.upcoming-list li { display: grid; gap: 2px; padding: 12px 0; border-bottom: 1px solid var(--color-border, #E6E4F0); font-size: 14px; }
+.upcoming-list li:last-child { border-bottom: none; }
+.dashboard-sidebar .section-title { margin: 0 0 12px; }
+
+/* Avisos (reemplazan a alert()) */
+.toast {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 50;
+  display: flex; align-items: flex-start; gap: 12px; max-width: min(560px, calc(100vw - 32px));
+  padding: 12px 16px; border-radius: var(--radius); font-size: 14px; line-height: 1.45;
+  box-shadow: 0 8px 24px rgba(37, 29, 75, 0.18); background: #fff; border: 1px solid var(--color-border);
+}
+.toast-error { border-left: 4px solid #C0523F; color: #8A2F20; }
+.toast-info { border-left: 4px solid var(--color-primary); color: var(--color-text); }
+.toast-close { background: none; border: none; font-size: 18px; line-height: 1; cursor: pointer; color: inherit; padding: 0 2px; }
+.indicator-info { margin: 4px 0 10px 32px; padding: 8px 12px; font-size: 13px; line-height: 1.5; background: var(--color-bg); border-left: 3px solid var(--color-primary); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+.validate-hint { font-size: 13px; color: var(--color-text-secondary); margin: 0 0 12px; }
+.notes-hint { font-size: 12px; line-height: 1.45; color: var(--color-amber); margin: 0 0 8px; }

@@ -94,15 +94,15 @@ export function detectObjectiveIndicators(input: ObjectiveMeasurementInput): Det
     const strokesPerSec = elapsedSec > 0 ? metrics.strokeCount / elapsedSec : 0
 
     if (p < THRESHOLDS.pressureWeak && strokesPerSec > THRESHOLDS.strokeSpeedFast) {
-      add('PRE-02', 'medium', `Presion: ${p.toFixed(2)}, velocidad: ${strokesPerSec.toFixed(2)} trazos/s`)
+      add('PRE-02', 'medium', `Presión: ${p.toFixed(2)}, velocidad: ${strokesPerSec.toFixed(2)} trazos/s`)
     } else if (p < THRESHOLDS.pressureWeak) {
-      add('PRE-03', 'medium', `Presion: ${p.toFixed(2)} (debil)`)
+      add('PRE-03', 'medium', `Presión: ${p.toFixed(2)} (débil)`)
     } else if (p >= THRESHOLDS.pressureVeryStrong) {
-      add('PRE-06', 'high', `Presion: ${p.toFixed(2)} (muy fuerte)`)
+      add('PRE-06', 'high', `Presión: ${p.toFixed(2)} (muy fuerte)`)
     } else if (p >= THRESHOLDS.pressureStrong) {
-      add('PRE-04', 'medium', `Presion: ${p.toFixed(2)} (fuerte)`)
+      add('PRE-04', 'medium', `Presión: ${p.toFixed(2)} (fuerte)`)
     } else {
-      add('PRE-01', 'high', `Presion: ${p.toFixed(2)} (normal)`)
+      add('PRE-01', 'high', `Presión: ${p.toFixed(2)} (normal)`)
     }
   }
 

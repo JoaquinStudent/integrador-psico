@@ -36,7 +36,7 @@ export function AudioRecorder({ state, onToggle, allowed }: Props) {
         className={`audio-rec-btn ${isRecording ? 'recording' : ''}`}
         onClick={onToggle}
         disabled={isUploading}
-        title={isRecording ? 'Detener grabacion' : 'Grabar audio'}
+        title={isRecording ? 'Detener grabación' : 'Grabar audio'}
       >
         {isRecording ? (
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
